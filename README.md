@@ -34,6 +34,8 @@ There are several components to the experiment harness:
 
 ## Initial Examples
 
+### Fusion Application
+
 Run XGC fusion simulation on Titan and Cori, with no data reduction, and with
 SZ. Compare the following performance characteristics:
 
@@ -47,4 +49,26 @@ With instrumentation of application (XGC) and/or ADIOS:
 - time in data reduction and inflation routines
 - high water mark memory usage
 
-TODO: add cancer machine learning app example
+Accuracy evaluation (future)
+
+- Computer difference between floating point output with no compression vs
+  with SZ.
+
+Data is of two types - a mesh with custom geometry (very irregular), and
+particle information. Both are five dimensional (3 spacial and 2 velocity).
+
+### CANDLE Application
+
+Run machine learning / genetic algorithm simulation on Beagle with parameter
+sweep, and produce HTML report with results of different parameters. Capture
+the following for each set of parameters:
+
+- run time - total, per node
+
+The parameter sweep is implemented via a swift script, either calling the
+main function with different args via an embedded Python interpreter, or via
+a main shell script wrapping a call a custom python interpreter.
+
+Future work:
+
+- add some way of evaluating solution quality, other than just wall time
