@@ -1,0 +1,21 @@
+experiment:
+  name: pi-small-one-node
+  app:
+    script: run-pi.sh
+  scheduler:
+    type: pbs
+    runner: aprun
+    runner-defaults:
+      runner-n: 1
+      runner-N: 1
+    scheduler-defaults:
+      scheduler-A: CSC242
+      scheduler-N: 1
+  parameter-sets:
+    - app-method: [mc, trap]
+      app-iterations:
+        range-start: 10
+        range-end: 1000000000
+        range-multiplier: 10
+    - app-method: [atan]
+      app-iterations: [10, 100, 1000]
