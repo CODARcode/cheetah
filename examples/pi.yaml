@@ -2,16 +2,17 @@ experiment:
   name: pi-small-one-node
   app:
     script: run-pi.sh
+    max-walltime: 01:00:00
   scheduler:
     type: pbs
-    runner: aprun
-    runner-defaults:
-      runner-n: 1
-      runner-N: 1
-    scheduler-defaults:
-      scheduler-A: CSC242
-      scheduler-N: 1
-  parameter-sets:
+    parameters:
+      A: CSC242
+  runner:
+    type: aprun
+    parameters:
+      n: 1
+      N: 1
+  parameter-groups:
     - app-method: [mc, trap]
       app-iterations:
         range-start: 10
@@ -19,3 +20,4 @@ experiment:
         range-multiplier: 10
     - app-method: [atan]
       app-iterations: [10, 100, 1000]
+      runner-n: [1, 2]
