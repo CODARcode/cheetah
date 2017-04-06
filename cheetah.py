@@ -106,27 +106,31 @@ class RunParameters(object):
     """
     Parameters to run a single instance of the application.
     """
-    def __init__(self, data):
-        self.app = {}
-        self.runner = {}
+    def __init__(self, runner, app_script, data):
+        self.runner = runner
+        self.app_script = app_script
+        self.app_parameters = {}
+        # start with default values, may be overridden by parameter
+        # group data below
+        self.runner_parameters = dict(runner.parameters)
         for k, v in data.items():
             if k.startswith('app-'):
                 k = k[len('app-'):]
-                self.app[k] = v
+                self.app_parameters[k] = v
             elif k.startswith('runner-'):
                 k = k[len('runner-'):]
-                self.runner[k] = v
+                self.runner_parameters[k] = v
             else:
                 raise ValueError('parameter group keys must start with "app-"'
                                  ' or "runner-" (got "%s")' % k)
 
-    def get_command(self, runner, app_script):
-        app_command = app_script
-        runner_command = runner
-        for k, v in self.app.items():
+    def get_command(self):
+        app_command = self.app_script
+        runner_command = self.runner.type
+        for k, v in self.app_parameters.items():
             v = str(v)
             app_command += ' --' + k + '=' + v
-        for k, v in self.runner.items():
+        for k, v in self.runner_parameters.items():
             v = str(v)
             # TODO: quoting
             runner_command += ' -' + k + ' ' + v
@@ -144,13 +148,13 @@ class Experiment(object):
             self.run_parameters_list = []
             for pgroup in self.experiment['parameter-groups']:
                 for pdict in parameter_group_to_cross_product_iter(pgroup):
-                    self.run_parameters_list.append(RunParameters(pdict))
+                    rps = RunParameters(self.runner, self.app.script, pdict)
+                    self.run_parameters_list.append(rps)
         except KeyError as e:
             raise ValueError('Missing required key in experiment: %s' % e)
 
     def get_commands(self):
-        return [rp.get_command(self.runner.type, self.app.script)
-                for rp in self.run_parameters_list]
+        return [rp.get_command() for rp in self.run_parameters_list]
 
 
 if __name__ == '__main__':
