@@ -143,3 +143,10 @@ in same output file), the name of the variable to substitute, and the values.
 
 Could have special support for common formats: e.g. xpath/jpath for setting
 values in XML or JSON, some way of specifying how to update an INI, etc
+
+## Working Directory and Output Directory
+
+Cheetah must use a working directory that is suitable for the application,
+ensure that scheduler files go to the run output directory, and pass
+appropriate parameters to the application so application output goes to the run
+output directory.
