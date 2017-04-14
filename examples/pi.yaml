@@ -2,11 +2,11 @@ experiment:
   name: pi-small-one-node
   app:
     script: run-pi.sh
-    max-walltime: 01:00:00
   scheduler:
     type: pbs
-    parameters:
-      A: CSC242
+    project: CSC242
+    nodes: 1
+    walltime: 01:00:00
   runner:
     type: aprun
     parameters:

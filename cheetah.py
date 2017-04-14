@@ -7,14 +7,48 @@ import sys
 
 import yaml
 
+from codar.cheetah import pbs
+
 
 def test_parse(experiment_spec_path, out_dir):
+    """
+    Test parsing of experiment YAML into an Experiment object and generation
+    of run commands.
+    """
     with open(experiment_spec_path) as f:
         data = yaml.load(f)
     print(data)
-    e = Experiment(data)
-    for cmd in e.get_commands():
+    ex = Experiment(data)
+    for cmd in ex.get_commands():
         print(cmd)
+
+
+def test_pbs(experiment_spec_path, out_dir):
+    """
+    Test parsing experiment and generating the experiment dir with a run.sh
+    script and a pbs job file.
+    """
+    with open(experiment_spec_path) as f:
+        data = yaml.load(f)
+    ex = Experiment(data)
+    # TODO: autogen this
+    scheduler_dir = os.path.join(out_dir, 'pbs-nodes-1')
+    scheduler_dir = os.path.abspath(scheduler_dir)
+    try:
+        os.makedirs(scheduler_dir)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    with pbs.open_pbs_file(scheduler_dir, ex.name,
+                           ex.scheduler.project,
+                           ex.scheduler.nodes,
+                           ex.scheduler.walltime) as f:
+        for cmd in ex.get_commands():
+            f.write(cmd)
+            f.write("\n")
+
+    pbs.write_run_script(os.path.join(out_dir, 'run.sh'),
+                         scheduler_dir)
 
 
 def parameter_group_to_cross_product_iter(data):
@@ -85,8 +119,17 @@ class AbstractParameterLayer(object):
             raise ValueError('Missing required key in scheduler data: %s' % e)
 
 
-class Scheduler(AbstractParameterLayer):
-    TYPES = ['pbs']
+class Scheduler(object):
+    def __init__(self, data):
+        try:
+            self.type = data['type']
+            # TODO: this is just a default, need to be able to sweep
+            # params over it, need clearer syntax for that
+            self.nodes = data['nodes']
+            self.project = data['project']
+            self.walltime = data['walltime']
+        except KeyError as e:
+            raise ValueError('Missing required key in scheduler data: %s' % e)
 
 
 class Runner(AbstractParameterLayer):
@@ -97,7 +140,6 @@ class App(object):
     def __init__(self, data):
         try:
             self.script = data['script']
-            self.max_walltime = data['max-walltime']
         except KeyError as e:
             raise ValueError('Missing required key in app data: %s' % e)
 
@@ -142,6 +184,7 @@ class Experiment(object):
         self._data = data
         try:
             self.experiment = data['experiment']
+            self.name = self.experiment['name']
             self.app = App(self.experiment['app'])
             self.scheduler = Scheduler(self.experiment['scheduler'])
             self.runner = Runner(self.experiment['runner'])
@@ -158,4 +201,6 @@ class Experiment(object):
 
 
 if __name__ == '__main__':
-    test_parse(sys.argv[1], sys.argv[2])
+    #test_parse(sys.argv[1], sys.argv[2])
+    # Usage: cheetah.py examples/pi.yaml examples/pi-experiment-1
+    test_pbs(sys.argv[1], sys.argv[2])

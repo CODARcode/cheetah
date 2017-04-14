@@ -35,6 +35,8 @@ while true; do
     esac
 done
 
+mkdir -p "$OUTPUT_DIRECTORY"
+
 # NOTE: Cheetah must generate an appropriate qsub pbs or slurm sbatch
 # that does a cd to the executable directory before running this. Some
 # apps might require running with a different working directory, so we
