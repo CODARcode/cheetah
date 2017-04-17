@@ -4,7 +4,7 @@
 
 The CODAR Experiment Harness is designed to run Exascale science applications
 using different parameters and components to determine the best combination
-for deployment on different super computers.
+for deployment on different supercomputers.
 
 ## Design (WIP)
 
