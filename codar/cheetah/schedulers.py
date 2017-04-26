@@ -19,8 +19,11 @@ class Scheduler(object):
     scripts, that is very specific to cheetah.
     """
     name = None # subclass must set
+
+    # TODO: these variables names are becoming confusing
     submit_script_name = 'submit.sh'
     submit_out_name = 'codar.cheetah.submit-output.txt'
+    run_command_name = 'codar.cheetah.run-params.txt'
     run_out_name = 'codar.cheetah.run-output.txt'
     batch_script_name = None
     jobid_file_name = 'codar.cheetah.jobid.txt'
@@ -36,6 +39,8 @@ class Scheduler(object):
         the job to a real scheduler. Must also generate a file
         'codar.cheetah.jobid.txt' in the output directory that can be read by
         the monitor script to wait on the job (or process).
+
+        TODO: make executable
         """
         # subclass must implement
         raise NotImplemented()
@@ -120,6 +125,14 @@ set -e
             for i, run in enumerate(scheduler_group.get_runs(
                                         exe, self.output_directory)):
                 command_dir = 'run-%03d' % (i+1)
+                command_path = os.path.join(self.output_directory, command_dir)
+                os.makedirs(command_path, exist_ok=True)
+                params_path = os.path.join(command_path, self.run_command_name)
+                # TODO: also save a JSON version of params for easier
+                # scripting of analysis scripts
+                with open(params_path, 'w') as f2:
+                    f2.write(run)
+                    f2.write('\n')
                 lines = self.runner.wrap_app_command(command_dir,
                                                      self.run_out_name,
                                                      run)

@@ -43,13 +43,14 @@ class PiExperiment(Experiment):
       parameter_groups=
       [p.ParameterGroup([
         p.ParamCmdLineArg("method", 1, ["mc", "trap"]),
-        p.ParamCmdLineArg("precision", 2, [10**i for i in range(1, 6)]),
-        p.ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 10)]),
+        p.ParamCmdLineArg("precision", 2, [64, 128, 256, 512, 1024]),
+        p.ParamCmdLineArg("iterations", 3, [10, 100, 1000, 1000000]),
         ]),
        p.ParameterGroup([
         p.ParamCmdLineArg("method", 1, ["atan"]),
-        p.ParamCmdLineArg("precision", 2, [10**i for i in range(1, 10)]),
-        p.ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 6)]),
+        p.ParamCmdLineArg("precision", 2,
+                          [64, 128, 256, 512, 1024, 2048, 4096]),
+        p.ParamCmdLineArg("iterations", 3, [10, 100, 1000]),
         ]),
       ]),
     ]
