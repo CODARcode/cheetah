@@ -7,25 +7,26 @@ import os.path
 import importlib.util
 import inspect
 
-from codar.cheetah import model
+from codar.cheetah import model, exc
 
 def load_experiment_class(file_path):
     """Given the path to a python module containing an experiment, load the
     module and find and return the class."""
     file_path = os.path.abspath(file_path)
     fname = os.path.basename(file_path)
-    module_name = os.path.splitex(fname)[0]
+    module_name = os.path.splitext(fname)[0]
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     experiment_class = None
-    for m in inspect.getmembers(module):
-        if not inspect.isclass(m):
+    for m in inspect.getmembers(module, inspect.isclass):
+        mvalue = m[1]
+        if (not issubclass(mvalue, model.Experiment)
+                or mvalue == model.Experiment):
             continue
-        if not isinstance(m, model.Experiment):
-            continue
-        experiment_class = m
+        experiment_class = mvalue
         break
     if experiment_class is None:
-        raise ValueError('no Experiment subclass found in "%s"' % file_path)
+        raise exc.ExperimentParseError(
+                'no Experiment subclass found in "%s"' % file_path)
     return experiment_class

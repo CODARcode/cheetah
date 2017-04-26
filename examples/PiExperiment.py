@@ -1,4 +1,7 @@
 """
+Old YAML based config example below for reference. Note that the new Python
+based config has a higher level of abstraction.
+
 experiment:
   name: pi-small-one-node
   app:
@@ -24,27 +27,29 @@ experiment:
       runner-n: [1, 2]
 """
 
-from codar import cheetah
+from codar.cheetah import Experiment
+from codar.cheetah import parameters as p
 
 class PiExperiment(Experiment):
-    machines = [cheetah.MachineTitan, cheetah.MachineLocal]
     name = "pi-small-one-node"
-
-    app_script = "run-pi.sh"
+    # TODO: in future could support multiple executables if needed, with
+    # the idea that they have same input/output/params, but are compiled
+    # with different options. Could be modeled as p.ParamExecutable.
+    app_exe = "pi-gmp"
+    supported_machines = ['titan', 'local']
 
     runs = [
-     SchedulerGroup(nodes=1,
-      [ParameterGroup([
-        ParamCmdLineArg("method", 1, ["mc", "trap"]),
-        ParamCmdLineArg("precision", 2, [10**i for i in range(1, 10)]),
-        ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 10)]),
+     p.SchedulerGroup(nodes=1,
+      parameter_groups=
+      [p.ParameterGroup([
+        p.ParamCmdLineArg("method", 1, ["mc", "trap"]),
+        p.ParamCmdLineArg("precision", 2, [10**i for i in range(1, 6)]),
+        p.ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 10)]),
         ]),
-       ParameterGroup([
-        ParamCmdLineArg("method", 1, ["mc", "trap"]),
-        ParamCmdLineArg("precision", 2, [10**i for i in range(1, 10)]),
-        ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 10)]),
-        ParamRunner("cpus", 1),
-        ParamRunner("tasks", 1),
+       p.ParameterGroup([
+        p.ParamCmdLineArg("method", 1, ["atan"]),
+        p.ParamCmdLineArg("precision", 2, [10**i for i in range(1, 10)]),
+        p.ParamCmdLineArg("iterations", 3, [10**i for i in range(1, 6)]),
         ]),
       ]),
     ]
