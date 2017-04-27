@@ -13,7 +13,6 @@ class Runner(object):
         raise NotImplemented()
 
 
-
 class RunnerLocal(Runner):
     name = 'local'
 
@@ -27,7 +26,10 @@ class RunnerLocal(Runner):
         NOTE: assumes CWD is batch directory within the experiment output dir.
         """
         return ['cd "%s"' % command_dir,
+                'start=$(date +%s)',
                 app_command + ' >%s 2>&1' % out_name,
+                'end=$(date +%s)',
+                'echo $(($end - $start)) > codar.cheetah.walltime.txt',
                 'cd ..']
 
 

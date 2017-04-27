@@ -66,4 +66,6 @@ class Experiment(object):
             os.makedirs(group_output_dir, exist_ok=True)
             scheduler = self.machine.get_scheduler_instance(group_output_dir)
             scheduler.write_submit_script()
+            scheduler.write_status_script()
+            scheduler.write_wait_script()
             scheduler.write_batch_script(self.app_exe_path, group)

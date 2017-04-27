@@ -1,5 +1,7 @@
 import os
 
+from codar.cheetah import helpers
+
 
 class Scheduler(object):
     """
@@ -22,10 +24,13 @@ class Scheduler(object):
 
     # TODO: these variables names are becoming confusing
     submit_script_name = 'submit.sh'
+    wait_script_name = 'wait.sh'
+    status_script_name = 'status.sh'
     submit_out_name = 'codar.cheetah.submit-output.txt'
     run_command_name = 'codar.cheetah.run-params.txt'
     run_out_name = 'codar.cheetah.run-output.txt'
     batch_script_name = None
+    batch_walltime_name = 'codar.cheetah.walltime.txt'
     jobid_file_name = 'codar.cheetah.jobid.txt'
 
     def __init__(self, runner, output_directory):
@@ -41,6 +46,22 @@ class Scheduler(object):
         the monitor script to wait on the job (or process).
 
         TODO: make executable
+        """
+        # subclass must implement
+        raise NotImplemented()
+
+    def write_status_script(self):
+        """
+        Save script that prints how long batch has been running, or an empty
+        string if it's complete.
+        """
+        # subclass must implement
+        raise NotImplemented()
+
+    def write_wait_script(self):
+        """
+        Save script that waits for the batch to complete, and prints the
+        total batch walltime.
         """
         # subclass must implement
         raise NotImplemented()
@@ -90,7 +111,7 @@ class SchedulerLocal(Scheduler):
     SUBMIT_TEMPLATE = """#!/bin/bash
 
 cd {group_directory}
-nohup {batch_script_name} >{submit_out_name} 2>&1 &
+nohup bash {batch_script_name} >{submit_out_name} 2>&1 &
 PID=$!
 echo "{name}:$PID" > {jobid_file_name}
 """
@@ -100,7 +121,29 @@ echo "{name}:$PID" > {jobid_file_name}
 set -x
 set -e
 
+batch_start=$(date +%s)
 """
+
+    BATCH_FOOTER = """batch_end=$(date +%s)
+echo $(($batch_end - $batch_start)) > {batch_walltime_name}
+"""
+
+    WAIT_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+PID=$(cat {jobid_file_name} | cut -d: -f2)
+while [ -n "$(ps -p $PID -o time=)" ]; do
+    sleep 1
+done
+cat {batch_walltime_name}
+"""
+
+    STATUS_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
+"""
+
 
     def write_submit_script(self):
         submit_path = os.path.join(self.output_directory,
@@ -113,6 +156,7 @@ set -e
                         jobid_file_name=self.jobid_file_name,
                         name=self.name)
             f.write(body)
+        helpers.make_executable(submit_path)
         return submit_path
 
     def write_batch_script(self, exe, scheduler_group):
@@ -139,6 +183,28 @@ set -e
                 if lines:
                     f.write('\n'.join(lines))
                     f.write('\n')
+            f.write(self.BATCH_FOOTER.format(
+                        batch_walltime_name=self.batch_walltime_name))
+        helpers.make_executable(script_path)
+        return script_path
+
+    def write_status_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.status_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.STATUS_TEMPLATE.format(
+                        jobid_file_name=self.jobid_file_name))
+        helpers.make_executable(script_path)
+        return script_path
+
+    def write_wait_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.wait_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.WAIT_TEMPLATE.format(
+                                jobid_file_name=self.jobid_file_name,
+                                batch_walltime_name=self.batch_walltime_name))
+        helpers.make_executable(script_path)
         return script_path
 
 
