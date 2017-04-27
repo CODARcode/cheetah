@@ -10,7 +10,24 @@ name.
 """
 import os
 
-from codar.cheetah import machines, parameters
+from codar.cheetah import machines, parameters, helpers
+
+
+RUN_ALL_TEMPLATE = """#!/bin/bash
+set -e
+
+cd {experiment_dir}
+start=$(date +%s)
+for group_dir in group-*; do
+    echo "Start $group_dir ..."
+    cd "$group_dir"
+    ./submit.sh
+    ./wait.sh
+    cd ..
+done
+end=$(date +%s)
+echo $(($end - $start)) > codar.cheetah.walltime.txt
+"""
 
 
 class Experiment(object):
@@ -69,3 +86,7 @@ class Experiment(object):
             scheduler.write_status_script()
             scheduler.write_wait_script()
             scheduler.write_batch_script(self.app_exe_path, group)
+        run_all_path = os.path.join(output_dir, "run-all.sh")
+        with open(run_all_path, "w") as f:
+            f.write(RUN_ALL_TEMPLATE.format(experiment_dir=output_dir))
+        helpers.make_executable(run_all_path)
