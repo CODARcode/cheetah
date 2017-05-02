@@ -35,7 +35,7 @@ class ParameterGroup(object):
 
     def get_runs(self, exe):
         """
-        Get a list of strings representing all the runs over the cross
+        Get a list of Command objects representing all the runs over the cross
         product.
 
         TODO: this works great for command line options and args, but
@@ -54,7 +54,7 @@ class ParameterGroup(object):
             cmd = Command(exe)
             for param_i, value_i in enumerate(idx_set):
                 cmd.add_parameter(self.parameters[param_i], value_i)
-            runs.append(cmd.as_string())
+            runs.append(cmd)
         return runs
 
 
@@ -66,12 +66,18 @@ class Command(object):
         self.exe = exe
         self.args = {}
         self.options = {}
+        # list of touples (param, idx)
+        self.parameters = dict(exe=exe)
 
     def add_parameter(self, p, idx):
+        value = p.values[idx]
         if isinstance(p, ParamCmdLineArg):
-            self.args[p.position] = p.values[idx]
+            self.args[p.position] = value
         if isinstance(p, ParamCmdLineOption):
-            self.options[p.option] = p.values[idx]
+            self.options[p.option] = value
+        if p.name in self.parameters:
+            raise ValueError('parameter name conflict: "%s"' % p.name)
+        self.parameters[p.name] = value
 
     def as_string(self):
         parts = [self.exe]
@@ -85,6 +91,14 @@ class Command(object):
             # '=', or ' '.
             parts.append(option + ' ' + value)
         return " ".join(parts)
+
+    def as_dict(self):
+        """
+        Produce dict (mainly for for JSON seriliazation) with keys based on
+        parameter names. This ignores the type of the param, it's just the
+        name value pairs.
+        """
+        return dict(self.parameters)
 
 
 class ParamCmdLineArg(object):

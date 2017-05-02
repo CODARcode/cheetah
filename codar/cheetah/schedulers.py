@@ -1,4 +1,5 @@
 import os
+import json
 
 from codar.cheetah import helpers
 
@@ -168,18 +169,30 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             f.write(self.BATCH_HEADER)
             for i, run in enumerate(scheduler_group.get_runs(
                                         exe, self.output_directory)):
+                run_string = run.as_string()
+                run_data = run.as_dict()
                 command_dir = 'run-%03d' % (i+1)
                 command_path = os.path.join(self.output_directory, command_dir)
                 os.makedirs(command_path, exist_ok=True)
-                params_path = os.path.join(command_path, self.run_command_name)
-                # TODO: also save a JSON version of params for easier
-                # scripting of analysis scripts
-                with open(params_path, 'w') as f2:
-                    f2.write(run)
-                    f2.write('\n')
+                # save command as text
+                params_path_txt = os.path.join(command_path,
+                                               self.run_command_name)
+                with open(params_path_txt, 'w') as params_f:
+                    params_f.write(run_string)
+                    params_f.write('\n')
+                # save params as JSON for use in post-processing, more
+                # useful for post-processing scripts then the command
+                # text
+                # Possible alternative: single JSON file at top level
+                # with all run dirs and params for each run
+                params_path_json = os.path.join(command_path, 'params.json')
+                with open(params_path_json, 'w') as params_f:
+                    json.dump(run_data, params_f, indent=2)
+
+                # add to batch script
                 lines = self.runner.wrap_app_command(command_dir,
                                                      self.run_out_name,
-                                                     run)
+                                                     run_string)
                 if lines:
                     f.write('\n'.join(lines))
                     f.write('\n')

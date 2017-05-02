@@ -19,7 +19,7 @@ set -e
 cd {experiment_dir}
 start=$(date +%s)
 for group_dir in group-*; do
-    echo "Start $group_dir ..."
+    echo -n "Start $group_dir ... "
     cd "$group_dir"
     ./submit.sh
     ./wait.sh
