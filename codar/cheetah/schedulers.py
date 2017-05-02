@@ -29,6 +29,7 @@ class Scheduler(object):
     status_script_name = 'status.sh'
     submit_out_name = 'codar.cheetah.submit-output.txt'
     run_command_name = 'codar.cheetah.run-params.txt'
+    run_json_name = 'codar.cheetah.run-params.json'
     run_out_name = 'codar.cheetah.run-output.txt'
     batch_script_name = None
     batch_walltime_name = 'codar.cheetah.walltime.txt'
@@ -185,7 +186,8 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # text
                 # Possible alternative: single JSON file at top level
                 # with all run dirs and params for each run
-                params_path_json = os.path.join(command_path, 'params.json')
+                params_path_json = os.path.join(command_path,
+                                                self.run_json_name)
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
