@@ -4,7 +4,7 @@ Test main script for new python based cheetah config.
 
 Usage:
 
- python3 cheetah2.py /path/to/experiment.py /path/to/app/exe MACHINE_NAME /path/to/out/dir
+ python3 cheetah.py -e /path/to/experiment.py -a /path/to/app/dir/ -m MACHINE_NAME -o /path/to/out/dir/
 
 """
 
