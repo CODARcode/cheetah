@@ -9,6 +9,7 @@ supercomputers (machines) are specified in other modules with the corresponding
 name.
 """
 import os
+import json
 
 from codar.cheetah import machines, parameters, helpers
 
@@ -54,6 +55,7 @@ class Experiment(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = app_dir
         self.app_exe_path = os.path.join(app_dir, self.app_exe)
+        self.expanded_runs = []
 
     def _get_machine(self, machine_name):
         machine = None
@@ -82,11 +84,16 @@ class Experiment(object):
                                             "group-%03d" % (group_i+1))
             os.makedirs(group_output_dir, exist_ok=True)
             scheduler = self.machine.get_scheduler_instance(group_output_dir)
+            group_runs = scheduler.get_batch_runs(self.app_exe_path, group)
+            self.expanded_runs.extend(group_runs)
             scheduler.write_submit_script()
             scheduler.write_status_script()
             scheduler.write_wait_script()
-            scheduler.write_batch_script(self.app_exe_path, group)
+            scheduler.write_batch_script(group_runs)
         run_all_path = os.path.join(output_dir, "run-all.sh")
+        all_params_json_path = os.path.join(output_dir, "params.json")
         with open(run_all_path, "w") as f:
             f.write(RUN_ALL_TEMPLATE.format(experiment_dir=output_dir))
         helpers.make_executable(run_all_path)
+        with open(all_params_json_path, "w") as f:
+            json.dump([run.as_dict() for run in self.expanded_runs], f)

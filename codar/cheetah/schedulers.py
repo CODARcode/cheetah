@@ -39,6 +39,9 @@ class Scheduler(object):
         self.runner = runner
         self.output_directory = output_directory
 
+    def get_batch_runs(self, exe, scheduler_group):
+        return scheduler_group.get_runs(exe, self.output_directory)
+
     def write_submit_script(self):
         """
         Must at minimum produce a single script 'run.sh' within the
@@ -68,7 +71,7 @@ class Scheduler(object):
         # subclass must implement
         raise NotImplemented()
 
-    def write_batch_script(self, scheduler_group):
+    def write_batch_script(self, runs):
         """
         Must at minimum produce a single script 'run.sh' within the
         group_output_dir that will run the batch in the background or submit
@@ -161,20 +164,21 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         helpers.make_executable(submit_path)
         return submit_path
 
-    def write_batch_script(self, exe, scheduler_group):
+    def write_batch_script(self, runs):
         script_path = os.path.join(self.output_directory,
                                    self.batch_script_name)
         with open(script_path, 'w') as f:
             # ignore all scheduler parameters for local runs, and just
             # use a fixed hearder
             f.write(self.BATCH_HEADER)
-            for i, run in enumerate(scheduler_group.get_runs(
-                                        exe, self.output_directory)):
-                run_string = run.as_string()
-                run_data = run.as_dict()
+            for i, run in enumerate(runs):
+                # TODO: abstract this to higher levels
                 command_dir = 'run-%03d' % (i+1)
                 command_path = os.path.join(self.output_directory, command_dir)
                 os.makedirs(command_path, exist_ok=True)
+                run.set_output_directory(command_path)
+                run_string = run.as_string()
+                run_data = run.as_dict()
                 # save command as text
                 params_path_txt = os.path.join(command_path,
                                                self.run_command_name)

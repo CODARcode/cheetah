@@ -69,6 +69,13 @@ class Command(object):
         # list of touples (param, idx)
         self.parameters = dict(exe=exe)
 
+    def set_output_directory(self, value):
+        """
+        Add output directory information. Not known at initial object
+        create time, filled in by higher level code.
+        """
+        self.parameters['output_directory'] = value
+
     def add_parameter(self, p, idx):
         value = p.values[idx]
         if isinstance(p, ParamCmdLineArg):
