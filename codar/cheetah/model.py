@@ -44,6 +44,12 @@ class Experiment(object):
     supported_machines = []
     runs = []
 
+    # Optional. If set, passed single argument which is the absolute
+    # path to a JSON file containing all runs. Must be relative to the
+    # app directory, just like app_exe. It will be run from the
+    # top level experiment directory.
+    post_process_script = None
+
     def __init__(self, machine_name, app_dir):
         # check that subclasses set configuration
         # TODO: better errors
@@ -53,8 +59,8 @@ class Experiment(object):
         assert len(self.supported_machines) > 0
         assert len(self.runs) > 0
         self.machine = self._get_machine(machine_name)
-        self.app_dir = app_dir
-        self.app_exe_path = os.path.join(app_dir, self.app_exe)
+        self.app_dir = os.path.abspath(app_dir)
+        self.app_exe_path = os.path.join(self.app_dir, self.app_exe)
         self.expanded_runs = []
 
     def _get_machine(self, machine_name):
@@ -73,6 +79,7 @@ class Experiment(object):
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
         run. """
+        output_dir = os.path.abspath(output_dir)
         os.makedirs(output_dir, exist_ok=True)
         for group_i, group in enumerate(self.runs):
             # top level should be SchedulerGroup, open scheduler file
@@ -94,6 +101,9 @@ class Experiment(object):
         all_params_json_path = os.path.join(output_dir, "params.json")
         with open(run_all_path, "w") as f:
             f.write(RUN_ALL_TEMPLATE.format(experiment_dir=output_dir))
+            if self.post_process_script:
+                pps_path = os.path.join(self.app_dir, self.post_process_script)
+                f.write('\n%s %s\n' % (pps_path, all_params_json_path))
         helpers.make_executable(run_all_path)
         with open(all_params_json_path, "w") as f:
             json.dump([run.as_dict() for run in self.expanded_runs], f)
