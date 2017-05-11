@@ -6,6 +6,13 @@ The CODAR Experiment Harness is designed to run Exascale science applications
 using different parameters and components to determine the best combination
 for deployment on different supercomputers.
 
+## Example Run
+
+```
+python3 cheetah.py -e examples/PiExperiment.py -a path/to/app/Example-pi/ \
+  -m local -o examples/pi-run-1/
+```
+
 ## Design (WIP)
 
 There are several components to the experiment harness:
