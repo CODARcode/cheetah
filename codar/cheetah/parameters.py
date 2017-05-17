@@ -18,10 +18,10 @@ class SchedulerGroup(object):
         self.nodes = nodes
         self.parameter_groups = parameter_groups
 
-    def get_runs(self, exe, group_output_dir):
+    def get_runs(self, exes, group_output_dir):
         runs = []
         for group in self.parameter_groups:
-            runs.extend(group.get_runs(exe))
+            runs.extend(group.get_runs(exes))
         return runs
 
 
@@ -108,20 +108,45 @@ class Command(object):
         return dict(self.parameters)
 
 
-class ParamCmdLineArg(object):
-    """Specification for parameters that are based as a positional command line
-    argument."""
-    def __init__(self, name, position, values):
+class Param(object):
+    """Abstract base class representing a parameter to an application. This
+    includes any method for modifying the run characteristics of an
+    application - command line, config file, environment variables, different
+    executable built with diffrent compiler flags.
+
+    Every parameter must have a unique name, and must target a specific
+    application or middleware, e.g. pbs, aprun, or one of the science
+    codes that make up an application.
+
+    Note that if a science application has only one code, it will likely still
+    involve middlewhere targets like PBS. Using a different target is one way
+    to model those.
+
+    TODO: is it useful to separate the definition of a param and it's values?
+
+    TODO: should we require that the name be unique across all targets, or
+    just within each target? Global uniqueness allows for a simple list of
+    dict representation of instances, but two level nested dicts may be
+    more powerful (first level is target, second level is params)."""
+
+    def __init__(self, target, name, values):
+        self.target = target
         self.name = name
-        self.position = position
         self.values = values
 
     def __get__(self, idx):
-        # TODO: put in common param base class
         return self.values[idx]
 
     def __len__(self):
         return len(self.values)
+
+
+class ParamCmdLineArg(Param):
+    """Specification for parameters that are based as a positional command line
+    argument."""
+    def __init__(self, target, name, position, values):
+        Param.__init__(self, target, name, values)
+        self.position = position
 
 
 class ParamCmdLineOption(object):
@@ -129,13 +154,15 @@ class ParamCmdLineOption(object):
     option. The option must contain the prefix, e.g. '--output-file' not
     'output-file'."""
 
-    def __init__(self, name, option, values):
-        self.name = name
+    def __init__(self, target, name, option, values):
+        Param.__init__(self, target, name, values)
         self.option = option
-        self.values = values
 
-    def __get__(self, idx):
-        return self.values[idx]
 
-    def __len__(self):
-        return len(self.values)
+class ParamRunner(Param):
+    """Specification for parameters that are passed to the runner, e.g.
+    mpirun, mpilaunch, srun, apirun, but usually still associated with a
+    specific application code."""
+    def __init__(self, target, name, values):
+        Param.__init__(self, target, name, values)
+        self.position = position

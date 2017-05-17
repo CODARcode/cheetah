@@ -45,8 +45,8 @@ class Scheduler(object):
         self.runner = runner
         self.output_directory = output_directory
 
-    def get_batch_runs(self, exe, scheduler_group):
-        return scheduler_group.get_runs(exe, self.output_directory)
+    def get_batch_runs(self, exes, scheduler_group):
+        return scheduler_group.get_runs(exes, self.output_directory)
 
     def write_submit_script(self):
         """

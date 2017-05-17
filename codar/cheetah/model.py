@@ -40,14 +40,15 @@ class Experiment(object):
 
     # subclasses must populate these
     name = None
-    app_exe = None # TODO: how to handle location of exe on different machines?
+    codes = {}
     supported_machines = []
     runs = []
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
-    # app directory, just like app_exe. It will be run from the
-    # top level experiment directory.
+    # app directory, just like codes values. It will be run from the
+    # top level experiment directory. TODO: could allow absolute paths
+    # too
     post_process_script = None
 
     def __init__(self, machine_name, app_dir):
@@ -55,12 +56,13 @@ class Experiment(object):
         # TODO: better errors
         # TODO: is class variables best way to model this??
         assert self.name is not None
-        assert self.app_exe is not None
+        assert len(self.codes) > 1
         assert len(self.supported_machines) > 0
         assert len(self.runs) > 0
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
-        self.app_exe_path = os.path.join(self.app_dir, self.app_exe)
+        self.code_exe_paths = [os.path.join(self.app_dir, exe)
+                               for exe in self.codes.values()]
         self.expanded_runs = []
 
     def _get_machine(self, machine_name):
@@ -90,8 +92,8 @@ class Experiment(object):
             group_output_dir = os.path.join(output_dir,
                                             "group-%03d" % (group_i+1))
             os.makedirs(group_output_dir, exist_ok=True)
-            scheduler = self.machine.get_scheduler_instance(group_output_dir)
-            group_runs = scheduler.get_batch_runs(self.app_exe_path, group)
+            launcher = self.machine.get_scheduler_instance(group_output_dir)
+            group_runs = launcher.get_batch_runs(self.code_exe_paths, group)
             self.expanded_runs.extend(group_runs)
             scheduler.write_submit_script()
             scheduler.write_status_script()
