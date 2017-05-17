@@ -106,4 +106,4 @@ class Experiment(object):
                 f.write('\n%s %s\n' % (pps_path, all_params_json_path))
         helpers.make_executable(run_all_path)
         with open(all_params_json_path, "w") as f:
-            json.dump([run.as_dict() for run in self.expanded_runs], f)
+            json.dump([run.as_dict() for run in self.expanded_runs], f, indent=1)
