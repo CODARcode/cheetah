@@ -1,3 +1,9 @@
+"""
+TODO: when using swift-t, it can handle submission to PBS and
+apirun/srun/mpiexec/mpiluanch, so it probably makes the scheduler/runner
+class model unnecessary. Instead can have a SwiftLauncher with subclasses
+for local, pbs, and slurm.
+"""
 import os
 import json
 
@@ -225,6 +231,187 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                 batch_walltime_name=self.batch_walltime_name))
         helpers.make_executable(script_path)
         return script_path
+
+
+class SchedulerSwift(Scheduler):
+    """
+    Batch type that uses swift scripts.
+
+    TODO: currently all output goes to swift script output, need to capture
+    individual run output.
+    """
+    name = 'swift'
+    batch_script_name = 'run.swift'
+
+    # TODO: add subclasses for pbs and slurm that pass appropriate
+    # option to swift-t
+    SUBMIT_TEMPLATE = """#!/bin/bash
+
+cd {group_directory}
+nohup swift-t -p {batch_script_name} >{submit_out_name} 2>&1 &
+PID=$!
+echo "{name}:$PID" > {jobid_file_name}
+"""
+
+    BATCH_HEADER = """
+import io;
+import string;
+
+string runs[][];
+"""
+
+    BATCH_FOOTER = """
+
+(int exit_code) system(string work_dir, string cmd)
+"turbine" "1.0"
+[
+\"\"\"
+set oldpwd [ pwd ]
+cd <<work_dir>>
+set cmd_tokens <<cmd>>
+if [ catch { exec {*}$cmd_tokens > /dev/stdout } e info ] {
+  set L [ dict get $info -errorcode ]
+  set b [ lindex $L 2]
+} else {
+  set b 0
+}
+set <<exit_code>> $b
+cd $oldpwd
+\"\"\"
+];
+
+(int exit_codes[]) launch_multi(string work_dir, string procs[],
+                                string progs[], string args[][])
+{
+    for (int i=0; i < num_progs; i=i+1)
+    {
+        string cmd = progs[i] + " " + join(args[i], " ");
+        exit_codes[i] = system(work_dir, cmd);
+    }
+}
+
+int run_exit_codes[][];
+
+for (int i=0; i<size(runs); i=i+1)
+{
+    dir_name = runs[i][0];
+    string procs[];
+    string progs[];
+    string args[][];
+
+    for (int j=0; j<num_progs; j=j+1)
+    {
+        procs[j] = runs[i][1+j*2];
+        string prog_args = runs[i][2+j*2];
+        parts = split(prog_args, " ");
+        progs[j] = parts[0];
+        for (int k=1; k<size(parts); k=k+1)
+        {
+            args[j][k-1] = parts[k];
+        }
+    }
+    //printf("%s %s %s %s", dir_name, procs[0], progs[0], args[0][0]);
+    run_exit_codes[i] = launch_multi(dir_name, procs, progs, args);
+}
+
+printf("exit codes %d %d", run_exit_codes[0][0], run_exit_codes[1][1]);
+"""
+
+    WAIT_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+PID=$(cat {jobid_file_name} | cut -d: -f2)
+while [ -n "$(ps -p $PID -o time=)" ]; do
+    sleep 1
+done
+cat {batch_walltime_name}
+"""
+
+    STATUS_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
+"""
+
+
+    def write_submit_script(self):
+        submit_path = os.path.join(self.output_directory,
+                                   self.submit_script_name)
+        with open(submit_path, 'w') as f:
+            body = self.SUBMIT_TEMPLATE.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name)
+            f.write(body)
+        helpers.make_executable(submit_path)
+        return submit_path
+
+    def write_batch_script(self, runs):
+        script_path = os.path.join(self.output_directory,
+                                   self.batch_script_name)
+        with open(script_path, 'w') as f:
+            # ignore all scheduler parameters for local runs, and just
+            # use a fixed hearder
+            f.write(self.BATCH_HEADER)
+            f.write('int num_progs = 1;\n')
+            for i, run in enumerate(runs):
+                # TODO: abstract this to higher levels
+                command_dir = 'run-%03d' % (i+1)
+                command_path = os.path.join(self.output_directory, command_dir)
+                os.makedirs(command_path, exist_ok=True)
+                run.set_output_directory(command_path)
+                run_string = run.as_string()
+                run_data = run.as_dict()
+                # save command as text
+                params_path_txt = os.path.join(command_path,
+                                               self.run_command_name)
+                with open(params_path_txt, 'w') as params_f:
+                    params_f.write(run_string)
+                    params_f.write('\n')
+                # save params as JSON for use in post-processing, more
+                # useful for post-processing scripts then the command
+                # text
+                # Possible alternative: single JSON file at top level
+                # with all run dirs and params for each run
+                params_path_json = os.path.join(command_path,
+                                                self.run_json_name)
+                with open(params_path_json, 'w') as params_f:
+                    json.dump(run_data, params_f, indent=2)
+
+                # write a swift string array with variable number of
+                # elements, first is the command directory, then pairs
+                # of elements with parallelism followed by command to
+                # execute.
+                line = """runs[%d] = ["%s","1","%s"];""" % (
+                        i, command_path, run_string)
+                if line:
+                    f.write(line)
+                    f.write('\n')
+            f.write(self.BATCH_FOOTER)
+        helpers.make_executable(script_path)
+        return script_path
+
+    def write_status_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.status_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.STATUS_TEMPLATE.format(
+                        jobid_file_name=self.jobid_file_name))
+        helpers.make_executable(script_path)
+        return script_path
+
+    def write_wait_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.wait_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.WAIT_TEMPLATE.format(
+                                jobid_file_name=self.jobid_file_name,
+                                batch_walltime_name=self.batch_walltime_name))
+        helpers.make_executable(script_path)
+        return script_path
+
 
 
 class SchedulerPBS(Scheduler):

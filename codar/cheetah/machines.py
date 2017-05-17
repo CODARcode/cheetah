@@ -24,6 +24,7 @@ class Machine(object):
 # container with all the machines.
 titan=Machine(schedulers.SchedulerPBS, runners.RunnerCray)
 local=Machine(schedulers.SchedulerLocal, runners.RunnerLocal)
+swift=Machine(schedulers.SchedulerSwift, runners.RunnerLocal)
 
 
 def get_by_name(name):
