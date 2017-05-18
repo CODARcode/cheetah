@@ -42,7 +42,7 @@ class Experiment(object):
     name = None
     codes = {}
     supported_machines = []
-    runs = []
+    sweeps = []
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
@@ -56,14 +56,12 @@ class Experiment(object):
         # TODO: better errors
         # TODO: is class variables best way to model this??
         assert self.name is not None
-        assert len(self.codes) > 1
+        assert len(self.codes) > 0
         assert len(self.supported_machines) > 0
-        assert len(self.runs) > 0
+        assert len(self.sweeps) > 0
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
-        self.code_exe_paths = [os.path.join(self.app_dir, exe)
-                               for exe in self.codes.values()]
-        self.expanded_runs = []
+        self.runs = []
 
     def _get_machine(self, machine_name):
         machine = None
@@ -83,7 +81,7 @@ class Experiment(object):
         run. """
         output_dir = os.path.abspath(output_dir)
         os.makedirs(output_dir, exist_ok=True)
-        for group_i, group in enumerate(self.runs):
+        for group_i, group in enumerate(self.sweeps):
             # top level should be SchedulerGroup, open scheduler file
             if not isinstance(group, parameters.SchedulerGroup):
                 raise ValueError("top level run groups must be SchedulerGroup")
@@ -93,12 +91,15 @@ class Experiment(object):
                                             "group-%03d" % (group_i+1))
             os.makedirs(group_output_dir, exist_ok=True)
             launcher = self.machine.get_scheduler_instance(group_output_dir)
-            group_runs = launcher.get_batch_runs(self.code_exe_paths, group)
-            self.expanded_runs.extend(group_runs)
-            scheduler.write_submit_script()
-            scheduler.write_status_script()
-            scheduler.write_wait_script()
-            scheduler.write_batch_script(group_runs)
+            group_instances = group.get_instances()
+            group_runs = [Run(inst, self.codes, self.app_dir,
+                              os.path.join(group_output_dir, 'run-%03d' % i))
+                          for i, inst in enumerate(group_instances)]
+            self.runs.extend(group_runs)
+            launcher.write_submit_script()
+            launcher.write_status_script()
+            launcher.write_wait_script()
+            launcher.write_batch_script(group_runs)
         run_all_path = os.path.join(output_dir, "run-all.sh")
         all_params_json_path = os.path.join(output_dir, "params.json")
         with open(run_all_path, "w") as f:
@@ -108,4 +109,35 @@ class Experiment(object):
                 f.write('\n%s %s\n' % (pps_path, all_params_json_path))
         helpers.make_executable(run_all_path)
         with open(all_params_json_path, "w") as f:
-            json.dump([run.as_dict() for run in self.expanded_runs], f, indent=1)
+            json.dump([run.as_dict() for run in self.runs], f, indent=2)
+
+
+class Run(object):
+    """
+    Class representing how to actually run an instance on a given environment,
+    including how to generate arg arrays for executing each code required for
+    the application.
+    """
+    def __init__(self, instance, codes, codes_path, run_path):
+        self.instance = instance
+        self.codes = codes
+        self.codes_path = codes_path
+        self.run_path = run_path
+
+    def get_codes_argv_with_exe_and_nprocs(self):
+        """
+        Return list of tuples with argv lists and nprocs. The 0th element of
+        each argv is the application executable (absolute path).
+
+        TODO: less hacky way of handling nprocs and other middlewear params.
+        """
+        argv_nprocs_list = []
+        for (target, argv) in self.instance.get_codes_argv().items():
+            relative_exe = self.codes[target]
+            exe_path = os.path.join(self.codes_path, relative_exe)
+            nprocs = self.instance.parameters[target].get('nprocs', "1")
+            argv_nprocs_list.append(([exe_path] + argv, nprocs))
+        return argv_nprocs_list
+
+    def as_dict(self):
+        return self.instance.as_dict()

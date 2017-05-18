@@ -1,32 +1,3 @@
-"""
-Old YAML based config example below for reference. Note that the new Python
-based config has a higher level of abstraction.
-
-experiment:
-  name: pi-small-one-node
-  app:
-    script: run-pi.sh
-  scheduler:
-    type: pbs
-    project: CSC242
-    nodes: 1
-    walltime: 01:00:00
-  runner:
-    type: aprun
-    parameters:
-      n: 1
-      N: 1
-  parameter-groups:
-    - app-method: [mc, trap]
-      app-iterations:
-        range-start: 10
-        range-end: 1000000000
-        range-multiplier: 10
-    - app-method: [atan]
-      app-iterations: [10, 100, 1000]
-      runner-n: [1, 2]
-"""
-
 from codar.cheetah import Experiment
 from codar.cheetah import parameters as p
 
@@ -35,22 +6,24 @@ class PiExperiment(Experiment):
     # TODO: in future could support multiple executables if needed, with
     # the idea that they have same input/output/params, but are compiled
     # with different options. Could be modeled as p.ParamExecutable.
-    app_exe = "pi-gmp"
-    supported_machines = ['titan', 'local']
+    codes = dict(pi="pi-gmp")
+    supported_machines = ['swift']
 
-    runs = [
+    sweeps = [
      p.SchedulerGroup(nodes=1,
       parameter_groups=
       [p.ParameterGroup([
-        p.ParamCmdLineArg("method", 1, ["mc", "trap"]),
-        p.ParamCmdLineArg("precision", 2, [64, 128, 256, 512, 1024]),
-        p.ParamCmdLineArg("iterations", 3, [10, 100, 1000, 1000000, 10000000]),
+        p.ParamCmdLineArg("pi", "method", 1, ["mc", "trap"]),
+        p.ParamCmdLineArg("pi", "precision", 2, [64, 128, 256, 512, 1024]),
+        p.ParamCmdLineArg("pi", "iterations", 3,
+                          [10, 100, 1000, 1000000, 10000000]),
         ]),
        p.ParameterGroup([
-        p.ParamCmdLineArg("method", 1, ["atan"]),
-        p.ParamCmdLineArg("precision", 2,
+        p.ParamCmdLineArg("pi", "method", 1, ["atan"]),
+        p.ParamCmdLineArg("pi", "precision", 2,
                           [64, 128, 256, 512, 1024, 2048, 4096]),
-        p.ParamCmdLineArg("iterations", 3, [10, 100, 1000, 10000, 100000]),
+        p.ParamCmdLineArg("pi", "iterations", 3,
+                          [10, 100, 1000, 10000, 100000]),
         ]),
       ]),
     ]

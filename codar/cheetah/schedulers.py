@@ -45,9 +45,6 @@ class Scheduler(object):
         self.runner = runner
         self.output_directory = output_directory
 
-    def get_batch_runs(self, exes, scheduler_group):
-        return scheduler_group.get_runs(exes, self.output_directory)
-
     def write_submit_script(self):
         """
         Must at minimum produce a single script 'run.sh' within the
@@ -109,6 +106,8 @@ class Scheduler(object):
 
 class SchedulerLocal(Scheduler):
     """
+    DEPRECATED
+
     Batch type that ignores all scheduler options and runs the command directly
     on the local machine with bash, one at a time with no parallelism.
 
@@ -352,31 +351,28 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         script_path = os.path.join(self.output_directory,
                                    self.batch_script_name)
         with open(script_path, 'w') as f:
-            # ignore all scheduler parameters for local runs, and just
-            # use a fixed hearder
             f.write(self.BATCH_HEADER)
             f.write('int num_progs = 1;\n')
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
-                command_dir = 'run-%03d' % (i+1)
-                command_path = os.path.join(self.output_directory, command_dir)
-                os.makedirs(command_path, exist_ok=True)
-                run.set_output_directory(command_path)
-                run_string = run.as_string()
-                run_data = run.as_dict()
-                # save command as text
-                params_path_txt = os.path.join(command_path,
+                os.makedirs(run.run_path, exist_ok=True)
+
+                codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
+
+                # save code commands as text
+                params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
-                    params_f.write(run_string)
-                    params_f.write('\n')
+                    for argv, _ in codes_argv_nprocs:
+                        params_f.write(' '.join(argv))
+                        params_f.write('\n')
+
                 # save params as JSON for use in post-processing, more
                 # useful for post-processing scripts then the command
                 # text
-                # Possible alternative: single JSON file at top level
-                # with all run dirs and params for each run
-                params_path_json = os.path.join(command_path,
+                params_path_json = os.path.join(run.run_path,
                                                 self.run_json_name)
+                run_data = run.instance.as_dict()
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
@@ -384,11 +380,14 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # elements, first is the command directory, then pairs
                 # of elements with parallelism followed by command to
                 # execute.
-                line = """runs[%d] = ["%s","1","%s"];""" % (
-                        i, command_path, run_string)
-                if line:
-                    f.write(line)
-                    f.write('\n')
+                f.write('runs[%d] = ["%s"' % (i, run.run_path))
+                for argv, nprocs in codes_argv_nprocs:
+                    # TODO: this is terrible, only works if args don't
+                    # require quoting. Should pass as variable arrays
+                    # and just set the lengths at the top for decoding.
+                    command_string = ' '.join(argv)
+                    f.write(', "%s", "%s"' % (nprocs, ' '.join(argv)))
+                f.write(']\n')
             f.write(self.BATCH_FOOTER)
         helpers.make_executable(script_path)
         return script_path

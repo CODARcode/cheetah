@@ -1,8 +1,13 @@
 """
 Module containing classes for specifying paramter value sets and groupings
 of parameters. Used in the Experiment specification in the 'runs' variable.
+
+TODO: rename ParameterGroup to use new 'Sweep' terminology.
+
+TODO: do we still need a scheduler level parent to Sweeps? What do we call it?
 """
 import itertools
+from collections import defaultdict
 
 
 class SchedulerGroup(object):
@@ -18,11 +23,11 @@ class SchedulerGroup(object):
         self.nodes = nodes
         self.parameter_groups = parameter_groups
 
-    def get_runs(self, exes, group_output_dir):
-        runs = []
+    def get_instances(self):
+        inst = []
         for group in self.parameter_groups:
-            runs.extend(group.get_runs(exes))
-        return runs
+            inst.extend(group.get_instances())
+        return inst
 
 
 class ParameterGroup(object):
@@ -33,10 +38,10 @@ class ParameterGroup(object):
     def __init__(self, parameters):
         self.parameters = parameters
 
-    def get_runs(self, exe):
+    def get_instances(self):
         """
-        Get a list of Command objects representing all the runs over the cross
-        product.
+        Get a list of Instance objects representing dense cross product over
+        param values.
 
         TODO: this works great for command line options and args, but
         what about for config and other types of params? Need to setup
@@ -48,25 +53,137 @@ class ParameterGroup(object):
         TODO: should have same signature as SchedulerGroup version OR a
         different name.
         """
-        runs = []
+        inst_list = []
         indexes = [range(len(p)) for p in self.parameters]
         for idx_set in itertools.product(*indexes):
-            cmd = Command(exe)
+            inst = Instance()
             for param_i, value_i in enumerate(idx_set):
-                cmd.add_parameter(self.parameters[param_i], value_i)
-            runs.append(cmd)
-        return runs
+                inst.add_parameter(self.parameters[param_i], value_i)
+            inst_list.append(inst)
+        return inst_list
+
+
+class Instance(object):
+    """
+    Represent an instance of an application with fixed parameters. An
+    application may consistent of multiple codes running at the same time,
+    and multiple middlewear layers (scheduler like PBS, runner like aprun,
+    or swift), all of which may have their own parameters.
+
+    Abstractly, an instance is a two-level nested dict, where the first
+    level indicates the target for a parameter (application code or
+    middlewear), and the second level contains the parameters for that
+    target.
+    """
+    def __init__(self):
+        # abstract container with all params in a hierarchy based on
+        # their target
+        self.parameters = defaultdict(dict)
+
+        # subset of paramaters related to application codes that will
+        # need to be run
+        self.code_commands = dict()
+
+    def add_parameter(self, p, idx):
+        target_p = self.parameters[p.target]
+        value = p.values[idx]
+        if isinstance(p, ParamCmdLineArg):
+            # TODO: this is a hacky way to distinguish between
+            # application code targets and middlewear targets, should
+            # make it more explicit somehow.
+            if p.target not in self.code_commands:
+                self.code_commands[p.target] = CodeCommand(p.target)
+            self.code_commands[p.target].add_arg(p.position, value)
+        if isinstance(p, ParamCmdLineOption):
+            if p.target not in self.code_commands:
+                self.code_commands[p.target] = CodeCommand(p.target)
+            self.code_commands[p.target].add_option(p.option, value)
+        # TODO: how do we model parallelism and other middlewear params?
+        if p.name in target_p:
+            raise ValueError('parameter name conflict: "%s"' % p.name)
+        target_p[p.name] = value
+
+    def get_codes_argv(self):
+        return dict([(k, cc.get_argv())
+                     for (k, cc) in self.code_commands.items()])
+
+    def as_string(self):
+        parts = [self.exe]
+        for position in range(1, 101):
+            if position in self.args:
+                parts.append(str(self.args[position]))
+            else:
+                break
+        for option, value in self.options.items():
+            # TODO: handle separator between option and value, e.g. '',
+            # '=', or ' '.
+            parts.append(option + ' ' + value)
+        return " ".join(parts)
+
+    def as_dict(self):
+        """
+        Produce dict (mainly for for JSON seriliazation) with keys based on
+        parameter names. This ignores the type of the param, it's just the
+        name value pairs.
+        """
+        return dict(self.parameters)
+
+
+class CodeCommand(object):
+    """
+    Helper class to build up command args and options as we go. Does not
+    know about the path to it's executable, that is part of the execution
+    environment which is added during realization.
+    """
+    def __init__(self, target):
+        self.target = target
+        self.args = {}
+        self.options = {}
+
+    def add_arg(self, position, value):
+        """
+        Allows adding positional args out of order.
+
+        TODO: better error handling.
+        """
+        if not isinstance(position, int):
+            raise ValueError('arg position must be an int')
+        if position in self.args:
+            raise ValueError('arg already exists at position %d' % position)
+        self.args[position] = value
+
+    def add_option(self, option, value):
+        if option in self.args:
+            raise ValueError('option "%s" already exists' % option)
+        self.options[option] = value
+
+    def get_argv(self):
+        argv = []
+        for position in range(1, 101):
+            # TODO: better error handling
+            if position in self.args:
+                argv.append(str(self.args[position]))
+            else:
+                break
+        for option, value in self.options.items():
+            # TODO: handle separator between option and value, e.g. '',
+            # '=', or ' '?
+            argv.append(option)
+            argv.append(value)
+        return argv
 
 
 class Command(object):
     """
+    DEPRECATED.
+
     Helper class for building up a command by parts.
     """
     def __init__(self, exe):
         self.exe = exe
         self.args = {}
         self.options = {}
-        # list of touples (param, idx)
+        # TODO: namespace param names somehow
         self.parameters = dict(exe=exe)
 
     def set_output_directory(self, value):
