@@ -282,4 +282,3 @@ class ParamRunner(Param):
     specific application code."""
     def __init__(self, target, name, values):
         Param.__init__(self, target, name, values)
-        self.position = position

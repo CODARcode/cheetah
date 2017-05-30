@@ -387,7 +387,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                     # and just set the lengths at the top for decoding.
                     command_string = ' '.join(argv)
                     f.write(', "%s", "%s"' % (nprocs, ' '.join(argv)))
-                f.write(']\n')
+                f.write('];\n')
             f.write(self.BATCH_FOOTER)
         helpers.make_executable(script_path)
         return script_path
