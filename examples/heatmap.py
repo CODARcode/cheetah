@@ -7,7 +7,7 @@ class HeatMap(Experiment):
                  stage="stage_write/stage_write")
     supported_machines = ['swift']
 
-    runs = [
+    sweeps = [
      p.SchedulerGroup(nodes=1,
       parameter_groups=
       [p.ParameterGroup([
@@ -22,7 +22,7 @@ class HeatMap(Experiment):
         p.ParamCmdLineArg("heat", "xsize", 4, [40]),
         p.ParamCmdLineArg("heat", "ysize", 5, [50]),
         p.ParamCmdLineArg("heat", "steps", 6, [6]),
-        p.ParamCmdLineArg("heat", "iterations", 2, [500]),
+        p.ParamCmdLineArg("heat", "iterations", 7, [500]),
         ]),
       ]),
     ]
