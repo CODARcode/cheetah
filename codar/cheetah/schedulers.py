@@ -261,35 +261,36 @@ string runs[][];
 
     BATCH_FOOTER = """
 
-(int exit_code) system(string work_dir, string cmd)
+(int exit_code, string error_message) system(string work_dir, string cmd)
 "turbine" "1.0"
 [
 \"\"\"
 set oldpwd [ pwd ]
 cd <<work_dir>>
 set cmd_tokens <<cmd>>
+set <<error_message>> ""
+set <<exit_code>> 0
 if [ catch { exec {*}$cmd_tokens > /dev/stdout } e info ] {
-  set L [ dict get $info -errorcode ]
-  set b [ lindex $L 2]
-} else {
-  set b 0
+  set <<exit_code>> [ dict get $info -error ]
+  set <<error_message>> "$e"
 }
-set <<exit_code>> $b
 cd $oldpwd
 \"\"\"
 ];
 
-(int exit_codes[]) launch_multi(string work_dir, string procs[],
+(int exit_codes[], string error_messages[]) launch_multi(
+                                string work_dir, string procs[],
                                 string progs[], string args[][])
 {
     for (int i=0; i < num_progs; i=i+1)
     {
         string cmd = progs[i] + " " + join(args[i], " ");
-        exit_codes[i] = system(work_dir, cmd);
+        (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
     }
 }
 
 int run_exit_codes[][];
+string run_error_messages[][];
 
 for (int i=0; i<size(runs); i=i+1)
 {
@@ -310,10 +311,19 @@ for (int i=0; i<size(runs); i=i+1)
         }
     }
     //printf("%s %s %s %s", dir_name, procs[0], progs[0], args[0][0]);
-    run_exit_codes[i] = launch_multi(dir_name, procs, progs, args);
+    (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, procs,
+                                                              progs, args);
 }
 
-printf("exit codes %d %d", run_exit_codes[0][0], run_exit_codes[1][1]);
+
+for (int i=0; i<size(runs); i=i+1)
+{
+    printf("run %d:", i);
+    for (int j=0; j<num_progs; j=j+1)
+    {
+        printf(" %d (%s)", run_exit_codes[i][j], run_error_messages[i][j]);
+    }
+}
 """
 
     WAIT_TEMPLATE = """#!/bin/bash
