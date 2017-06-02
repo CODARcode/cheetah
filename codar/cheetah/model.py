@@ -90,7 +90,8 @@ class Experiment(object):
             group_output_dir = os.path.join(output_dir,
                                             "group-%03d" % (group_i+1))
             os.makedirs(group_output_dir, exist_ok=True)
-            launcher = self.machine.get_scheduler_instance(group_output_dir)
+            launcher = self.machine.get_scheduler_instance(group_output_dir,
+                                                           len(self.codes))
             group_instances = group.get_instances()
             group_runs = [Run(inst, self.codes, self.app_dir,
                               os.path.join(group_output_dir, 'run-%03d' % i))

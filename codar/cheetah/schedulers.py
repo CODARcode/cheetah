@@ -41,9 +41,10 @@ class Scheduler(object):
     batch_walltime_name = 'codar.cheetah.walltime.txt'
     jobid_file_name = 'codar.cheetah.jobid.txt'
 
-    def __init__(self, runner, output_directory):
+    def __init__(self, runner, output_directory, num_codes):
         self.runner = runner
         self.output_directory = output_directory
+        self.num_codes = num_codes
 
     def write_submit_script(self):
         """
@@ -362,7 +363,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                    self.batch_script_name)
         with open(script_path, 'w') as f:
             f.write(self.BATCH_HEADER)
-            f.write('int num_progs = 1;\n')
+            f.write('int num_progs = %d;\n' % self.num_codes)
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)

@@ -15,8 +15,9 @@ class Machine(object):
         self.scheduler_class = scheduler_class
         self.runner_class = runner_class
 
-    def get_scheduler_instance(self, output_directory):
-        return self.scheduler_class(self.runner_class(), output_directory)
+    def get_scheduler_instance(self, output_directory, num_codes):
+        return self.scheduler_class(self.runner_class(), output_directory,
+                                    num_codes)
 
 
 # All machine names must be lowercase, to avoid conflicts with class
