@@ -1,7 +1,7 @@
 """
 Configuration for machines supported by Codar.
 """
-from codar.cheetah import runners, schedulers, exc
+from codar.cheetah import launchers, exc
 
 
 class Machine(object):
@@ -11,21 +11,24 @@ class Machine(object):
     having to define machine specific parameter for every experiment
     separately."""
 
-    def __init__(self, scheduler_class, runner_class):
-        self.scheduler_class = scheduler_class
-        self.runner_class = runner_class
+    def __init__(self, launcher_class, scheduler_name, runner_name):
+        self.launcher_class = launcher_class
+        self.scheduler_name = scheduler_name
+        self.runner_name = runner_name
 
-    def get_scheduler_instance(self, output_directory, num_codes):
-        return self.scheduler_class(self.runner_class(), output_directory,
-                                    num_codes)
+    def get_launcher_instance(self, output_directory, num_codes):
+        return self.launcher_class(self.scheduler_name, self.runner_name,
+                                   output_directory, num_codes)
 
 
 # All machine names must be lowercase, to avoid conflicts with class
 # definitions etc. This allows the module to act as a sort of enum
 # container with all the machines.
-titan=Machine(schedulers.SchedulerPBS, runners.RunnerCray)
-local=Machine(schedulers.SchedulerLocal, runners.RunnerLocal)
-swift=Machine(schedulers.SchedulerSwift, runners.RunnerLocal)
+# TODO: define constants for schedulers and runners? What granularity
+# is needed here? Goal is to figure out which options to pass to
+# swift-t.
+titan=Machine(launchers.LauncherSwift, "PBS", "cray")
+local=Machine(launchers.LauncherSwift, "local", "local")
 
 
 def get_by_name(name):

@@ -20,12 +20,12 @@ def load_experiment_class(file_path):
     experiment_class = None
     for m in inspect.getmembers(module, inspect.isclass):
         mvalue = m[1]
-        if (not issubclass(mvalue, model.Experiment)
-                or mvalue == model.Experiment):
+        if (not issubclass(mvalue, model.Campaign)
+                or mvalue == model.Campaign):
             continue
         experiment_class = mvalue
         break
     if experiment_class is None:
-        raise exc.ExperimentParseError(
-                'no Experiment subclass found in "%s"' % file_path)
+        raise exc.CampaignParseError(
+                'no Campaign subclass found in "%s"' % file_path)
     return experiment_class

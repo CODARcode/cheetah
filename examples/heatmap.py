@@ -1,16 +1,16 @@
-from codar.cheetah import Experiment
+from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 
-class HeatMap(Experiment):
+class HeatMap(Campaign):
     name = "heatmap-example"
     codes = dict(heat="heat_transfer_adios2",
                  stage="stage_write/stage_write")
-    supported_machines = ['swift']
+    supported_machines = ['local']
 
     sweeps = [
-     p.SchedulerGroup(nodes=1,
+     p.SweepGroup(nodes=1,
       parameter_groups=
-      [p.ParameterGroup([
+      [p.Sweep([
         p.ParamRunner("stage", "nprocs", [2]),
         p.ParamCmdLineArg("stage", "input", 1, ["heat.pb"]),
         p.ParamCmdLineArg("stage", "output", 2, ["staged.pb"]),
