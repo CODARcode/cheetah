@@ -31,7 +31,7 @@ echo $(($end - $start)) > codar.cheetah.walltime.txt
 """
 
 
-class Experiment(object):
+class Campaign(object):
     """An experiment class specifies an application, a set of parameter to
     sweep over, and a set of supported target machine. A specific instance
     binds the experiment to a specific machine within the set of supported
@@ -82,16 +82,16 @@ class Experiment(object):
         output_dir = os.path.abspath(output_dir)
         os.makedirs(output_dir, exist_ok=True)
         for group_i, group in enumerate(self.sweeps):
-            # top level should be SchedulerGroup, open scheduler file
-            if not isinstance(group, parameters.SchedulerGroup):
-                raise ValueError("top level run groups must be SchedulerGroup")
+            # top level should be SweepGroup, open scheduler file
+            if not isinstance(group, parameters.SweepGroup):
+                raise ValueError("top level run groups must be SweepGroup")
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
             group_output_dir = os.path.join(output_dir,
                                             "group-%03d" % (group_i+1))
             os.makedirs(group_output_dir, exist_ok=True)
-            launcher = self.machine.get_scheduler_instance(group_output_dir,
-                                                           len(self.codes))
+            launcher = self.machine.get_launcher_instance(group_output_dir,
+                                                          len(self.codes))
             group_instances = group.get_instances()
             group_runs = [Run(inst, self.codes, self.app_dir,
                               os.path.join(group_output_dir, 'run-%03d' % i))

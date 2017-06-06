@@ -1,16 +1,12 @@
 """
 Module containing classes for specifying paramter value sets and groupings
 of parameters. Used in the Experiment specification in the 'runs' variable.
-
-TODO: rename ParameterGroup to use new 'Sweep' terminology.
-
-TODO: do we still need a scheduler level parent to Sweeps? What do we call it?
 """
 import itertools
 from collections import defaultdict
 
 
-class SchedulerGroup(object):
+class SweepGroup(object):
     """
     Class representing a grouping of run parameters that can be executed by
     a single scheduler job, because they share the same scheduler parameters
@@ -30,7 +26,7 @@ class SchedulerGroup(object):
         return inst
 
 
-class ParameterGroup(object):
+class Sweep(object):
     """
     Class representing a set of parameter values to search over as
     a cross product.
@@ -50,7 +46,7 @@ class ParameterGroup(object):
         Also how to pass per run output dir? Or is just making CWD the
         per run dir enough for all cases we care about?
 
-        TODO: should have same signature as SchedulerGroup version OR a
+        TODO: should have same signature as SweepGroup version OR a
         different name.
         """
         inst_list = []

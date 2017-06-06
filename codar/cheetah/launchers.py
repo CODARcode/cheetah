@@ -1,8 +1,9 @@
 """
-TODO: when using swift-t, it can handle submission to PBS and
-apirun/srun/mpiexec/mpiluanch, so it probably makes the scheduler/runner
-class model unnecessary. Instead can have a SwiftLauncher with subclasses
-for local, pbs, and slurm.
+Class model for "launchers", which are responsible for taking an application
+and mediating how it is run on a super computer or local machine. The only
+supported launcher currently is swift-t. Swift allows us to configure how
+each run within a sweep is parallelized, and handles details of submitting to
+the correct scheduler and runner when passed appropriate options.
 """
 import os
 import json
@@ -10,22 +11,17 @@ import json
 from codar.cheetah import helpers
 
 
-class Scheduler(object):
+class Launcher(object):
     """
-    Class to represent a job on a scheduler like PBS, SLURM, or Local
-    (for no scheduler). Maps conceptual names like 'nodes' to the specific
-    command line arguments that need to be passed. Holds a reference to
-    the corresponding runner (e.g. aprun or srun).
-
+    Abstract class to represent a single batch job or submission script.
     It's job is to take a scheduler group and produce a script for executing
     all runs within the scheduler group with the indicated scheduler
     parameters.
 
-    TODO: add another layer of abstraction that encapsulates templating
-    and parameters for each scheduler, that could be used by other projects.
-    This contains a lot of details specific to how we want to organize the
-    output directories and keep track of the jobid and define run and monitor
-    scripts, that is very specific to cheetah.
+    The launcher may take configuration parameters to specify which scheduler/
+    runner to use, but there is no longer an object model for schedulers and
+    runners, because we are mainly interested in using swift-t which can target
+    different environments with simple command line args.
     """
     name = None # subclass must set
 
@@ -41,8 +37,10 @@ class Scheduler(object):
     batch_walltime_name = 'codar.cheetah.walltime.txt'
     jobid_file_name = 'codar.cheetah.jobid.txt'
 
-    def __init__(self, runner, output_directory, num_codes):
-        self.runner = runner
+    def __init__(self, scheduler_name, runner_name,
+                 output_directory, num_codes):
+        self.scheduler_name = scheduler_name
+        self.runner_name = runner_name
         self.output_directory = output_directory
         self.num_codes = num_codes
 
@@ -105,137 +103,10 @@ class Scheduler(object):
         raise NotImplemented()
 
 
-class SchedulerLocal(Scheduler):
+class LauncherSwift(Launcher):
     """
-    DEPRECATED
-
-    Batch type that ignores all scheduler options and runs the command directly
-    on the local machine with bash, one at a time with no parallelism.
-
-    An instance ties the scheduler together with a specific runner. Some
-    schedulers may require a certain type of runner, but others may support
-    multiple runners.
-    """
-    name = 'local'
-    batch_script_name = 'local-run.sh'
-
-    SUBMIT_TEMPLATE = """#!/bin/bash
-
-cd {group_directory}
-nohup bash {batch_script_name} >{submit_out_name} 2>&1 &
-PID=$!
-echo "{name}:$PID" > {jobid_file_name}
-"""
-
-    BATCH_HEADER = """#!/bin/bash
-
-set -x
-set -e
-
-batch_start=$(date +%s)
-"""
-
-    BATCH_FOOTER = """batch_end=$(date +%s)
-echo $(($batch_end - $batch_start)) > {batch_walltime_name}
-"""
-
-    WAIT_TEMPLATE = """#!/bin/bash
-
-cd $(dirname $0)
-PID=$(cat {jobid_file_name} | cut -d: -f2)
-while [ -n "$(ps -p $PID -o time=)" ]; do
-    sleep 1
-done
-cat {batch_walltime_name}
-"""
-
-    STATUS_TEMPLATE = """#!/bin/bash
-
-cd $(dirname $0)
-ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
-"""
-
-
-    def write_submit_script(self):
-        submit_path = os.path.join(self.output_directory,
-                                   self.submit_script_name)
-        with open(submit_path, 'w') as f:
-            body = self.SUBMIT_TEMPLATE.format(
-                        group_directory=self.output_directory,
-                        batch_script_name=self.batch_script_name,
-                        submit_out_name=self.submit_out_name,
-                        jobid_file_name=self.jobid_file_name,
-                        name=self.name)
-            f.write(body)
-        helpers.make_executable(submit_path)
-        return submit_path
-
-    def write_batch_script(self, runs):
-        script_path = os.path.join(self.output_directory,
-                                   self.batch_script_name)
-        with open(script_path, 'w') as f:
-            # ignore all scheduler parameters for local runs, and just
-            # use a fixed hearder
-            f.write(self.BATCH_HEADER)
-            for i, run in enumerate(runs):
-                # TODO: abstract this to higher levels
-                command_dir = 'run-%03d' % (i+1)
-                command_path = os.path.join(self.output_directory, command_dir)
-                os.makedirs(command_path, exist_ok=True)
-                run.set_output_directory(command_path)
-                run_string = run.as_string()
-                run_data = run.as_dict()
-                # save command as text
-                params_path_txt = os.path.join(command_path,
-                                               self.run_command_name)
-                with open(params_path_txt, 'w') as params_f:
-                    params_f.write(run_string)
-                    params_f.write('\n')
-                # save params as JSON for use in post-processing, more
-                # useful for post-processing scripts then the command
-                # text
-                # Possible alternative: single JSON file at top level
-                # with all run dirs and params for each run
-                params_path_json = os.path.join(command_path,
-                                                self.run_json_name)
-                with open(params_path_json, 'w') as params_f:
-                    json.dump(run_data, params_f, indent=2)
-
-                # add to batch script
-                lines = self.runner.wrap_app_command(command_dir,
-                                                     self.run_out_name,
-                                                     run_string)
-                if lines:
-                    f.write('\n'.join(lines))
-                    f.write('\n')
-            f.write(self.BATCH_FOOTER.format(
-                        batch_walltime_name=self.batch_walltime_name))
-        helpers.make_executable(script_path)
-        return script_path
-
-    def write_status_script(self):
-        script_path = os.path.join(self.output_directory,
-                                   self.status_script_name)
-        with open(script_path, 'w') as f:
-            f.write(self.STATUS_TEMPLATE.format(
-                        jobid_file_name=self.jobid_file_name))
-        helpers.make_executable(script_path)
-        return script_path
-
-    def write_wait_script(self):
-        script_path = os.path.join(self.output_directory,
-                                   self.wait_script_name)
-        with open(script_path, 'w') as f:
-            f.write(self.WAIT_TEMPLATE.format(
-                                jobid_file_name=self.jobid_file_name,
-                                batch_walltime_name=self.batch_walltime_name))
-        helpers.make_executable(script_path)
-        return script_path
-
-
-class SchedulerSwift(Scheduler):
-    """
-    Batch type that uses swift scripts.
+    Launcher that generates swift-t script and bash scripts for executing
+    with appropriate options.
 
     TODO: currently all output goes to swift script output, need to capture
     individual run output.
@@ -248,7 +119,7 @@ class SchedulerSwift(Scheduler):
     SUBMIT_TEMPLATE = """#!/bin/bash
 
 cd {group_directory}
-nohup swift-t -p {batch_script_name} >{submit_out_name} 2>&1 &
+nohup swift-t {swift_options} -p {batch_script_name} >{submit_out_name} 2>&1 &
 PID=$!
 echo "{name}:$PID" > {jobid_file_name}
 """
@@ -343,17 +214,23 @@ cd $(dirname $0)
 ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 """
 
-
     def write_submit_script(self):
         submit_path = os.path.join(self.output_directory,
                                    self.submit_script_name)
+        swift_options = ""
+        if self.scheduler_name == "PBS":
+            # TODO: untested stub for how we might do this. Note that we may
+            # still need to maintain a Runner model, still wrapping my
+            # head around what Swift provides for that.
+            swift_options = "-m pbs"
         with open(submit_path, 'w') as f:
             body = self.SUBMIT_TEMPLATE.format(
                         group_directory=self.output_directory,
                         batch_script_name=self.batch_script_name,
                         submit_out_name=self.submit_out_name,
                         jobid_file_name=self.jobid_file_name,
-                        name=self.name)
+                        name=self.name,
+                        swift_options=swift_options)
             f.write(body)
         helpers.make_executable(submit_path)
         return submit_path
@@ -396,7 +273,6 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                     # TODO: this is terrible, only works if args don't
                     # require quoting. Should pass as variable arrays
                     # and just set the lengths at the top for decoding.
-                    command_string = ' '.join(argv)
                     f.write(', "%s", "%s"' % (nprocs, ' '.join(argv)))
                 f.write('];\n')
             f.write(self.BATCH_FOOTER)
@@ -421,58 +297,3 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                 batch_walltime_name=self.batch_walltime_name))
         helpers.make_executable(script_path)
         return script_path
-
-
-
-class SchedulerPBS(Scheduler):
-    # TODO: this is broken, just copied and started refactor from pbs
-    # module
-    name = 'local'
-    batch_script_name = 'job.pbs'
-
-    supported_params = ['name', 'project', 'nodes', 'walltime']
-
-    HEADER_TEMPLATE = """#!/bin/bash
-#PBS -N {name}
-#PBS -A {project}
-#PBS -l nodes={nodes}
-#PBS -l walltime={walltime}
-
-    """
-
-    # The standard strategy for getting scheduler output files to appear in
-    # a certain directory are to cd to that directory before running qsub.
-    SUBMIT_TEMPLATE = """#!/bin/bash
-
-cd "{scheduler_directory}"
-qsub {batch_script_name}
-"""
-
-    def write_batch_script(self, group):
-        """
-        Open and write a PBS file to the specified path and return the open file
-        object for further writing. Caller is responsible for closing the file.
-
-        TODO: rather than passing back a file, this should probably return
-        an object with an 'add_run' function. There should also be a template
-        for the run output dir set somewhere - maybe other modules handle that,
-        it should not be scheduler specific.
-        """
-        pbs_path = os.path.join(scheduler_dir_path, PBS_NAME)
-        f = open(pbs_path, "w")
-        f.write(PBS_FORMAT_TEMPLATE.format(name=name, project=project,
-                                           nodes=nodes, walltime=walltime))
-        return f
-
-
-    def write_submit_script(self, script_out_path, scheduler_dir_path):
-        """
-        Write a bash script that will submit a PBS file generated by
-        `open_pbs_file` with the correct working directory and enironment.
-        This is the end user (experiment runner)'s entry point to start the
-        experiment.
-        """
-        with open(script_out_path, 'w') as f:
-            f.write(SUBMIT_FORMAT_TEMPLATE.format(
-                        scheduler_directory=scheduler_dir_path,
-                        pbs_name=PBS_NAME))

@@ -13,5 +13,5 @@ class MachineNotFound(CheetahException):
                            machine_name)
 
 
-class ExperimentParseError(CheetahException):
+class CampaignParseError(CheetahException):
     pass

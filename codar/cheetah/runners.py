@@ -1,3 +1,7 @@
+"""
+TODO: unused currently by SwiftLauncher, but may still be needed, so keeping
+this module for now.
+"""
 
 
 class Runner(object):
