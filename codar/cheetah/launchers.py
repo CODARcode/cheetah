@@ -177,8 +177,8 @@ cd $oldpwd
         // placeholder implementation, not worth trying to make it perfect.
         for (int j=0; j<size(args[i]); j=j+1)
         {
-            quoted_args[j] = "'" + replace_all(args[i][j], "'", "\\\\'", 0)
-                           + "'";
+            quoted_args[j] = "\\"" + replace_all(args[i][j], "\\"", "\\\\\\"", 0)
+                           + "\\"";
         }
         string cmd = progs[i] + " " + string_join(quoted_args, " ");
         (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
