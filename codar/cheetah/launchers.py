@@ -144,6 +144,7 @@ string runs[][];
 // problematic not to know both ahead of time.
 int num_args[];
 int prog_offsets[];
+
 """
 
     BATCH_FOOTER = """
@@ -157,8 +158,12 @@ cd <<work_dir>>
 set cmd_tokens <<cmd>>
 set <<error_message>> ""
 set <<exit_code>> 0
-if [ catch { exec {*}$cmd_tokens > /dev/stdout } e info ] {
-  set <<exit_code>> [ dict get $info -error ]
+if [ catch { exec "/bin/bash" "-c" $cmd_tokens > /dev/stdout } e info ] {
+  if [ dict exists $info -error ] {
+    set <<exit_code>> [ dict get $info -error ]
+  } else {
+    set <<exit_code>> [ dict get $info -code ]
+  }
   set <<error_message>> "$e"
 }
 cd $oldpwd
@@ -181,7 +186,15 @@ cd $oldpwd
                            + "\\"";
         }
         string cmd = progs[i] + " " + string_join(quoted_args, " ");
-        (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
+        if (mock_system)
+        {
+            (exit_codes[i], error_messages[i]) = system(work_dir,
+                                                        "/bin/echo " + cmd);
+        }
+        else
+        {
+            (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
+        }
     }
 }
 
@@ -257,12 +270,16 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         make_executable(submit_path)
         return submit_path
 
-    def write_batch_script(self, runs):
+    def write_batch_script(self, runs, mock=False):
         script_path = os.path.join(self.output_directory,
                                    self.batch_script_name)
         prog_offsets_written = False
         with open(script_path, 'w') as f:
             f.write(self.BATCH_HEADER)
+            if mock:
+                f.write('boolean mock_system = true;\n')
+            else:
+                f.write('boolean mock_system = false;\n')
             f.write('int num_progs = %d;\n' % self.num_codes)
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
