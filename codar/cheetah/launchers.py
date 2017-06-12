@@ -168,6 +168,13 @@ cd $oldpwd
 \"\"\"
 ];
 
+(int exit_code, string error_message) mock_system(string work_dir, string cmd)
+{
+    printf("[%s] %s", work_dir, cmd);
+    exit_code = 0;
+    error_message = "";
+}
+
 (int exit_codes[], string error_messages[]) launch_multi(
                                 string work_dir, string procs[],
                                 string progs[], string args[][])
@@ -184,10 +191,9 @@ cd $oldpwd
                            + "\\"";
         }
         string cmd = progs[i] + " " + string_join(quoted_args, " ");
-        if (mock_system)
+        if (use_mock_system)
         {
-            (exit_codes[i], error_messages[i]) = system(work_dir,
-                                                        "/bin/echo " + cmd);
+            (exit_codes[i], error_messages[i]) = mock_system(work_dir, cmd);
         }
         else
         {
@@ -275,9 +281,9 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         with open(script_path, 'w') as f:
             f.write(self.BATCH_HEADER)
             if mock:
-                f.write('boolean mock_system = true;\n')
+                f.write('boolean use_mock_system = true;\n')
             else:
-                f.write('boolean mock_system = false;\n')
+                f.write('boolean use_mock_system = false;\n')
             f.write('int num_progs = %d;\n' % self.num_codes)
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
@@ -291,11 +297,11 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 if not prog_offsets_written:
                     offset = 1 # skip first element which is working directory
                     for j, (argv, _) in enumerate(codes_argv_nprocs):
-                        f.write('num_args[%d] = %d;\n' % (j, len(argv)))
+                        f.write('num_args[%d] = %d;\n' % (j, len(argv)-1))
                         f.write('prog_offsets[%d] = %d;\n' % (j, offset))
                         # next prog starts after nprocs, prog, and args of
                         # current prog
-                        offset += 2 + len(argv)
+                        offset += 1 + len(argv)
                     prog_offsets_written = True
 
                 # save code commands as text
