@@ -221,7 +221,6 @@ for (int i=0; i<size(runs); i=i+1)
             args[j][k] = runs[i][prog_offsets[j]+2+k];
         }
     }
-    //printf("%s %s %s %s", dir_name, nprocs[0], progs[0], args[0][0]);
     (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, nprocs,
                                                               progs, args);
 }
@@ -229,10 +228,10 @@ for (int i=0; i<size(runs); i=i+1)
 
 for (int i=0; i<size(runs); i=i+1)
 {
-    printf("run %d:", i);
     for (int j=0; j<num_progs; j=j+1)
     {
-        printf(" %d (%s)", run_exit_codes[i][j], run_error_messages[i][j]);
+        printf("[%d] %d (%s)", i,
+               run_exit_codes[i][j], run_error_messages[i][j]);
     }
 }
 """
