@@ -147,7 +147,8 @@ int prog_offsets[];
 
     BATCH_FOOTER = """
 
-(int exit_code, string error_message) system(string work_dir, string cmd)
+(int exit_code, string error_message) system(string work_dir, string cmd,
+                                             string out_prefix)
 "turbine" "1.0"
 [
 \"\"\"
@@ -156,7 +157,10 @@ cd <<work_dir>>
 set cmd_tokens <<cmd>>
 set <<error_message>> ""
 set <<exit_code>> 0
-if [ catch { exec "/bin/bash" "-c" $cmd_tokens > /dev/stdout } e info ] {
+set out_prefix <<out_prefix>>
+set stdout_path "$out_prefix.stdout"
+set stderr_path "$out_prefix.stderr"
+if [ catch { exec "/bin/bash" "-c" $cmd_tokens > $stdout_path 2> $stderr_path } e info ] {
   if [ dict exists $info -error ] {
     set <<exit_code>> [ dict get $info -error ]
   } else {
@@ -168,9 +172,10 @@ cd $oldpwd
 \"\"\"
 ];
 
-(int exit_code, string error_message) mock_system(string work_dir, string cmd)
+(int exit_code, string error_message) mock_system(string work_dir, string cmd,
+                                                  string out_prefix)
 {
-    printf("[%s] %s", work_dir, cmd);
+    printf("[%s/%s] %s", work_dir, out_prefix, cmd);
     exit_code = 0;
     error_message = "";
 }
@@ -191,13 +196,16 @@ cd $oldpwd
                            + "\\"";
         }
         string cmd = progs[i] + " " + string_join(quoted_args, " ");
+        string out_prefix = "codar.cheetah." + fromint(i);
         if (use_mock_system)
         {
-            (exit_codes[i], error_messages[i]) = mock_system(work_dir, cmd);
+            (exit_codes[i], error_messages[i]) = mock_system(work_dir, cmd,
+                                                             out_prefix);
         }
         else
         {
-            (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
+            (exit_codes[i], error_messages[i]) = system(work_dir, cmd,
+                                                        out_prefix);
         }
     }
 }
@@ -316,7 +324,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # text
                 params_path_json = os.path.join(run.run_path,
                                                 self.run_json_name)
-                run_data = run.instance.as_dict()
+                run_data = run.as_dict()
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
