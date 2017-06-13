@@ -43,6 +43,7 @@ class Campaign(object):
     codes = {}
     supported_machines = []
     sweeps = []
+    inputs = []
     inputs_fullpath = []
 
     # Optional. If set, passed single argument which is the absolute
