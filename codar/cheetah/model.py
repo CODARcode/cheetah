@@ -63,8 +63,8 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
-        for input in self.inputs:
-            self.inputs_fullpath.append(os.path.join(self.app_dir, input))
+        for input_rpath in self.inputs:
+            self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
 
 
     def _get_machine(self, machine_name):
