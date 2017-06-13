@@ -6,6 +6,7 @@ class HeatMap(Campaign):
     codes = dict(heat="heat_transfer_adios2",
                  stage="stage_write/stage_write")
     supported_machines = ['local']
+    inputs = ["heat_transfer.xml"]
 
     sweeps = [
      p.SweepGroup(nodes=1,

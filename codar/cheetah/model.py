@@ -43,6 +43,8 @@ class Campaign(object):
     codes = {}
     supported_machines = []
     sweeps = []
+    inputs = []
+    inputs_fullpath = []
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
@@ -62,6 +64,9 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
+        for input_rpath in self.inputs:
+            self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
+
 
     def _get_machine(self, machine_name):
         machine = None
@@ -94,7 +99,7 @@ class Campaign(object):
                                                           len(self.codes))
             group_instances = group.get_instances()
             group_runs = [Run(inst, self.codes, self.app_dir,
-                              os.path.join(group_output_dir, 'run-%03d' % i))
+                              os.path.join(group_output_dir, 'run-%03d' % i), self.inputs_fullpath)
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
             launcher.write_submit_script()
@@ -119,11 +124,12 @@ class Run(object):
     including how to generate arg arrays for executing each code required for
     the application.
     """
-    def __init__(self, instance, codes, codes_path, run_path):
+    def __init__(self, instance, codes, codes_path, run_path, inputs):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
         self.run_path = run_path
+        self.inputs = inputs
 
     def get_codes_argv_with_exe_and_nprocs(self):
         """

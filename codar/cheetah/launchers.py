@@ -8,6 +8,7 @@ the correct scheduler and runner when passed appropriate options.
 import os
 import json
 
+from shutil import copy2
 from codar.cheetah import helpers
 
 
@@ -244,6 +245,9 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)
+
+                for input_rpath in run.inputs:
+                    copy2(input_rpath, run.run_path+"/.")
 
                 codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
 
