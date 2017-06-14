@@ -105,7 +105,7 @@ class Campaign(object):
             launcher.write_submit_script()
             launcher.write_status_script()
             launcher.write_wait_script()
-            launcher.write_batch_script(group_runs)
+            launcher.write_batch_script(group_runs, mock=False)
         run_all_path = os.path.join(output_dir, "run-all.sh")
         all_params_json_path = os.path.join(output_dir, "params.json")
         with open(run_all_path, "w") as f:
@@ -142,7 +142,7 @@ class Run(object):
         for (target, argv) in self.instance.get_codes_argv().items():
             relative_exe = self.codes[target]
             exe_path = os.path.join(self.codes_path, relative_exe)
-            nprocs = self.instance.parameters[target].get('nprocs', "1")
+            nprocs = self.instance.parameters[target].get('nprocs', 1)
             argv_nprocs_list.append(([exe_path] + argv, nprocs))
         return argv_nprocs_list
 
