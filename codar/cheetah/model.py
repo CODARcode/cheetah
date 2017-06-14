@@ -142,7 +142,7 @@ class Run(object):
         for (target, argv) in self.instance.get_codes_argv().items():
             relative_exe = self.codes[target]
             exe_path = os.path.join(self.codes_path, relative_exe)
-            nprocs = self.instance.parameters[target].get('nprocs', "1")
+            nprocs = self.instance.parameters[target].get('nprocs', 1)
             argv_nprocs_list.append(([exe_path] + argv, nprocs))
         return argv_nprocs_list
 
