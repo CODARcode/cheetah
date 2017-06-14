@@ -7,7 +7,7 @@ Not making this a class right now.
 
 import xml.etree.cElementTree as ET
 
-def adiosXMLTransform(groupAndVarName, value, xmlFilepath):
+def adios_xml_transform(group_and_var_name, value, xmlFilepath):
     """
     Edit the ADIOS XML file to enable transform (compression/reduction) for a variable
     
@@ -17,17 +17,17 @@ def adiosXMLTransform(groupAndVarName, value, xmlFilepath):
     :return:            success or error. Return error if variable not found.
     """
 
-    groupName = groupAndVarName.split(":")[0]
-    varName = groupAndVarName.split(":")[1]
+    group_name = group_and_var_name.split(":")[0]
+    var_name = group_and_var_name.split(":")[1]
 
 
     tree = ET.parse(xmlFilepath)
     root = tree.getroot()
 
-    tag = tree.find('adios-group[@name="%s"]/global-bounds/var[@name="%s"]' % (groupName, varName))
+    tag = tree.find('adios-group[@name="%s"]/global-bounds/var[@name="%s"]' % (group_name, var_name))
     tag.set('transform', value)
     tree.write(xmlFilepath)
 
 
 #if __name__ == "__main__":
- #   adiosXMLTransform("heat:T", "sz", "/Users/kpu/vshare/scratch/heat_transfer.xml")
+ #   adios_xml_transform("heat:T", "sz", "/Users/kpu/vshare/scratch/heat_transfer.xml")

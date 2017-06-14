@@ -10,7 +10,7 @@ import json
 
 from shutil import copy2
 from codar.cheetah import helpers
-from codar.cheetah import adiosTransform
+from codar.cheetah import adios_transform
 
 
 class Launcher(object):
@@ -258,11 +258,11 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # be transformed.
                 for key in run.instance.parameters:
                     if "AdiosTransform:" in key:
-                        xmlFilename = (list(run.instance.parameters[key].keys()))[0]
-                        groupAndVarName = key.replace("AdiosTransform:","")
-                        value = run.instance.parameters[key][xmlFilename]
-                        xmlFilePath = run.run_path + "/" + xmlFilename
-                        adiosTransform.adiosXMLTransform(groupAndVarName, value, xmlFilePath)
+                        xml_filename= (list(run.instance.parameters[key].keys()))[0]
+                        group_and_var_name = key.replace("AdiosTransform:","")
+                        value = run.instance.parameters[key][xml_filename]
+                        xmlFilePath = run.run_path + "/" + xml_filename
+                        adios_transform.adios_xml_transform(group_and_var_name, value, xmlFilePath)
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
