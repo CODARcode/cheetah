@@ -90,6 +90,7 @@ class Instance(object):
             if p.target not in self.code_commands:
                 self.code_commands[p.target] = CodeCommand(p.target)
             self.code_commands[p.target].add_arg(p.position, value)
+
         if isinstance(p, ParamCmdLineOption):
             if p.target not in self.code_commands:
                 self.code_commands[p.target] = CodeCommand(p.target)
@@ -261,6 +262,20 @@ class ParamCmdLineArg(Param):
         Param.__init__(self, target, name, values)
         self.position = position
 
+class ParamAdiosXMLArg(Param):
+    """
+    Class to represent ADIOS XML Transform.
+      Currently doing this in a really hacky way:
+      Since we do not currently have a way to differentiate application parameters
+      from ADIOS parameters in an *Instance*, I am appending the target name with 
+      "AdiosTransform:".
+      We can then check the parameters for this dict keys starting with this prefix
+      and parse the XML.
+    """
+    def __init__(self, xmlFilename, varName, values):
+        Param.__init__(self,"AdiosTransform:"+xmlFilename,varName, values)
+        #self.xmlFilename = xmlFilename
+        #self.varName = varName
 
 class ParamCmdLineOption(object):
     """Specification for parameters that are based as a labeled command line
