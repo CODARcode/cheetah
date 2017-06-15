@@ -7,11 +7,11 @@ the correct scheduler and runner when passed appropriate options.
 """
 import os
 import json
-import ast
 
 from shutil import copy2
 from codar.cheetah import helpers
 from codar.cheetah import adios_transform
+from codar.cheetah.parameters import ParamAdiosXML
 
 
 class Launcher(object):
@@ -254,21 +254,12 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
 
                 # ADIOS XML param support
-                for app_key in run.instance.parameters:
-                    for param_key in run.instance.parameters[app_key]:
-                        if "<adios_transform>" in param_key:
-                            transform_config = param_key.replace(
-                                                    "<adios_transform>","")
-                            config_dict = ast.literal_eval(
-                                                    transform_config.strip())
-                            xml_filename = config_dict['xml']
-                            xml_filepath = run.run_path + "/" + xml_filename
-                            group_name = config_dict['adios-group']
-                            var_name = config_dict['var']
-                            value = run.instance.parameters[app_key][param_key]
-
-                            adios_transform.adios_xml_transform(xml_filepath,
-                                                group_name, var_name, value)
+                adios_transform_params = \
+                    run.instance.get_parameter_values_by_type(ParamAdiosXML)
+                for pv in adios_transform_params:
+                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    adios_transform.adios_xml_transform(xml_filepath,
+                                        pv.group_name, pv.var_name, pv.value)
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
