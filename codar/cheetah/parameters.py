@@ -272,10 +272,8 @@ class ParamAdiosXMLArg(Param):
       We can then check the parameters for this dict keys starting with this prefix
       and parse the XML.
     """
-    def __init__(self, xmlFilename, varName, values):
-        Param.__init__(self,"AdiosTransform:"+xmlFilename,varName, values)
-        #self.xmlFilename = xmlFilename
-        #self.varName = varName
+    def __init__(self, target, name, values):
+        Param.__init__(self, target, name, values)
 
 class ParamCmdLineOption(object):
     """Specification for parameters that are based as a labeled command line

@@ -7,6 +7,7 @@ the correct scheduler and runner when passed appropriate options.
 """
 import os
 import json
+import ast
 
 from shutil import copy2
 from codar.cheetah import helpers
@@ -252,17 +253,19 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 
                 codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
 
-                # Edit xml file if run instance has adios transforms.
-                # Note that there can be multiple dictionary entries with
-                # 'AdiosTransform:' keys, since multiple variables may need to
-                # be transformed.
-                for key in run.instance.parameters:
-                    if "AdiosTransform:" in key:
-                        xml_filename= (list(run.instance.parameters[key].keys()))[0]
-                        group_and_var_name = key.replace("AdiosTransform:","")
-                        value = run.instance.parameters[key][xml_filename]
-                        xmlFilePath = run.run_path + "/" + xml_filename
-                        adios_transform.adios_xml_transform(group_and_var_name, value, xmlFilePath)
+                # ADIOS XML param support
+                for app_key in run.instance.parameters:
+                    for param_key in run.instance.parameters[app_key]:
+                        if "<adios_transform>" in param_key:
+                            transform_config = param_key.replace("<adios_transform>","")
+                            config_dict = ast.literal_eval(transform_config.strip())
+                            xml_filename = config_dict['xml']
+                            xml_filepath = run.run_path + "/" + xml_filename
+                            group_name = config_dict['adios-group']
+                            var_name = config_dict['var']
+                            value = run.instance.parameters[app_key][param_key]
+
+                            adios_transform.adios_xml_transform(xml_filepath, group_name, var_name, value)
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
