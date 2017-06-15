@@ -99,7 +99,8 @@ class Campaign(object):
                                                           len(self.codes))
             group_instances = group.get_instances()
             group_runs = [Run(inst, self.codes, self.app_dir,
-                              os.path.join(group_output_dir, 'run-%03d' % i), self.inputs_fullpath)
+                              os.path.join(group_output_dir, 'run-%03d' % i),
+                              self.inputs_fullpath)
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
             launcher.write_submit_script()
