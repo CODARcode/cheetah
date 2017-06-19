@@ -59,6 +59,27 @@ class Sweep(object):
         return inst_list
 
 
+class ParameterValue(object):
+    """
+    Convenience classes for tracking a specific value of a parameter.
+    Proxies to underlying parameter object, adds a `value` instance
+    variable.
+
+    TODO: this is kind of hacky, is there a better way?
+    """
+    def __init__(self, parameter, value_index):
+        self._parameter = parameter
+        self.value = parameter.values[value_index]
+
+    def __getattr__(self, name):
+        if hasattr(self._parameter, name):
+            return getattr(self._parameter, name)
+        raise AttributeError(name)
+
+    def is_type(self, parameter_class):
+        return isinstance(self._parameter, parameter_class)
+
+
 class Instance(object):
     """
     Represent an instance of an application with fixed parameters. An
@@ -68,42 +89,46 @@ class Instance(object):
 
     Abstractly, an instance is a two-level nested dict, where the first
     level indicates the target for a parameter (application code or
-    middlewear), and the second level contains the parameters for that
+    middlewear), and the second level contains the parameter values for that
     target.
     """
     def __init__(self):
-        # abstract container with all params in a hierarchy based on
+        # abstract container with all param values in a hierarchy based on
         # their target
-        self.parameters = defaultdict(dict)
+        self._parameter_values = defaultdict(dict)
 
         # subset of paramaters related to application codes that will
         # need to be run
-        self.code_commands = dict()
+        self._code_commands = dict()
 
     def add_parameter(self, p, idx):
-        target_p = self.parameters[p.target]
-        value = p.values[idx]
+        pv = ParameterValue(p, idx)
+        target_p = self._parameter_values[pv.target]
         if isinstance(p, ParamCmdLineArg):
             # TODO: this is a hacky way to distinguish between
             # application code targets and middlewear targets, should
             # make it more explicit somehow.
-            if p.target not in self.code_commands:
-                self.code_commands[p.target] = CodeCommand(p.target)
-            self.code_commands[p.target].add_arg(p.position, value)
+            if p.target not in self._code_commands:
+                self._code_commands[pv.target] = CodeCommand(pv.target)
+            self._code_commands[pv.target].add_arg(p.position, pv.value)
+
         if isinstance(p, ParamCmdLineOption):
-            if p.target not in self.code_commands:
-                self.code_commands[p.target] = CodeCommand(p.target)
-            self.code_commands[p.target].add_option(p.option, value)
+            if p.target not in self._code_commands:
+                self._code_commands[p.target] = CodeCommand(pv.target)
+            self._code_commands[p.target].add_option(p.option, pv.value)
         # TODO: how do we model parallelism and other middlewear params?
-        if p.name in target_p:
-            raise ValueError('parameter name conflict: "%s"' % p.name)
-        target_p[p.name] = value
+        if pv.name in target_p:
+            raise ValueError('parameter name conflict: "%s"' % pv.name)
+        target_p[pv.name] = pv
 
     def get_codes_argv(self):
         return dict([(k, cc.get_argv())
-                     for (k, cc) in self.code_commands.items()])
+                     for (k, cc) in self._code_commands.items()])
 
     def as_string(self):
+        """Get a command line like value for the instance. Note that this
+        only includes positional and option command line args, not config
+        args like adios XML. TODO: deprecate??"""
         parts = [self.exe]
         for position in range(1, 101):
             if position in self.args:
@@ -116,13 +141,28 @@ class Instance(object):
             parts.append(option + ' ' + value)
         return " ".join(parts)
 
+    def get_parameter_values_by_type(self, param_class):
+        """
+        Get a list of ParamaterValues of the specified type in the instance.
+        """
+        pvs = []
+        for target, target_params in self._parameter_values.items():
+            for name, pv in target_params.items():
+                if pv.is_type(param_class):
+                    pvs.append(pv)
+        return pvs
+
+    def get_nprocs(self, target):
+        return self._parameter_values[target].get('nprocs', "1")
+
     def as_dict(self):
         """
         Produce dict (mainly for for JSON seriliazation) with keys based on
         parameter names. This ignores the type of the param, it's just the
         name value pairs.
         """
-        return dict(self.parameters)
+        return dict((target, dict((pv.name, pv.value) for pv in d.values()))
+                    for target, d in self._parameter_values.items())
 
 
 class CodeCommand(object):
@@ -260,6 +300,29 @@ class ParamCmdLineArg(Param):
     def __init__(self, target, name, position, values):
         Param.__init__(self, target, name, values)
         self.position = position
+
+
+class ParamAdiosXML(Param):
+    """
+    Class to represent ADIOS XML Transform.
+
+    The transform config is encoded in the name, so transforms on different
+    variables can be included in the sweep.
+
+    Format:
+        adios_transform:<xml_filename>:<group_name>:<var_name>
+
+    Note that the filename is assumed to be relative to the app directory
+    specified as a Cheetah command line argument.
+    """
+    def __init__(self, target, name, values):
+        Param.__init__(self, target, name, values)
+        parts = name.split(":")
+        if len(parts) != 4 or parts[0] != "adios_transform":
+            raise ValueError("bad format for ParamAdiosXML name")
+        self.xml_filename = parts[1]
+        self.group_name = parts[2]
+        self.var_name = parts[3]
 
 
 class ParamCmdLineOption(object):

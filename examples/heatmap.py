@@ -20,6 +20,8 @@ class HeatMap(Campaign):
         p.ParamCmdLineArg("heat", "xprocs", 2, [4]),
         p.ParamCmdLineArg("heat", "yprocs", 3, [3]),
         p.ParamRunner("heat", "nprocs", [12]),
+        p.ParamAdiosXML("heat", "adios_transform:heat_transfer.xml:heat:T",
+                        ["zfp:accuracy=.001", "sz"]),
         p.ParamCmdLineArg("heat", "xsize", 4, [40]),
         p.ParamCmdLineArg("heat", "ysize", 5, [50]),
         p.ParamCmdLineArg("heat", "steps", 6, [6]),
