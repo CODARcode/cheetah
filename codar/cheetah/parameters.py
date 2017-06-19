@@ -153,7 +153,10 @@ class Instance(object):
         return pvs
 
     def get_nprocs(self, target):
-        return self._parameter_values[target].get('nprocs', "1")
+        pv = self._parameter_values[target].get('nprocs')
+        if pv is None:
+            return 1
+        return pv.value
 
     def as_dict(self):
         """
