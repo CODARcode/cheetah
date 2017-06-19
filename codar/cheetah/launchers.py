@@ -9,9 +9,10 @@ import os
 import json
 
 from shutil import copy2
-from codar.cheetah import helpers
+
 from codar.cheetah import adios_transform
 from codar.cheetah.parameters import ParamAdiosXML
+from codar.cheetah.helpers import make_executable, swift_escape_string
 
 
 class Launcher(object):
@@ -131,12 +132,25 @@ echo "{name}:$PID" > {jobid_file_name}
 import io;
 import string;
 
+// Each row is
+// [RUN_PATH, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
+//  NPROCS2, PROG2, PROG2ARG1,...]
+// Note that each program may have different number of args.
 string runs[][];
+
+// Filled in for the sweep group, specifies number of args for each program,
+// and the offsets into runs where each program starts. Note that one can
+// be inferred from the other in a serial program, but in swift it's
+// problematic not to know both ahead of time.
+int num_args[];
+int prog_offsets[];
+
 """
 
     BATCH_FOOTER = """
 
-(int exit_code, string error_message) system(string work_dir, string cmd)
+(int exit_code, string error_message) system(string work_dir, string cmd,
+                                             string out_prefix)
 "turbine" "1.0"
 [
 \"\"\"
@@ -145,13 +159,28 @@ cd <<work_dir>>
 set cmd_tokens <<cmd>>
 set <<error_message>> ""
 set <<exit_code>> 0
-if [ catch { exec {*}$cmd_tokens > /dev/stdout } e info ] {
-  set <<exit_code>> [ dict get $info -error ]
+set out_prefix <<out_prefix>>
+set stdout_path "$out_prefix.stdout"
+set stderr_path "$out_prefix.stderr"
+if [ catch { exec "/bin/bash" "-c" $cmd_tokens > $stdout_path 2> $stderr_path } e info ] {
+  if [ dict exists $info -error ] {
+    set <<exit_code>> [ dict get $info -error ]
+  } else {
+    set <<exit_code>> [ dict get $info -code ]
+  }
   set <<error_message>> "$e"
 }
 cd $oldpwd
 \"\"\"
 ];
+
+(int exit_code, string error_message) mock_system(string work_dir, string cmd,
+                                                  string out_prefix)
+{
+    printf("[%s/%s] %s", work_dir, out_prefix, cmd);
+    exit_code = 0;
+    error_message = "";
+}
 
 (int exit_codes[], string error_messages[]) launch_multi(
                                 string work_dir, string procs[],
@@ -159,8 +188,27 @@ cd $oldpwd
 {
     for (int i=0; i < num_progs; i=i+1)
     {
-        string cmd = progs[i] + " " + join(args[i], " ");
-        (exit_codes[i], error_messages[i]) = system(work_dir, cmd);
+        string quoted_args[];
+
+        // Attempt to quote args for shell system call in tcl. Since this is a
+        // placeholder implementation, not worth trying to make it perfect.
+        for (int j=0; j<size(args[i]); j=j+1)
+        {
+            quoted_args[j] = "\\"" + replace_all(args[i][j], "\\"", "\\\\\\"", 0)
+                           + "\\"";
+        }
+        string cmd = progs[i] + " " + string_join(quoted_args, " ");
+        string out_prefix = "codar.cheetah." + fromint(i);
+        if (use_mock_system)
+        {
+            (exit_codes[i], error_messages[i]) = mock_system(work_dir, cmd,
+                                                             out_prefix);
+        }
+        else
+        {
+            (exit_codes[i], error_messages[i]) = system(work_dir, cmd,
+                                                        out_prefix);
+        }
     }
 }
 
@@ -170,33 +218,30 @@ string run_error_messages[][];
 for (int i=0; i<size(runs); i=i+1)
 {
     dir_name = runs[i][0];
-    string procs[];
+    string nprocs[];
     string progs[];
     string args[][];
 
     for (int j=0; j<num_progs; j=j+1)
     {
-        procs[j] = runs[i][1+j*2];
-        string prog_args = runs[i][2+j*2];
-        parts = split(prog_args, " ");
-        progs[j] = parts[0];
-        for (int k=1; k<size(parts); k=k+1)
+        nprocs[j] = runs[i][prog_offsets[j]];
+        progs[j] = runs[i][prog_offsets[j]+1];
+        for (int k=0; k<num_args[j]; k=k+1)
         {
-            args[j][k-1] = parts[k];
+            args[j][k] = runs[i][prog_offsets[j]+2+k];
         }
     }
-    //printf("%s %s %s %s", dir_name, procs[0], progs[0], args[0][0]);
-    (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, procs,
+    (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, nprocs,
                                                               progs, args);
 }
 
 
 for (int i=0; i<size(runs); i=i+1)
 {
-    printf("run %d:", i);
     for (int j=0; j<num_progs; j=j+1)
     {
-        printf(" %d (%s)", run_exit_codes[i][j], run_error_messages[i][j]);
+        printf("[%d] %d (%s)", i,
+               run_exit_codes[i][j], run_error_messages[i][j]);
     }
 }
 """
@@ -235,14 +280,19 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                         name=self.name,
                         swift_options=swift_options)
             f.write(body)
-        helpers.make_executable(submit_path)
+        make_executable(submit_path)
         return submit_path
 
-    def write_batch_script(self, runs):
+    def write_batch_script(self, runs, mock=False):
         script_path = os.path.join(self.output_directory,
                                    self.batch_script_name)
+        prog_offsets_written = False
         with open(script_path, 'w') as f:
             f.write(self.BATCH_HEADER)
+            if mock:
+                f.write('boolean use_mock_system = true;\n')
+            else:
+                f.write('boolean use_mock_system = false;\n')
             f.write('int num_progs = %d;\n' % self.num_codes)
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
@@ -261,6 +311,16 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                     adios_transform.adios_xml_transform(xml_filepath,
                                         pv.group_name, pv.var_name, pv.value)
 
+                if not prog_offsets_written:
+                    offset = 1 # skip first element which is working directory
+                    for j, (argv, _) in enumerate(codes_argv_nprocs):
+                        f.write('num_args[%d] = %d;\n' % (j, len(argv)-1))
+                        f.write('prog_offsets[%d] = %d;\n' % (j, offset))
+                        # next prog starts after nprocs, prog, and args of
+                        # current prog
+                        offset += 1 + len(argv)
+                    prog_offsets_written = True
+
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
@@ -274,23 +334,24 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # text
                 params_path_json = os.path.join(run.run_path,
                                                 self.run_json_name)
-                run_data = run.instance.as_dict()
+                run_data = run.as_dict()
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
                 # write a swift string array with variable number of
-                # elements, first is the command directory, then pairs
-                # of elements with parallelism followed by command to
-                # execute.
-                f.write('runs[%d] = ["%s"' % (i, run.run_path))
-                for argv, nprocs in codes_argv_nprocs:
-                    # TODO: this is terrible, only works if args don't
-                    # require quoting. Should pass as variable arrays
-                    # and just set the lengths at the top for decoding.
-                    f.write(', "%s", "%s"' % (nprocs, ' '.join(argv)))
+                # elements, first is the command directory, then list
+                # of elements with parallelism followed by command
+                # followed by a variable number of args.
+                f.write('runs[%d] = ["%s"'
+                        % (i, swift_escape_string(run.run_path)))
+                for j, (argv, nprocs) in enumerate(codes_argv_nprocs):
+                    quoted_argv = ['"%s"' % swift_escape_string(arg)
+                                   for arg in argv]
+                    f.write(', "%d", ' % nprocs)
+                    f.write(', '.join(quoted_argv))
                 f.write('];\n')
             f.write(self.BATCH_FOOTER)
-        helpers.make_executable(script_path)
+        make_executable(script_path)
         return script_path
 
     def write_status_script(self):
@@ -299,7 +360,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         with open(script_path, 'w') as f:
             f.write(self.STATUS_TEMPLATE.format(
                         jobid_file_name=self.jobid_file_name))
-        helpers.make_executable(script_path)
+        make_executable(script_path)
         return script_path
 
     def write_wait_script(self):
@@ -309,5 +370,5 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             f.write(self.WAIT_TEMPLATE.format(
                                 jobid_file_name=self.jobid_file_name,
                                 batch_walltime_name=self.batch_walltime_name))
-        helpers.make_executable(script_path)
+        make_executable(script_path)
         return script_path
