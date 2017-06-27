@@ -135,8 +135,9 @@ class Run(object):
 
     def get_codes_argv_with_exe_and_nprocs(self):
         """
-        Return list of tuples with argv lists and nprocs. The 0th element of
-        each argv is the application executable (absolute path).
+        Return list of tuples with target name, argv lists, and nprocs.
+        The 0th element of each argv is the application executable
+        (absolute path).
 
         TODO: less hacky way of handling nprocs and other middlewear params.
         """
@@ -145,7 +146,7 @@ class Run(object):
             relative_exe = self.codes[target]
             exe_path = os.path.join(self.codes_path, relative_exe)
             nprocs = self.instance.get_nprocs(target)
-            argv_nprocs_list.append(([exe_path] + argv, nprocs))
+            argv_nprocs_list.append((target, [exe_path] + argv, nprocs))
         return argv_nprocs_list
 
     def get_total_nprocs(self):

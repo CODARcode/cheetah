@@ -1,10 +1,13 @@
 #!/bin/bash
 
 ##
-# Wrapper script for use with swift launch_multi. The first argument must be
-# the working directory to use for the command, the next argument the program
-# to run, and the remaining argument are passed to the program. Does a cd to
-# the working dir and saves stderr and stdout to files in the working dir.
+# Wrapper script for use with swift launch_multi. Arguments:
+#  1: the working directory to use for the command
+#  2: logical name of program from cheetah campaign definition
+#  3: program executable
+# The remaining argument are passed to the program. Does a cd to
+# the working dir and saves stderr and stdout to files in the working
+# dir containing the logical program name.
 ##
 
 function error_exit
@@ -14,9 +17,15 @@ function error_exit
 }
 
 WORK_DIR=$1
-PROG=$2
-shift 2
+PROG_NAME=$2
+PROG=$3
+shift 3
 
 cd "$WORK_DIR" || error_exit "Cannot change to work dir, aborting!"
 
-$PROG "$@" >codar.cheetah.stdout 2>codar.cheetah.stderr
+export PROFILEDIR="tau-profile-$PROG_NAME"
+export TRACEDIR="tau-trace-$PROG_NAME"
+export TAU_PROFILE=1
+export TAU_TRACE=1
+
+$PROG "$@" >codar.cheetah.$PROG_NAME.stdout 2>codar.cheetah.$PROG_NAME.stderr

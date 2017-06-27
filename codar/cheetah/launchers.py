@@ -143,8 +143,8 @@ import io;
 import string;
 
 // Each row is
-// [RUN_PATH, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
-//  NPROCS2, PROG2, PROG2ARG1,...]
+// [RUN_PATH, NAME1, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
+//  NAME2, NPROCS2, PROG2, PROG2ARG1,...]
 // Note that each program may have different number of args.
 string runs[][];
 
@@ -234,11 +234,13 @@ for (int i=0; i<size(runs); i=i+1)
 
     for (int j=0; j<num_progs; j=j+1)
     {
-        nprocs[j] = runs[i][prog_offsets[j]];
-        progs[j] = runs[i][prog_offsets[j]+1];
+        // NB: the logical name is at prog_offsets[j], which is unused by this
+        // script
+        nprocs[j] = runs[i][prog_offsets[j]+1];
+        progs[j] = runs[i][prog_offsets[j]+2];
         for (int k=0; k<num_args[j]; k=k+1)
         {
-            args[j][k] = runs[i][prog_offsets[j]+2+k];
+            args[j][k] = runs[i][prog_offsets[j]+3+k];
         }
     }
     (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, nprocs,
@@ -271,11 +273,12 @@ for (int i=0; i<size(runs); i=i+1)
     {
         string argv[];
         string argv_quoted[];
-        nprocs[j] = string2int(runs[i][prog_offsets[j]]);
+        nprocs[j] = toint(runs[i][prog_offsets[j]+1]);
         progs[j] = "CHEETAH_LAUNCH";
         argv[0] = dir_name;
-        argv[1] = runs[i][prog_offsets[j]+1];
-        for (int k=2; k<num_args[j]+2; k=k+1)
+        argv[1] = runs[i][prog_offsets[j]]; // logical prog name
+        argv[2] = runs[i][prog_offsets[j]+2]; // prog exe
+        for (int k=3; k<num_args[j]+3; k=k+1)
         {
             argv[k] = runs[i][prog_offsets[j]+k];
         }
@@ -382,19 +385,19 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 
                 if not prog_offsets_written:
                     offset = 1 # skip first element which is working directory
-                    for j, (argv, _) in enumerate(codes_argv_nprocs):
+                    for j, (_, argv, _) in enumerate(codes_argv_nprocs):
                         f.write('num_args[%d] = %d;\n' % (j, len(argv)-1))
                         f.write('prog_offsets[%d] = %d;\n' % (j, offset))
-                        # next prog starts after nprocs, prog, and args of
-                        # current prog
-                        offset += 1 + len(argv)
+                        # next prog starts after name, nprocs, prog, and args
+                        # of current prog
+                        offset += 2 + len(argv)
                     prog_offsets_written = True
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
-                    for argv, _ in codes_argv_nprocs:
+                    for _, argv, _ in codes_argv_nprocs:
                         params_f.write(' '.join(argv))
                         params_f.write('\n')
 
@@ -413,10 +416,11 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # followed by a variable number of args.
                 f.write('runs[%d] = ["%s"'
                         % (i, swift_escape_string(run.run_path)))
-                for j, (argv, nprocs) in enumerate(codes_argv_nprocs):
+                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
                     quoted_argv = ['"%s"' % swift_escape_string(arg)
                                    for arg in argv]
-                    f.write(', "%d", ' % nprocs)
+                    f.write(', "%s", ' % pname)
+                    f.write('"%d", ' % nprocs)
                     f.write(', '.join(quoted_argv))
                 f.write('];\n')
             if self.runner_name == "launch_multi":
