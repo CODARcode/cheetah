@@ -132,7 +132,7 @@ echo "{name}:$PID" > {jobid_file_name}
 
 cd {group_directory}
 stc -p -u -I {swift_launch_multi} -r {swift_launch_multi} run.swift
-nohup turbine -n {max_nprocs} {swift_options} run.tic >{submit_out_name} 2>&1 &
+nohup turbine -n {turbine_nprocs} {swift_options} run.tic >{submit_out_name} 2>&1 &
 PID=$!
 echo "{name}:$PID" > {jobid_file_name}
 """
@@ -277,7 +277,7 @@ for (int i=0; i<size(runs); i=i+1)
         argv[1] = runs[i][prog_offsets[j]+1];
         for (int k=2; k<num_args[j]+2; k=k+1)
         {
-            argv[k] = runs[i][prog_offsets[j]+2+k];
+            argv[k] = runs[i][prog_offsets[j]+k];
         }
 
         for (int k=0; k<size(argv); k=k+1)
@@ -335,7 +335,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                         # TODO: hacky, add site specific cheetah config file
                         # for this?
                         swift_launch_multi=os.getenv('CODAR_LAUNCH_MULTI'),
-                        max_nprocs=max_nprocs)
+                        turbine_nprocs=max_nprocs+1) # NB: +1 for ADLB master
         else:
             body = self.SUBMIT_TEMPLATE.format(
                         group_directory=self.output_directory,
@@ -420,8 +420,9 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                     f.write(', '.join(quoted_argv))
                 f.write('];\n')
             if self.runner_name == "launch_multi":
-                bin_path = os.path.normpath(os.path.join(__file__, '..',
-                                                         '..', 'scripts'))
+                bin_path = os.path.normpath(os.path.join(
+                                        os.path.dirname(__file__),
+                                        '..', '..', 'scripts'))
                 # TODO: hacky, add this path to a cheetah site config?
                 f.write(self.BATCH_FOOTER_LAUNCH_MULTI.replace(
                     "CHEETAH_LAUNCH",
