@@ -268,29 +268,23 @@ for (int i=0; i<size(runs); i=i+1)
     int nprocs[];
     string progs[];
     string arg_strings[];
+    string argv[][];
+    string envs[][];
 
     for (int j=0; j<num_progs; j=j+1)
     {
-        string argv[];
-        string argv_quoted[];
         nprocs[j] = toint(runs[i][prog_offsets[j]+1]);
         progs[j] = "CHEETAH_LAUNCH";
-        argv[0] = dir_name;
-        argv[1] = runs[i][prog_offsets[j]]; // logical prog name
-        argv[2] = runs[i][prog_offsets[j]+2]; // prog exe
+        argv[j][0] = dir_name;
+        argv[j][1] = runs[i][prog_offsets[j]]; // logical prog name
+        argv[j][2] = runs[i][prog_offsets[j]+2]; // prog exe
         for (int k=3; k<num_args[j]+3; k=k+1)
         {
-            argv[k] = runs[i][prog_offsets[j]+k];
+            argv[j][k] = runs[i][prog_offsets[j]+k];
         }
-
-        for (int k=0; k<size(argv); k=k+1)
-        {
-            argv_quoted[k] = "\\"" + replace_all(argv[k], "\\"", "\\\\\\"", 0) + "\\"";
-        }
-        arg_strings[j] = string_join(argv_quoted, " ");
     }
     launch_return_codes[i] = @par=sum_integer(nprocs) launch_multi(nprocs,
-                                                          progs, arg_strings);
+                                                           progs, argv, envs);
 }
 
 
