@@ -5,7 +5,7 @@ class HeatMap(Campaign):
     name = "heatmap-example"
     codes = dict(heat="heat_transfer_adios2",
                  stage="stage_write/stage_write")
-    supported_machines = ['local']
+    supported_machines = ['local', 'local_launch_multi']
     inputs = ["heat_transfer.xml"]
 
     sweeps = [

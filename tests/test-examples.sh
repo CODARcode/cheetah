@@ -8,6 +8,13 @@ if [ "x$CODAR_APPDIR" == "x" ]; then
     exit 1
 fi
 
+if [ "x$CODAR_LAUNCH_MULTI" == "x" ]; then
+    echo "Error: set CODAR_LAUNCH_MULTI"
+    exit 1
+fi
+
+export CODAR_LAUNCH_MULTI
+
 ./cheetah.py -e examples/PiExperiment.py -m local \
     -a "$CODAR_APPDIR/Example-pi/" \
     -o test_output/pi
@@ -15,3 +22,11 @@ fi
 ./cheetah.py -e examples/heatmap.py -m local \
     -a "$CODAR_APPDIR/Example-heatmap/" \
     -o test_output/heatmap
+
+./cheetah.py -e examples/PiExperiment.py -m local_launch_multi \
+    -a "$CODAR_APPDIR/Example-pi/" \
+    -o test_output/pi-launch-multi
+
+./cheetah.py -e examples/heatmap.py -m local_launch_multi \
+    -a "$CODAR_APPDIR/Example-heatmap/" \
+    -o test_output/heatmap-lauch-multi

@@ -29,6 +29,7 @@ class Machine(object):
 # swift-t.
 titan=Machine(launchers.LauncherSwift, "PBS", "cray")
 local=Machine(launchers.LauncherSwift, "local", "local")
+local_launch_multi=Machine(launchers.LauncherSwift, "local", "launch_multi")
 
 
 def get_by_name(name):
