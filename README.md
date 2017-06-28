@@ -6,6 +6,21 @@ The CODAR Experiment Harness is designed to run Exascale science applications
 using different parameters and components to determine the best combination
 for deployment on different supercomputers.
 
+## Tutorial for Running Heat Transfer example
+
+1. Install savanna using codar fork and branch of spack.
+
+2. Checkout Example-Heat\_Transfer. Edit `make.settings` and use
+   `spack find -p` to determine adios and hdf5 locations. Build.
+
+3. Checkout cheetah (TODO: create spack package). Set environment variable
+   `CODAR_LAUNCH_MULTI` to location of mpix-launch-swift `src` subdir, using
+   `spack find -p mpix-launch-swift`. Set `CODAR_APPDIR` to location where
+   you will checkout `Example-pi` and `Example-Heat_Transfer`. Run
+   `tests/test-examples.sh`.
+
+4. Cd to test\_output/heatmap-launch-multi, run `run-all.sh` script.
+
 ## Example Run
 
 ```
