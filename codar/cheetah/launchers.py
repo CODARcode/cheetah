@@ -7,6 +7,7 @@ the correct scheduler and runner when passed appropriate options.
 """
 import os
 import json
+import shlex
 
 from shutil import copy2
 
@@ -405,7 +406,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
                     for _, argv, _ in codes_argv_nprocs:
-                        params_f.write(' '.join(argv))
+                        params_f.write(' '.join(map(shlex.quote, argv)))
                         params_f.write('\n')
 
                 # save params as JSON for use in post-processing, more
