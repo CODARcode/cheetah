@@ -26,14 +26,11 @@ fi
 
 export CODAR_LAUNCH_MULTI
 
+
 ./cheetah.py -e examples/PiExperiment.py -m local \
     -a "$CODAR_APPDIR/Example-pi/" \
     -o test_output/pi
 
-./cheetah.py -e examples/PiExperiment.py -m local_launch_multi \
-    -a "$CODAR_APPDIR/Example-pi/" \
-    -o test_output/pi-launch-multi
-
-./cheetah.py -e examples/heat_transfer_small.py -m local_launch_multi \
+./cheetah.py -e examples/heat_transfer_small.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/heat-lauch-multi
+    -o test_output/heat

@@ -7,7 +7,7 @@ class PiExperiment(Campaign):
     # the idea that they have same input/output/params, but are compiled
     # with different options. Could be modeled as p.ParamExecutable.
     codes = dict(pi="pi-gmp")
-    supported_machines = ['local', 'local_launch_multi']
+    supported_machines = ['local']
 
     sweeps = [
      p.SweepGroup(nodes=1,
