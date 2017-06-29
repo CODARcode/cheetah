@@ -267,7 +267,6 @@ for (int i=0; i<size(runs); i=i+1)
     dir_name = runs[i][0];
     int nprocs[];
     string progs[];
-    string arg_strings[];
     string argv[][];
     string envs[][];
 

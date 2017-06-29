@@ -28,4 +28,6 @@ export TRACEDIR="tau-trace-$PROG_NAME"
 export TAU_PROFILE=1
 export TAU_TRACE=1
 
+echo "Cheetah: launching $PROG_NAME at $WORK_DIR"
+
 $PROG "$@" >codar.cheetah.$PROG_NAME.stdout 2>codar.cheetah.$PROG_NAME.stderr
