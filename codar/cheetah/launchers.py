@@ -7,6 +7,7 @@ the correct scheduler and runner when passed appropriate options.
 """
 import os
 import json
+import shlex
 
 from shutil import copy2
 
@@ -48,7 +49,7 @@ class Launcher(object):
         self.output_directory = output_directory
         self.num_codes = num_codes
 
-    def write_submit_script(self):
+    def write_submit_script(self, max_nprocs):
         """
         Must at minimum produce a single script 'run.sh' within the
         output_directory that will run the batch in the background or submit
@@ -128,13 +129,23 @@ PID=$!
 echo "{name}:$PID" > {jobid_file_name}
 """
 
+    SUBMIT_TEMPLATE_LAUNCH_MULTI = """#!/bin/bash
+
+cd {group_directory}
+stc -p -u -I {swift_launch_multi} -r {swift_launch_multi} run.swift
+nohup turbine -n {turbine_nprocs} {swift_options} run.tic >{submit_out_name} 2>&1 &
+PID=$!
+echo "{name}:$PID" > {jobid_file_name}
+"""
+
+
     BATCH_HEADER = """
 import io;
 import string;
 
 // Each row is
-// [RUN_PATH, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
-//  NPROCS2, PROG2, PROG2ARG1,...]
+// [RUN_PATH, NAME1, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
+//  NAME2, NPROCS2, PROG2, PROG2ARG1,...]
 // Note that each program may have different number of args.
 string runs[][];
 
@@ -224,11 +235,13 @@ for (int i=0; i<size(runs); i=i+1)
 
     for (int j=0; j<num_progs; j=j+1)
     {
-        nprocs[j] = runs[i][prog_offsets[j]];
-        progs[j] = runs[i][prog_offsets[j]+1];
+        // NB: the logical name is at prog_offsets[j], which is unused by this
+        // script
+        nprocs[j] = runs[i][prog_offsets[j]+1];
+        progs[j] = runs[i][prog_offsets[j]+2];
         for (int k=0; k<num_args[j]; k=k+1)
         {
-            args[j][k] = runs[i][prog_offsets[j]+2+k];
+            args[j][k] = runs[i][prog_offsets[j]+3+k];
         }
     }
     (run_exit_codes[i], run_error_messages[i]) = launch_multi(dir_name, nprocs,
@@ -246,6 +259,51 @@ for (int i=0; i<size(runs); i=i+1)
 }
 """
 
+    BATCH_FOOTER_LAUNCH_MULTI = """
+
+int launch_return_codes[];
+
+for (int i=0; i<size(runs); i=i+1)
+{
+    dir_name = runs[i][0];
+    int nprocs[];
+    string progs[];
+    string argv[][];
+    string envs[][];
+
+    for (int j=0; j<num_progs; j=j+1)
+    {
+        nprocs[j] = toint(runs[i][prog_offsets[j]+1]);
+        progs[j] = "CHEETAH_LAUNCH";
+        argv[j][0] = dir_name;
+        argv[j][1] = runs[i][prog_offsets[j]]; // logical prog name
+        argv[j][2] = runs[i][prog_offsets[j]+2]; // prog exe
+        for (int k=3; k<num_args[j]+3; k=k+1)
+        {
+            string arg = runs[i][prog_offsets[j]+k];
+            if (strlen(arg) == 0)
+            {
+                // workaround for bug in launch_multi that misses empty args
+                argv[j][k] = "\\"\\"";
+            }
+            else
+            {
+                argv[j][k] = arg;
+            }
+        }
+    }
+    launch_return_codes[i] = @par=sum_integer(nprocs) launch_multi(nprocs,
+                                                           progs, argv, envs);
+}
+
+
+for (int i=0; i<size(runs); i=i+1)
+{
+    printf("[%d] %d", i, launch_return_codes[i]);
+}
+"""
+
+
     WAIT_TEMPLATE = """#!/bin/bash
 
 cd $(dirname $0)
@@ -262,7 +320,7 @@ cd $(dirname $0)
 ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 """
 
-    def write_submit_script(self):
+    def write_submit_script(self, max_nprocs):
         submit_path = os.path.join(self.output_directory,
                                    self.submit_script_name)
         swift_options = ""
@@ -271,7 +329,25 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             # still need to maintain a Runner model, still wrapping my
             # head around what Swift provides for that.
             swift_options = "-m pbs"
-        with open(submit_path, 'w') as f:
+
+        if self.runner_name == "launch_multi":
+            mpix_launch_path = os.getenv('CODAR_MPIX_LAUNCH')
+            if mpix_launch_path is None:
+                raise ValueError("Missing required env var CODAR_MPIX_LAUNCH")
+            # the lib actually lives in the src subdir
+            mpix_launch_path = os.path.join(mpix_launch_path, 'src')
+            body = self.SUBMIT_TEMPLATE_LAUNCH_MULTI.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name,
+                        swift_options=swift_options,
+                        # TODO: hacky, add site specific cheetah config file
+                        # for this?
+                        swift_launch_multi=mpix_launch_path,
+                        turbine_nprocs=max_nprocs+1) # NB: +1 for ADLB master
+        else:
             body = self.SUBMIT_TEMPLATE.format(
                         group_directory=self.output_directory,
                         batch_script_name=self.batch_script_name,
@@ -279,7 +355,9 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                         jobid_file_name=self.jobid_file_name,
                         name=self.name,
                         swift_options=swift_options)
-            f.write(body)
+
+        with open(submit_path, 'w') as f:
+             f.write(body)
         make_executable(submit_path)
         return submit_path
 
@@ -288,6 +366,8 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                    self.batch_script_name)
         prog_offsets_written = False
         with open(script_path, 'w') as f:
+            if self.runner_name == "launch_multi":
+                f.write('import launch;\nimport stats;\n')
             f.write(self.BATCH_HEADER)
             if mock:
                 f.write('boolean use_mock_system = true;\n')
@@ -313,20 +393,20 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 
                 if not prog_offsets_written:
                     offset = 1 # skip first element which is working directory
-                    for j, (argv, _) in enumerate(codes_argv_nprocs):
+                    for j, (_, argv, _) in enumerate(codes_argv_nprocs):
                         f.write('num_args[%d] = %d;\n' % (j, len(argv)-1))
                         f.write('prog_offsets[%d] = %d;\n' % (j, offset))
-                        # next prog starts after nprocs, prog, and args of
-                        # current prog
-                        offset += 1 + len(argv)
+                        # next prog starts after name, nprocs, prog, and args
+                        # of current prog
+                        offset += 2 + len(argv)
                     prog_offsets_written = True
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
-                    for argv, _ in codes_argv_nprocs:
-                        params_f.write(' '.join(argv))
+                    for _, argv, _ in codes_argv_nprocs:
+                        params_f.write(' '.join(map(shlex.quote, argv)))
                         params_f.write('\n')
 
                 # save params as JSON for use in post-processing, more
@@ -344,13 +424,24 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 # followed by a variable number of args.
                 f.write('runs[%d] = ["%s"'
                         % (i, swift_escape_string(run.run_path)))
-                for j, (argv, nprocs) in enumerate(codes_argv_nprocs):
+                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
                     quoted_argv = ['"%s"' % swift_escape_string(arg)
                                    for arg in argv]
-                    f.write(', "%d", ' % nprocs)
+                    f.write(', "%s", ' % pname)
+                    f.write('"%d", ' % nprocs)
                     f.write(', '.join(quoted_argv))
                 f.write('];\n')
-            f.write(self.BATCH_FOOTER)
+            if self.runner_name == "launch_multi":
+                bin_path = os.path.normpath(os.path.join(
+                                        os.path.dirname(__file__),
+                                        '..', '..', 'scripts'))
+                # TODO: hacky, add this path to a cheetah site config?
+                f.write(self.BATCH_FOOTER_LAUNCH_MULTI.replace(
+                    "CHEETAH_LAUNCH",
+                    os.path.join(bin_path, 'cheetah-launch.sh'))
+                )
+            else:
+                f.write(self.BATCH_FOOTER)
         make_executable(script_path)
         return script_path
 

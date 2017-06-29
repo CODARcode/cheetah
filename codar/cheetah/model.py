@@ -103,7 +103,8 @@ class Campaign(object):
                               self.inputs_fullpath)
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
-            launcher.write_submit_script()
+            max_nprocs = max([r.get_total_nprocs() for r in group_runs])
+            launcher.write_submit_script(max_nprocs)
             launcher.write_status_script()
             launcher.write_wait_script()
             launcher.write_batch_script(group_runs, mock=False)
@@ -134,8 +135,9 @@ class Run(object):
 
     def get_codes_argv_with_exe_and_nprocs(self):
         """
-        Return list of tuples with argv lists and nprocs. The 0th element of
-        each argv is the application executable (absolute path).
+        Return list of tuples with target name, argv lists, and nprocs.
+        The 0th element of each argv is the application executable
+        (absolute path).
 
         TODO: less hacky way of handling nprocs and other middlewear params.
         """
@@ -144,8 +146,14 @@ class Run(object):
             relative_exe = self.codes[target]
             exe_path = os.path.join(self.codes_path, relative_exe)
             nprocs = self.instance.get_nprocs(target)
-            argv_nprocs_list.append(([exe_path] + argv, nprocs))
+            argv_nprocs_list.append((target, [exe_path] + argv, nprocs))
         return argv_nprocs_list
+
+    def get_total_nprocs(self):
+        total_nprocs = 0
+        for (target, argv) in self.instance.get_codes_argv().items():
+            total_nprocs += self.instance.get_nprocs(target)
+        return total_nprocs
 
     def as_dict(self):
         return self.instance.as_dict()
