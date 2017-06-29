@@ -14,7 +14,7 @@ for deployment on different supercomputers.
    `spack find -p` to determine adios and hdf5 locations. Build.
 
 3. Checkout cheetah (TODO: create spack package). Set environment variable
-   `CODAR_LAUNCH_MULTI` to location of mpix-launch-swift `src` subdir, using
+   `CODAR_MPIX_LAUNCH` to location of mpix-launch-swift, e.g. using
    `spack find -p mpix-launch-swift`. Set `CODAR_APPDIR` to location where
    you will checkout `Example-pi` and `Example-Heat_Transfer`. Run
    `tests/test-examples.sh`.

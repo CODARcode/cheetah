@@ -8,8 +8,8 @@ if [ "x$CODAR_APPDIR" == "x" ]; then
     exit 1
 fi
 
-if [ "x$CODAR_LAUNCH_MULTI" == "x" ]; then
-    echo "Error: set CODAR_LAUNCH_MULTI"
+if [ "x$CODAR_MPIX_LAUNCH" == "x" ]; then
+    echo "Error: set CODAR_MPIX_LAUNCH"
     exit 1
 fi
 

@@ -330,7 +330,12 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             swift_options = "-m pbs"
 
         if self.runner_name == "launch_multi":
-             body = self.SUBMIT_TEMPLATE_LAUNCH_MULTI.format(
+            mpix_launch_path = os.getenv('CODAR_MPIX_LAUNCH')
+            if mpix_launch_path is None:
+                raise ValueError("Missing required env var CODAR_MPIX_LAUNCH")
+            # the lib actually lives in the src subdir
+            mpix_launch_path = os.path.join(mpix_launch_path, 'src')
+            body = self.SUBMIT_TEMPLATE_LAUNCH_MULTI.format(
                         group_directory=self.output_directory,
                         batch_script_name=self.batch_script_name,
                         submit_out_name=self.submit_out_name,
@@ -339,7 +344,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                         swift_options=swift_options,
                         # TODO: hacky, add site specific cheetah config file
                         # for this?
-                        swift_launch_multi=os.getenv('CODAR_LAUNCH_MULTI'),
+                        swift_launch_multi=mpix_launch_path,
                         turbine_nprocs=max_nprocs+1) # NB: +1 for ADLB master
         else:
             body = self.SUBMIT_TEMPLATE.format(
