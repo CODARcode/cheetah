@@ -279,7 +279,16 @@ for (int i=0; i<size(runs); i=i+1)
         argv[j][2] = runs[i][prog_offsets[j]+2]; // prog exe
         for (int k=3; k<num_args[j]+3; k=k+1)
         {
-            argv[j][k] = runs[i][prog_offsets[j]+k];
+            string arg = runs[i][prog_offsets[j]+k];
+            if (strlen(arg) == 0)
+            {
+                // workaround for bug in launch_multi that misses empty args
+                argv[j][k] = "\\"\\"";
+            }
+            else
+            {
+                argv[j][k] = arg;
+            }
         }
     }
     launch_return_codes[i] = @par=sum_integer(nprocs) launch_multi(nprocs,
