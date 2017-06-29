@@ -1,7 +1,18 @@
 #!/bin/bash
 
+set -e
+
 cd $(dirname $0)/../
 mkdir -p test_output
+
+if [ $# -gt 0 ]; then
+    if [ "$1" == "-c" ]; then
+        rm -rf test_output/*
+    else
+        echo "Error: unknown option '$1'"
+        exit 1
+    fi
+fi
 
 if [ "x$CODAR_APPDIR" == "x" ]; then
     echo "Error: set CODAR_APPDIR"
