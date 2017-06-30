@@ -73,7 +73,9 @@ The campaign is specified as a python class that extends
 start with the
 [heat transfer example campaign](examples/heat_transfer_small.py).
 
-The campaign definition consists of these elements:
+Note that this is an early release and the campaign definition is not
+stable yet. Here is a quick overview of the current structure and
+supported parameter types:
 
 - name - a descriptive name for the campaign
 - codes - dictionary of different codes that make up the application,
