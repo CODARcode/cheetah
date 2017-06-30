@@ -6,169 +6,120 @@ The CODAR Experiment Harness is designed to run Exascale science applications
 using different parameters and components to determine the best combination
 for deployment on different supercomputers.
 
-## Tutorial for Running Heat Transfer example
+To use Cheetah, the user first writes a "campaign" specification file.
+Cheetah takes this specification, and generates a set of swift and bash
+scripts to execute the application many times with each of the parameter sets,
+and organize the results of each run in separate subdirectories. Once
+generated, the `run-all.sh` script in the output directory can be used
+to run the campaign.
 
-1. Install savanna using codar fork and branch of spack.
+## Requirements
 
-2. Checkout Example-Heat\_Transfer. Edit `make.settings` and use
-   `spack find -p` to determine adios and hdf5 locations. Build.
+Cheetah v0.1 requires a modern Linux install with Python 3.4 or greater
+and CODAR Savanna v0.5. See the
+[savanna documentation](https://github.com/CODARcode/savanna)
+for installation instructions.
 
-3. Checkout cheetah (TODO: create spack package). Set environment variable
-   `CODAR_MPIX_LAUNCH` to location of mpix-launch-swift, e.g. using
-   `spack find -p mpix-launch-swift`. Set `CODAR_APPDIR` to location where
-   you will checkout `Example-pi` and `Example-Heat_Transfer`. Run
-   `tests/test-examples.sh`.
+## Tutorial for Running Heat Transfer example with Cheetah
 
-4. Cd to test\_output/heatmap-launch-multi, run `run-all.sh` script.
+1. Install Savanna and build the Heat Transfer example (see savanna
+   instructions). This tutorial will assume spack was used for the
+   installation, and uses bash for environment setup examples.
 
-## Example Run
+2. Download the Cheetah v0.1 release from github and unpack the release
+   [tarball](https://github.com/CODARcode/cheetah/archive/v0.1.tar.gz).
 
-```
-python3 cheetah.py -e examples/PiExperiment.py -a path/to/app/Example-pi/ \
-  -m local -o examples/pi-run-1/
-```
-
-## Design (WIP)
-
-There are several components to the experiment harness:
-
-- Experiment configuration, a directory containing
-  - a master YAML config file (custom schema defined for cheetah)
-    - define templates to use and a range of values to pass,
-      e.g. command line args
-  - scheduler (SLURM, PBS) and swift templates
-  - application config file templates
-- Standard for output directory
-  - Includes copy of master experiment YAML config file 
-  - Contains performance logs, in structured text and/or easily parsible log
-    files
-  - Can optionally include application output files, subject to YAML config
-    (may be very large and not needed for some experiments)
-- Accuracy measurement
-  - Compare no compression application output with reduced output, calculate
-    L(x)s norm, other stats
-- Build configuration (future)
-  - Script building application with different options, when needed for the
-    experiment.
-  - Initially just use a set of bash scripts
-- Report generation (future)
-  - Graphs of performance data
-
-## Initial Examples
-
-### Fusion Application
-
-Run XGC fusion simulation on Titan and Cori, with no data reduction, and with
-SZ. Compare the following performance characteristics:
-
-- run time - total, per node
-- output file sizes - total, per node
-- ADIOS I/O logging flags
-
-With instrumentation of application (XGC) and/or ADIOS:
-
-- data reduction bytes in/bytes out
-- time in data reduction and inflation routines
-- high water mark memory usage
-
-Accuracy evaluation (future)
-
-- Computer difference between floating point output with no compression vs
-  with SZ.
-
-Data is of two types - a mesh with custom geometry (very irregular), and
-particle information. Both are five dimensional (3 spacial and 2 velocity).
-
-### CANDLE Application
-
-Run machine learning / genetic algorithm simulation on Beagle with parameter
-sweep, and produce HTML report with results of different parameters. Capture
-the following for each set of parameters:
-
-- run time - total, per node
-
-The parameter sweep is implemented via a swift script, either calling the
-main function with different args via an embedded Python interpreter, or via
-a main shell script wrapping a call a custom python interpreter.
-
-Future work:
-
-- add some way of evaluating solution quality, other than just wall time
-
-## Parameter Passing Conventions
-
-Cheetah needs to support different ways of passing parameters to applications.
-It could do this by having a rich spec language for defining the exact needed
-passing mechanism, or by having a simple spec language and requiring wrapper
-scripts to hide the more exotic methods, or some hybrid of the two.
-
-### Command Line
-
-- short options vs long options
-- for long options, can be '-' prefixed or '--' prefixed
-- options with no arg, optional arg, or required arg
-- options that can occur multiple times to form a list
-- positional arguments
-
-A possible strategy would be to assume that the app adheres to some standard,
-i.e. it does not mix '-' type and '--' type long options. At the app level in
-the spec file, the type of passing conventions used would be set. Then in the
-parameter group section that specifies the values to sweep over, the args are
-specified by name without any prefix, and Cheetah adds the appropriate values.
-It could go as far as specifying detailed spec of all app params that are
-useful for Cheetah, with a useful long name, and the rest of the spec uses
-those friendly names. Example:
+3. Set up environment for cheetah (this can be added to your ~/.bashrc
+   file for convenience, after spack environment is loaded):
 
 ```
-parameter-groups:
-  app:
-    parameters:
-      particles:
-        mechanism: command-line-long-double-dash
-        type: int
-        name: particles
-      method:
-        mechanism: command-line-positional
-        type: enum
-      iterations:
-        mechanism: command-line-short
-        type: int
-        name: i
-```
-for command structure `app --particles=10 -i 20 atan`
-
-Another strategy would be to make parameter specification very literal in the
-parameter group section of the spec, but have to deal with escaping or quoting
-the dashes in YAML, since '- ' is used to introduce a list. Some sort of
-namespacing is still needed to distinguish app params vs aprun params vs
-qsub or slurm params. Example:
-```
-parameter-groups:
-  - "app:--particles": [50, 500, 5000000]
-    "app:-b": ["opt1", "opt2"]
-    "app:1:": ["firstpositionalval1", "firstpositionval2"]
+source <(spack module loads --dependencies adios)
+spack load stc turbine mpix-launch-swift
+export CODAR_MPIX_LAUNCH=$(spack find -p mpix-launch-swift | grep mpix-launch | awk '{ print $2 }')
 ```
 
-### Config File
-
-All of these could probably be handled by requiring a template, but any special
-chars of the template language (e.g. to introduce a variable to replace) that
-appear in the file naturally would need to be escaped. Example:
+4. Make a directory for storing campaigns, for example:
 
 ```
-parameter-groups:
-  - "app:config:app.ini.template:api.ini:particles": [50, 500, 50000]
+mkdir -p ~/codar/campaigns
 ```
-Need a way to specify that this param is set in a config file, what template
-to use, and what to call the output files (in case there are many substitutions
-in same output file), the name of the variable to substitute, and the values.
 
-Could have special support for common formats: e.g. xpath/jpath for setting
-values in XML or JSON, some way of specifying how to update an INI, etc
+5. Generate a campaign from the example, which will run Heat\_Transfer
+   with stage\_write three times, once with no compression, once with
+   zfp, and once with sz:
 
-## Working Directory and Output Directory
+```
+cd /path/to/cheetah
+./cheetah.py -e examples/heat_transfer_small.py \
+ -a /path/to/Example-Heat_Transfer \
+ -m local -o ~/codar/campaigns/heat
+```
 
-Cheetah must use a working directory that is suitable for the application,
-ensure that scheduler files go to the run output directory, and pass
-appropriate parameters to the application so application output goes to the run
-output directory.
+6. Run the campaign:
+
+```
+cd ~/codar/campaigns/heat
+./run-all.sh
+```
+
+For results, see `group-001/run-00*`. To debug failures, look at
+`group-001/codar.cheetah.submit-output.txt` first, then at the stdout
+and stderr files in each of the run directories.
+
+## Campaign Specification
+
+The campaign is specified as a python class that extends
+`codar.cheetah.Campaign`. To define your own experiment, it is recommended to
+start with the
+[heat transfer example campaign](examples/heat_transfer_small.py).
+
+The definition campaign consists of these elements:
+
+- name - descriptive name, currently not used directly and just
+- codes - dictionary of different codes that make up the application,
+  where keys are logical names and values are paths to the executable
+  relative to the application root directory. Many simple applications will
+  have only one code.
+- supported\_machines - list of machines that the campaign is designed
+  to run on. Currently only 'local' and 'titan' are supported.
+- inputs - list of files relative to the application root directory to
+  copy to the working directory for each application run. If the file is
+  an adios config file, ParamAdiosXML can be used to modify it's
+  contents as part of the parameter sweep.
+- project - for running on titan, set the project allocation to use.
+  Ignored when using local machine.
+- queue - for running on titan, set the PBS queue to use.
+- sweeps - list of SweepGroup objects, defining instances of the
+  application to run and what parameters to use.
+- SweepGroup - each sweep group specifies the number of nodes (ignored
+  for local runs), and a set of parameter groups. This represents a
+  single submission to the scheduler, and each sweep group will be in a
+  different subdirectory of the output directory.
+- Sweep - a sweep is a specification of all the parameters that must be
+  passed to each code in the application, together with metadata like
+  the number of MPI processes to use for each code, and lists of all
+  values that the parameters should take on for this part of the
+  campaign. Within the sweep, a cross product of all the values will be
+  taken to generate all the instances to run. For simple campaigns that
+  need to do a full cross product of parameter values, only one
+  SweepGroup containing one Sweep is needed.
+- ParamX - all parameter types have at least three elements:
+  - target - which code the parameter is for. The value must be one of
+    the keys in the codes dictionary.
+  - name - logical name for the parameter. This is used as a key in the JSON
+    file that is generated to describe the parameter values used for a
+    run in the output directory. For each target, there can be only one
+    parameter with a given name.
+  - values - the list of values the parameter should take on for the
+    sweep
+  Different parameter types will have other parameters as well.
+- ParamRunner - currently used only for the special 'nprocs' parameter
+  to specify how many processes to use for each code.
+- ParamCmdLineArg - positional arguments to pass to the code executable.
+  The third argument is the position, starting from 1. All positions
+  from 1 to the max must be included.
+- ParamCmdLineOption - the third argument is the full option name,
+  including any dashes, e.g. '--iterations' or '-iterations' depending
+  on the convention used by the code. Note that this is distinct from
+  the name, but a good choice for name is the option with the dashes
+  removed.
