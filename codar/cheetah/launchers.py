@@ -142,6 +142,8 @@ echo "{name}:$PID" > {jobid_file_name}
     BATCH_HEADER = """
 import io;
 import string;
+import files;
+import sys;
 
 // Each row is
 // [RUN_PATH, NAME1, NPROCS1, PROG1, PROG1ARG1, PROG2ARG2, ...
@@ -263,6 +265,8 @@ for (int i=0; i<size(runs); i=i+1)
 
 int launch_return_codes[];
 
+float start_time = clock();
+
 for (int i=0; i<size(runs); i=i+1)
 {
     dir_name = runs[i][0];
@@ -300,6 +304,13 @@ for (int i=0; i<size(runs); i=i+1)
 for (int i=0; i<size(runs); i=i+1)
 {
     printf("[%d] %d", i, launch_return_codes[i]);
+}
+
+wait (launch_return_codes)
+{
+    float walltime = clock() - start_time;
+    string swalltime = sprintf("%0.9f\n", walltime);
+    file fwalltime <"codar.cheetah.walltime.txt"> = write(swalltime);
 }
 """
 
