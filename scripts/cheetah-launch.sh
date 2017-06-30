@@ -30,4 +30,9 @@ export TAU_TRACE=1
 
 echo "Cheetah: launching $PROG_NAME at $WORK_DIR"
 
+# NOTE: low relolution, but alternatives have inconsistent platform
+# support
+start_time=$(date +%s)
 $PROG "$@" >codar.cheetah.$PROG_NAME.stdout 2>codar.cheetah.$PROG_NAME.stderr
+end_time=$(date +%s)
+echo $(($end_time - $start_time)) > codar.cheetah.$PROG_NAME.walltime.txt
