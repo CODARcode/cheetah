@@ -12,8 +12,11 @@ class HeatTransfer(Campaign):
     supported_machines = ['local', 'titan']
     inputs = ["heat_transfer.xml"]
 
+    project = "CSC242"
+    queue = "debug"
+
     sweeps = [
-     p.SweepGroup(nodes=1,
+     p.SweepGroup(nodes=2,
       parameter_groups=
       [p.Sweep([
         p.ParamRunner("stage", "nprocs", [2]),

@@ -10,6 +10,7 @@ name.
 """
 import os
 import json
+import math
 
 from codar.cheetah import machines, parameters, helpers
 
@@ -45,6 +46,11 @@ class Campaign(object):
     sweeps = []
     inputs = []
     inputs_fullpath = []
+
+    # Schedular options. Not used when using machine 'local', required
+    # if using 'titan'.
+    project = "" # project allocation to use
+    queue = "" # scheduler queue to submit to
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
@@ -104,7 +110,11 @@ class Campaign(object):
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
             max_nprocs = max([r.get_total_nprocs() for r in group_runs])
-            launcher.write_submit_script(max_nprocs)
+            # +1 for ALDBX process
+            group_ppn = math.ceil((max_nprocs + 1) / group.nodes)
+            launcher.write_submit_script(max_nprocs, ppn=group_ppn,
+                                         queue=self.queue,
+                                         project=self.project)
             launcher.write_status_script()
             launcher.write_wait_script()
             launcher.write_batch_script(group_runs, mock=False)

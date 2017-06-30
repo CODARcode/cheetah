@@ -24,9 +24,6 @@ if [ "x$CODAR_MPIX_LAUNCH" == "x" ]; then
     exit 1
 fi
 
-export CODAR_LAUNCH_MULTI
-
-
 ./cheetah.py -e examples/PiExperiment.py -m local \
     -a "$CODAR_APPDIR/Example-pi/" \
     -o test_output/pi
@@ -34,3 +31,7 @@ export CODAR_LAUNCH_MULTI
 ./cheetah.py -e examples/heat_transfer_small.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/heat
+
+./cheetah.py -e examples/heat_transfer_small.py -m titan \
+    -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
+    -o test_output/titan-heat

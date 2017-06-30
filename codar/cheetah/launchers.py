@@ -11,7 +11,7 @@ import shlex
 
 from shutil import copy2
 
-from codar.cheetah import adios_transform
+from codar.cheetah import adios_transform, config
 from codar.cheetah.parameters import ParamAdiosXML
 from codar.cheetah.helpers import make_executable, swift_escape_string
 
@@ -42,8 +42,9 @@ class Launcher(object):
     batch_walltime_name = 'codar.cheetah.walltime.txt'
     jobid_file_name = 'codar.cheetah.jobid.txt'
 
-    def __init__(self, scheduler_name, runner_name,
+    def __init__(self, machine_name, scheduler_name, runner_name,
                  output_directory, num_codes):
+        self.machine_name = machine_name
         self.scheduler_name = scheduler_name
         self.runner_name = runner_name
         self.output_directory = output_directory
@@ -123,7 +124,20 @@ class LauncherSwift(Launcher):
     # option to swift-t
     SUBMIT_TEMPLATE = """#!/bin/bash
 
+if [ -f "{setup_script}" ]; then
+    source "{setup_script}"
+fi
+
 cd {group_directory}
+
+# for debugging swift script execution
+export TURBINE_OUTPUT=$PWD/codar.cheetah.turbine-out
+
+# options for swift when running on a scheduler like PBS
+export PROJECT="{project}"
+export PPN="{ppn}"
+export QUEUE="{queue}"
+
 nohup swift-t {swift_options} -p {batch_script_name} >{submit_out_name} 2>&1 &
 PID=$!
 echo "{name}:$PID" > {jobid_file_name}
@@ -131,8 +145,23 @@ echo "{name}:$PID" > {jobid_file_name}
 
     SUBMIT_TEMPLATE_LAUNCH_MULTI = """#!/bin/bash
 
+if [ -f "{setup_script}" ]; then
+    source "{setup_script}"
+else
+    CODAR_MPIX_LAUNCH={mpix_launch_path}
+fi
+
 cd {group_directory}
-stc -p -u -I {swift_launch_multi} -r {swift_launch_multi} run.swift
+
+# for debugging swift script execution
+export TURBINE_OUTPUT=$PWD/codar.cheetah.turbine-out
+
+# options for swift when running on a scheduler like PBS
+export PROJECT="{project}"
+export PPN="{ppn}"
+export QUEUE="{queue}"
+
+stc -p -u -I $CODAR_MPIX_LAUNCH -r $CODAR_MPIX_LAUNCH run.swift
 nohup turbine -n {turbine_nprocs} {swift_options} run.tic >{submit_out_name} 2>&1 &
 PID=$!
 echo "{name}:$PID" > {jobid_file_name}
@@ -331,7 +360,8 @@ cd $(dirname $0)
 ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
 """
 
-    def write_submit_script(self, max_nprocs):
+    def write_submit_script(self, max_nprocs, ppn="", project="",
+                            queue=""):
         submit_path = os.path.join(self.output_directory,
                                    self.submit_script_name)
         swift_options = ""
@@ -342,11 +372,19 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             swift_options = "-m pbs"
 
         if self.runner_name == "launch_multi":
-            mpix_launch_path = os.getenv('CODAR_MPIX_LAUNCH')
-            if mpix_launch_path is None:
-                raise ValueError("Missing required env var CODAR_MPIX_LAUNCH")
-            # the lib actually lives in the src subdir
-            mpix_launch_path = os.path.join(mpix_launch_path, 'src')
+            if self.machine_name == 'local':
+                # Require that user set this for local runs
+                # For titan, this is set in the machine script
+                # TODO: move this to a config file? Or use spack to
+                # find?
+                mpix_launch_path = os.getenv('CODAR_MPIX_LAUNCH')
+                if mpix_launch_path is None:
+                    raise ValueError(
+                        "Missing required env var CODAR_MPIX_LAUNCH")
+                # the lib actually lives in the src subdir
+                mpix_launch_path = os.path.join(mpix_launch_path, 'src')
+            else:
+                mpix_launch_path = "" # get from machine env script
             body = self.SUBMIT_TEMPLATE_LAUNCH_MULTI.format(
                         group_directory=self.output_directory,
                         batch_script_name=self.batch_script_name,
@@ -354,11 +392,15 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                         jobid_file_name=self.jobid_file_name,
                         name=self.name,
                         swift_options=swift_options,
-                        # TODO: hacky, add site specific cheetah config file
-                        # for this?
-                        swift_launch_multi=mpix_launch_path,
+                        mpix_launch_path=mpix_launch_path,
+                        setup_script=
+                            config.machine_submit_env_path(self.machine_name),
+                        project=project,
+                        queue=queue,
+                        ppn=ppn,
                         turbine_nprocs=max_nprocs+1) # NB: +1 for ADLB master
         else:
+            # TODO: this is untested and launch_multi is working now, remove
             body = self.SUBMIT_TEMPLATE.format(
                         group_directory=self.output_directory,
                         batch_script_name=self.batch_script_name,
@@ -443,13 +485,8 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                     f.write(', '.join(quoted_argv))
                 f.write('];\n')
             if self.runner_name == "launch_multi":
-                bin_path = os.path.normpath(os.path.join(
-                                        os.path.dirname(__file__),
-                                        '..', '..', 'scripts'))
-                # TODO: hacky, add this path to a cheetah site config?
                 f.write(self.BATCH_FOOTER_LAUNCH_MULTI.replace(
-                    "CHEETAH_LAUNCH",
-                    os.path.join(bin_path, 'cheetah-launch.sh'))
+                    "CHEETAH_LAUNCH", config.script_path('cheetah-launch.sh'))
                 )
             else:
                 f.write(self.BATCH_FOOTER)
