@@ -29,7 +29,7 @@ class Machine(object):
 # TODO: define constants for schedulers and runners? What granularity
 # is needed here? Goal is to figure out which options to pass to
 # swift-t.
-titan=Machine('titan', launchers.LauncherSwift, "PBS", "launch_multi")
+titan=Machine('titan', launchers.LauncherSwift, "cray", "launch_multi")
 
 # old local runner with launch_multi mock is untested, make launch_multi
 # the default now

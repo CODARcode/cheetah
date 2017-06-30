@@ -365,11 +365,10 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
         submit_path = os.path.join(self.output_directory,
                                    self.submit_script_name)
         swift_options = ""
-        if self.scheduler_name == "PBS":
-            # TODO: untested stub for how we might do this. Note that we may
-            # still need to maintain a Runner model, still wrapping my
-            # head around what Swift provides for that.
+        if self.scheduler_name == "pbs":
             swift_options = "-m pbs"
+        elif self.scheduler_name == "cray":
+            swift_options = "-m cray"
 
         if self.runner_name == "launch_multi":
             if self.machine_name == 'local':
