@@ -69,13 +69,13 @@ and stderr files in each of the run directories.
 ## Campaign Specification
 
 The campaign is specified as a python class that extends
-`codar.cheetah.Campaign`. To define your own experiment, it is recommended to
+`codar.cheetah.Campaign`. To define your own campaign, it is recommended to
 start with the
 [heat transfer example campaign](examples/heat_transfer_small.py).
 
-The definition campaign consists of these elements:
+The campaign definition consists of these elements:
 
-- name - descriptive name, currently not used directly and just
+- name - a descriptive name for the campaign
 - codes - dictionary of different codes that make up the application,
   where keys are logical names and values are paths to the executable
   relative to the application root directory. Many simple applications will
