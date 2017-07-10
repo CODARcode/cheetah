@@ -1,3 +1,6 @@
+#
+# This example illustrates the format of a Cheetah configuration file
+#
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 
