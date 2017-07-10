@@ -22,20 +22,29 @@ class HeatTransfer(Campaign):
     queue = "debug"
 
     sweeps = [
+        
      # Each SweepGroup specifies a set of runs to be performed on a specified number of nodes. 
      # Here we have 1 SweepGroup, which will run on 2 nodes.
      p.SweepGroup(nodes=2, # Number of nodes to run on
+                  
       # Within a SweepGroup, each parameter_group specifies arguments for each of the parameters required for each code
-      # Number of runs is the product of the number of options specified. Below, it is 2, as only one parameter has >1 arguments
+      # Number of runs is the product of the number of options specified. Below, it is 2, as only one parameter has >1 arguments.
+      # There are three types of parameters: system ("ParamRunner"), positional (ParamCmdLineArg), and a third (not used here)
+
       parameter_groups=
       [p.Sweep([
-          
-        # THere are three types of parameters: system ("ParamRunner"), positional (ParamCmdLineArg), and a third (not used here)
+                   
+      # First, the parameters for the STAGE program
           
         # ParamRunner passes an argument to launch_multi_swift
         p.ParamRunner("stage", "nprocs", [2]),   # nprocs: Number of processors (aka process) to use
+          
         # ParamCmdLineArg passes a positional argument to the application
-          # Arguments are: 1) Code (e.g., "stage"), 2) Logical name for parameter, used in output; 3) positional argument name; 4) options
+        # Arguments are: 
+          # 1) Code name (e.g., "stage"), 
+          # 2) Logical name for parameter, used in output; 
+          # 3) positional argument number; 
+          # 4) options
         p.ParamCmdLineArg("stage", "input", 1, ["heat.bp"]),
         p.ParamCmdLineArg("stage", "output", 2, ["staged.bp"]),
         p.ParamCmdLineArg("stage", "rmethod", 3, ["FLEXPATH"]),
@@ -46,6 +55,8 @@ class HeatTransfer(Campaign):
         p.ParamCmdLineArg("stage", "transform", 8,
                           ["none", "zfp:accuracy=.001", "sz:accuracy=.001"]),
         p.ParamCmdLineArg("stage", "decomp", 9, [2]),
+
+      # Second, the parameters for the HEAT program
 
         p.ParamRunner("heat", "nprocs", [12]),
         p.ParamCmdLineArg("heat", "output", 1, ["heat"]),
