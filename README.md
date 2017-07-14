@@ -49,9 +49,10 @@ mkdir -p ~/codar/campaigns
    zfp, and once with sz:
 
 ```
+path2savanna = `spack find -p savanna | grep savanna | awk '{ print $2 }'`
 cd /path/to/cheetah
 ./cheetah.py -e examples/heat_transfer_small.py \
- -a /path/to/Example-Heat_Transfer \
+ -a $path2savanna/Heat_Transfer \
  -m local -o ~/codar/campaigns/heat
 ```
 
