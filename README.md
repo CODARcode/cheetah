@@ -22,8 +22,8 @@ for installation instructions.
 
 ## Tutorial for Running Heat Transfer example with Cheetah
 
-1. Install Savanna and build the Heat Transfer example (see savanna
-   instructions). This tutorial will assume spack was used for the
+1. Install Savanna and build the Heat Transfer example (see [savanna
+   instructions](https://github.com/CODARcode/Example-Heat_Transfer/blob/master/README.adoc)). This tutorial will assume spack was used for the
    installation, and uses bash for environment setup examples.
 
 2. Download the Cheetah v0.1 release from github and unpack the release
