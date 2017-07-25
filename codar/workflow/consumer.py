@@ -2,12 +2,11 @@
 specified total process limit."""
 
 import queue
-import subprocess
 import threading
 
 
 class PipelineRunner(object):
-    def __init__(self, max_procs, runner):
+    def __init__(self, max_procs, runner, monitor):
         self.max_procs = max_procs
         self.runner = runner
         self.q = queue.Queue()
@@ -15,8 +14,10 @@ class PipelineRunner(object):
         self._run = True
         self.free_procs = max_procs
         self.free_procs_cv = threading.Condition()
+        self.monitor = monitor
+        monitor.set_consumer(self)
 
-    def add_pipeline(p):
+    def add_pipeline(self, p):
         self.q.put(p)
 
     def procs_finished(self, count):
@@ -36,4 +37,4 @@ class PipelineRunner(object):
                     lambda: self.free_procs >= pipeline.total_procs)
                 self.free_procs -= pipeline.total_procs
             pipeline.start(self.runner)
-
+            self.monitor.add_pipeline(pipeline)

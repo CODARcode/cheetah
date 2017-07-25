@@ -1,10 +1,14 @@
 """Classes for producing pipelines."""
 
 import json
-from cheetah.workflow.model import Run, Pipeline
+from codar.workflow.model import Run, Pipeline
 
 
 class JSONFilePipelineReader(object):
+    """Load pipelines from a file formatted as a new line separated list of
+    JSON documents. Each JSON document must be a list containing dictionaries,
+    each dictionary discribing a code to run as part of the pipeline."""
+
     def __init__(self, file_path):
         self.file_path = file_path
 
