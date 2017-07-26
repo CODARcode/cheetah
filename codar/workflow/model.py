@@ -5,6 +5,7 @@ import os.path
 
 STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
+RETURN_NAME = 'codar.workflow.return'
 
 
 def _get_path(default_dir, default_name, specified_name):
@@ -16,7 +17,8 @@ def _get_path(default_dir, default_name, specified_name):
 
 class Run(object):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
-                 nprocs=1, stdout_path=None, stderr_path=None):
+                 nprocs=1, stdout_path=None, stderr_path=None,
+                 return_path=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -28,9 +30,12 @@ class Run(object):
                                      stdout_path)
         self.stderr_path = _get_path(working_dir, STDERR_NAME + "." + name,
                                      stderr_path)
+        self.return_path = _get_path(working_dir, RETURN_NAME + "." + name,
+                                     return_path)
         self._p = None
         self._start_time = None
         self._open_files = []
+        self._complete = False
 
     def start(self, runner=None):
         if runner is not None:
@@ -53,7 +58,8 @@ class Run(object):
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 stdout_path=data.get('stdout_path'),
-                stderr_path=data.get('stderr_path'))
+                stderr_path=data.get('stderr_path'),
+                return_path=data.get('return_path'))
         return r
 
     def _popen(self, args):
@@ -64,6 +70,8 @@ class Run(object):
                                    stdout=out, stderr=err)
 
     def poll(self):
+        if self._complete:
+            return self.get_returncode()
         if self._p is None:
             raise ValueError('not running')
         rval = self._p.poll()
@@ -71,16 +79,26 @@ class Run(object):
             # check if timeout has been reached and kill if it has
             if (self.timeout is not None
                     and time.time() - self._start_time > self.timeout):
+                print("killing", self.name, self.get_pid())
                 self._p.kill()
                 rval = self._p.wait()
+                print("kill rval", rval)
         if rval is not None:
+            self._complete = True
+            print("save rval", rval)
+            self._save_returncode(rval)
             self.close()
         return rval
+
+    def _save_returncode(self, rcode):
+        assert rcode is not None
+        with open(self.return_path, 'w') as f:
+            f.write(str(rcode))
 
     def get_returncode(self):
         if self._p is None:
             raise ValueError('not running')
-        return self._p.return_code
+        return self._p.returncode
 
     def get_pid(self):
         if self._p is None:

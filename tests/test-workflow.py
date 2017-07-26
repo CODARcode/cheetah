@@ -49,6 +49,11 @@ def test_workflow(nruns, ncodes, max_procs, timeout):
     for line in times.split('\n'):
         print(line[len(out_dir)+1:])
 
+    rcodes = check_output('grep "" "%s"/run*/*return*' % out_dir, shell=True)
+    rcodes = rcodes.decode('utf8')
+    for line in rcodes.split('\n'):
+        print(line[len(out_dir)+1:])
+
 
 if __name__ == '__main__':
     nruns = 10
