@@ -4,6 +4,8 @@ runners."""
 
 import argparse
 import threading
+import logging
+import time
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
@@ -18,6 +20,10 @@ def parse_args():
                         required=True)
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
+    parser.add_argument('--log-file')
+    parser.add_argument('--log-level',
+                        choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
+                        default='INFO')
 
     return parser.parse_args()
 
@@ -31,8 +37,19 @@ def main():
         runner = aprun
     else:
         runner = None
+
+    if args.log_file:
+        logger = logging.getLogger('codar.workflow')
+        handler = logging.FileHandler(args.log_file)
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(args.log_level)
+    else:
+        logger = None
+
     monitor = PipelineMonitor()
-    consumer = PipelineRunner(args.max_procs, runner, monitor)
+    consumer = PipelineRunner(args.max_procs, runner, monitor, logger)
     producer = JSONFilePipelineReader(args.producer_input_file)
 
     t_consumer = threading.Thread(target=consumer.run_pipelines)

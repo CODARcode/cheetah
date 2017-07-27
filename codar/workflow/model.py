@@ -1,6 +1,7 @@
 import time
 import subprocess
 import os.path
+import shlex
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -18,7 +19,7 @@ def _get_path(default_dir, default_name, specified_name):
 class Run(object):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
-                 return_path=None):
+                 return_path=None, logger=None, log_prefix=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -36,12 +37,17 @@ class Run(object):
         self._start_time = None
         self._open_files = []
         self._complete = False
+        self.log_prefix = log_prefix or name
+        self.logger = logger
 
     def start(self, runner=None):
         if runner is not None:
             args = runner.wrap(self)
         else:
             args = [self.exe] + self.args
+        if self.logger is not None:
+            cmd = ' '.join(shlex.quote(arg) for arg in args)
+            self.logger.info('%s start %r', self.log_prefix, cmd)
         self._start_time = time.time()
         self._popen(args)
 
@@ -75,17 +81,21 @@ class Run(object):
         if self._p is None:
             raise ValueError('not running')
         rval = self._p.poll()
+        if self.logger is not None:
+            self.logger.debug('%s poll %s', self.log_prefix, rval)
         if rval is None:
             # check if timeout has been reached and kill if it has
             if (self.timeout is not None
                     and time.time() - self._start_time > self.timeout):
-                print("killing", self.name, self.get_pid())
+                if self.logger is not None:
+                    self.logger.warn('%s killing (timeout %d)', self.log_prefix,
+                                     self.timeout)
                 self._p.kill()
                 rval = self._p.wait()
-                print("kill rval", rval)
         if rval is not None:
             self._complete = True
-            print("save rval", rval)
+            if self.logger is not None:
+                self.logger.warn('%s complete: %d', self.log_prefix, rval)
             self._save_returncode(rval)
             self.close()
         return rval
@@ -110,6 +120,10 @@ class Run(object):
             f.close()
         self._open_files = []
 
+    def set_logger(self, logger, log_prefix):
+        self.logger = logger
+        self.log_prefix = log_prefix
+
 
 class Pipeline(object):
     def __init__(self, runs):
@@ -131,6 +145,10 @@ class Pipeline(object):
     def poll_all_nprocs(self):
         assert self._running
         return [(run.poll(), run.nprocs, run.get_pid()) for run in self.runs]
+
+    def set_loggers(self, logger, pipeline_id):
+        for run in self.runs:
+            run.set_logger(logger, "%d:%s" % (pipeline_id, run.name))
 
 
 class Runner(object):
