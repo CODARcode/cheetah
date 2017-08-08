@@ -114,6 +114,7 @@ class Campaign(object):
             group_ppn = math.ceil((max_nprocs + 1) / group.nodes)
             launcher.write_submit_script(max_nprocs, ppn=group_ppn,
                                          queue=self.queue,
+                                         nodes=group.nodes,
                                          project=self.project)
             launcher.write_status_script()
             launcher.write_wait_script()
