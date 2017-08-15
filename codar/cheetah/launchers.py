@@ -510,3 +510,175 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                                 batch_walltime_name=self.batch_walltime_name))
         make_executable(script_path)
         return script_path
+
+
+class LauncherFOBrun(Launcher):
+    """
+    Launcher that generates a JSON file of FOBs for the workflow.py/FOBrun
+    script.
+    """
+    name = 'FOBrun'
+    batch_script_name = 'run.pbs'
+
+    SUBMIT_TEMPLATE = """#!/bin/bash
+
+if [ "{scheduler_name}" = "pbs" ]; then
+    JOBID=$(qsub {batch_script})
+    echo "PBS:$JOBID" > {jobid_file_name}
+else
+    bash {batch_script}
+    PID=$!
+    echo "PID:$PID" > {jobid_file_name}
+fi
+"""
+
+    BATCH_TEMPLATE = """#!/bin/bash
+
+#PBS -A {project}
+#PBS -N {name}
+#PBS -l nodes={nodes}
+#PBS -l queue={queue}
+
+if [ -f "{setup_script}" ]; then
+    source "{setup_script}"
+fi
+
+cd {group_directory}
+
+workflow.py --runner={runner} \
+ --max-procs={max_procs} \
+ --producer-input-file=fobs.json \
+ --log-file=codar.FOBrun.log \
+ --log-level=DEBUG \
+ >{batch_out_name} 2>&1 &
+"""
+
+    WAIT_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+PID=$(cat {jobid_file_name} | cut -d: -f2)
+while [ -n "$(ps -p $PID -o time=)" ]; do
+    sleep 1
+done
+cat {batch_walltime_name}
+"""
+
+    STATUS_TEMPLATE = """#!/bin/bash
+
+cd $(dirname $0)
+ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
+"""
+
+    def write_submit_script(self, max_nprocs, ppn="", project="",
+                            queue="", nodes=1):
+        self.nodes = nodes
+        self.max_nprocs = max_nprocs # hack
+        submit_path = os.path.join(self.output_directory,
+                                   self.submit_script_name)
+        body = self.SUBMIT_TEMPLATE.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name,
+                        setup_script=
+                            config.machine_submit_env_path(self.machine_name),
+                        project=project,
+                        queue=queue,
+                        ppn=ppn,
+                        max_procs=max_nprocs,
+                        scheduler_name=self.scheduler_name,
+                        runner=self.runner_name)
+
+        with open(submit_path, 'w') as f:
+             f.write(body)
+        make_executable(submit_path)
+        return submit_path
+
+    def write_batch_script(self, runs, mock=False):
+        script_path = os.path.join(self.output_directory,
+                                   self.batch_script_name)
+
+        body = self.BATCH_TEMPLATE.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name,
+                        setup_script=
+                            config.machine_submit_env_path(self.machine_name),
+                        project=project,
+                        queue=queue,
+                        nodes=self.nodes,
+                        max_procs=self.max_nprocs)
+
+        with open(script_path, 'w') as f:
+             f.write(body)
+
+        fobs_path = os.path.join(self.output_directory, 'fobs.json')
+        with open(fobs_path, 'w') as f:
+            for i, run in enumerate(runs):
+                # TODO: abstract this to higher levels
+                os.makedirs(run.run_path, exist_ok=True)
+
+                for input_rpath in run.inputs:
+                    copy2(input_rpath, run.run_path+"/.")
+
+                codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
+
+                # ADIOS XML param support
+                adios_transform_params = \
+                    run.instance.get_parameter_values_by_type(ParamAdiosXML)
+                for pv in adios_transform_params:
+                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    adios_transform.adios_xml_transform(xml_filepath,
+                                        pv.group_name, pv.var_name, pv.value)
+
+                # save code commands as text
+                params_path_txt = os.path.join(run.run_path,
+                                               self.run_command_name)
+                with open(params_path_txt, 'w') as params_f:
+                    for _, argv, _ in codes_argv_nprocs:
+                        params_f.write(' '.join(map(shlex.quote, argv)))
+                        params_f.write('\n')
+
+                # save params as JSON for use in post-processing, more
+                # useful for post-processing scripts then the command
+                # text
+                params_path_json = os.path.join(run.run_path,
+                                                self.run_json_name)
+                run_data = run.as_dict()
+                with open(params_path_json, 'w') as params_f:
+                    json.dump(run_data, params_f, indent=2)
+
+                fob = []
+                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
+                    # TODO: add timeout, env for tau
+                    data = dict(name=pname,
+                                exe=argv[0],
+                                args=argv[1:],
+                                working_dir=run.run_path,
+                                nprocs=nprocs)
+                    fob.append(data)
+                f.write(json.dumps(fob))
+                f.write("\n")
+        return script_path
+
+    def write_status_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.status_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.STATUS_TEMPLATE.format(
+                        jobid_file_name=self.jobid_file_name))
+        make_executable(script_path)
+        return script_path
+
+    def write_wait_script(self):
+        script_path = os.path.join(self.output_directory,
+                                   self.wait_script_name)
+        with open(script_path, 'w') as f:
+            f.write(self.WAIT_TEMPLATE.format(
+                                jobid_file_name=self.jobid_file_name,
+                                batch_walltime_name=self.batch_walltime_name))
+        make_executable(script_path)
+        return script_path

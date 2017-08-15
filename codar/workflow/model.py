@@ -1,7 +1,7 @@
 import time
 import subprocess
-import os.path
-import shlex
+import os
+import shutil
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -46,8 +46,7 @@ class Run(object):
         else:
             args = [self.exe] + self.args
         if self.logger is not None:
-            cmd = ' '.join(shlex.quote(arg) for arg in args)
-            self.logger.info('%s start %r', self.log_prefix, cmd)
+            self.logger.info('%s start %r', self.log_prefix, args)
         self._start_time = time.time()
         self._popen(args)
 
@@ -72,7 +71,14 @@ class Run(object):
         out = open(self.stdout_path, 'w')
         err = open(self.stderr_path, 'w')
         self._open_files = [out, err]
-        self._p = subprocess.Popen(args, env=self.env, cwd=self.working_dir,
+        # NOTE: it's important to maintain the calling environment,
+        # which can contain LD_LIBRARY_PATH and other variables that are
+        # required for modules and normal HPC operation (e.g aprun).
+        # TODO: should this do a smart merge per variable, so you could
+        # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
+        env = os.environ.copy()
+        env.update(self.env)
+        self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err)
 
     def poll(self):
@@ -162,7 +168,10 @@ class MPIRunner(Runner):
         self.nprocs_arg = nprocs_arg
 
     def wrap(self, run):
-        return [self.exe, self.nprocs_arg, str(run.nprocs), run.exe] + run.args
+        exe_path = shutil.which(self.exe)
+        if exe_path is None:
+            raise ValueError('Could not find "%s" in path' % self.exe)
+        return [exe_path, self.nprocs_arg, str(run.nprocs), run.exe] + run.args
 
 
 mpiexec = MPIRunner('mpiexec', '-n')

@@ -36,6 +36,9 @@ titan=Machine('titan', launchers.LauncherSwift, "cray", "launch_multi")
 local=Machine('local', launchers.LauncherSwift, "local", "launch_multi")
 local_launch_multi=local # backward compat
 
+local_fob=Machine('localfob', launchers.LauncherFOBrun, "local", "none")
+titan_fob=Machine('titanfob', launchers.LauncherFOBrun, "pbs", "aprun")
+
 
 def get_by_name(name):
     assert name == name.lower()
