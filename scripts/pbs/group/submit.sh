@@ -14,4 +14,4 @@ JOBID=$(qsub \
         -l walltime=$CODAR_CHEETAH_GROUP_WALLTIME \
         run-group.pbs)
 
-echo "$JOBID" > 
+echo "$JOBID" > codar.cheetah.jobid.txt
