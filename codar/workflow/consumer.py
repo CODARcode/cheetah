@@ -21,6 +21,9 @@ class PipelineRunner(object):
     def add_pipeline(self, p):
         self.q.put(p)
 
+    def stop(self):
+        self.q.put(None)
+
     def procs_finished(self, count):
         """Monitor thread should call this as processes complete."""
         with self.free_procs_cv:

@@ -64,7 +64,7 @@ def main():
 
     # signal that there are no more pipelines and thread should exit
     # when reached
-    consumer.add_pipeline(None)
+    consumer.stop()
 
     # wait for consumer to finish all the pipelines
     t_consumer.join()
