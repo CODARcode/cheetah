@@ -23,7 +23,7 @@ class Run(object):
         self.name = name
         self.exe = exe
         self.args = args
-        self.env = env
+        self.env = env or {}
         self.working_dir = working_dir
         self.timeout = timeout
         self.nprocs = nprocs
@@ -57,9 +57,9 @@ class Run(object):
         other keys are optional and have the same names as the constructor
         args. Raises KeyError if a required key is missing."""
         # TODO: deeper validation
-        r = Run(name=data["name"], exe=data['exe'], args=data['args'],
+        r = Run(name=data['name'], exe=data['exe'], args=data['args'],
                 env=data.get('env'), # dictionary of varname/varvalue
-                working_dir=data.get('working_dir'),
+                working_dir=data['working_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 stdout_path=data.get('stdout_path'),
