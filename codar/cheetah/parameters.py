@@ -328,7 +328,7 @@ class ParamAdiosXML(Param):
         self.var_name = parts[3]
 
 
-class ParamCmdLineOption(object):
+class ParamCmdLineOption(Param):
     """Specification for parameters that are based as a labeled command line
     option. The option must contain the prefix, e.g. '--output-file' not
     'output-file'."""
