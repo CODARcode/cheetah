@@ -55,7 +55,7 @@ class Launcher(object):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
-                                  self.scheduler_name)
+                                  self.scheduler_name, 'group')
         if not os.path.isdir(script_dir):
             raise ValueError("scheduler '%s' is not yet supported"
                              % self.scheduler_name)
