@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -n "$CODAR_CHEETAH_SETUP_SCRIPT" -a -f "$CODAR_CHEETAH_SETUP_SCRIPT" ]; then
+    source "$CODAR_CHEETAH_SETUP_SCRIPT"
+fi
+
+cd "$(dirname $0)
+
+# Main application run
+"$CODAR_WORKFLOW_SCRIPT" --runner={runner} \
+ --max-procs=$CODAR_GROUP_MAX_PROCS \
+ --producer-input-file=fobs.json \
+ --log-file=codar.FOBrun.log \
+ --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
+
+# TODO: Post processing
+#"{post_processing}" "{group_directory}"

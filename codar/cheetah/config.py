@@ -10,6 +10,7 @@ CHEETAH_PATH_SCRIPTS = os.path.join(CHEETAH_PATH, "scripts")
 
 CHEETAH_PATH_MACHINE_CONFIG = os.path.join(CHEETAH_PATH, "machine_config")
 
+WORKFLOW_SCRIPT = os.path.join(CHEETAH_PATH, "workflow.py")
 
 def script_path(script_name):
     return os.path.join(CHEETAH_PATH_SCRIPTS, script_name)

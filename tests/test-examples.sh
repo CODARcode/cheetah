@@ -19,19 +19,17 @@ if [ "x$CODAR_APPDIR" == "x" ]; then
     exit 1
 fi
 
-if [ "x$CODAR_MPIX_LAUNCH" == "x" ]; then
-    echo "Error: set CODAR_MPIX_LAUNCH"
-    exit 1
-fi
-
+rm -rf test_output/pi/*
 ./cheetah.py -e examples/PiExperiment.py -m local \
     -a "$CODAR_APPDIR/Example-pi/" \
     -o test_output/pi
 
+rm -rf test_output/heat/*
 ./cheetah.py -e examples/heat_transfer_small.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/heat
 
+rm -rf test_output/titan-heat/*
 ./cheetah.py -e examples/heat_transfer_small.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/titan-heat

@@ -26,18 +26,9 @@ class Machine(object):
 # All machine names must be lowercase, to avoid conflicts with class
 # definitions etc. This allows the module to act as a sort of enum
 # container with all the machines.
-# TODO: define constants for schedulers and runners? What granularity
-# is needed here? Goal is to figure out which options to pass to
-# swift-t.
-titan=Machine('titan', launchers.LauncherSwift, "cray", "launch_multi")
 
-# old local runner with launch_multi mock is untested, make launch_multi
-# the default now
-local=Machine('local', launchers.LauncherSwift, "local", "launch_multi")
-local_launch_multi=local # backward compat
-
-local_fob=Machine('localfob', launchers.LauncherFOBrun, "local", "none")
-titan_fob=Machine('titanfob', launchers.LauncherFOBrun, "pbs", "aprun")
+local=Machine('local', launchers.Launcher, "local", "mpiexec")
+titan=Machine('titan', launchers.Launcher, "pbs", "aprun")
 
 
 def get_by_name(name):
