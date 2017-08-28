@@ -45,10 +45,11 @@ class Run(object):
             args = runner.wrap(self)
         else:
             args = [self.exe] + self.args
-        if self.logger is not None:
-            self.logger.info('%s start %r', self.log_prefix, args)
         self._start_time = time.time()
         self._popen(args)
+        if self.logger is not None:
+            self.logger.info('%s start %d %r', self.log_prefix, self._p.pid,
+                             args)
 
     @classmethod
     def from_data(self, data):
