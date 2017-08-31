@@ -2,6 +2,7 @@ import time
 import subprocess
 import os
 import shutil
+import math
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -131,6 +132,11 @@ class Run(object):
         self.logger = logger
         self.log_prefix = log_prefix
 
+    def get_nodes_used(self, ppn):
+        """Get number of nodes needed to run this app with the given number
+        of process per node (ppn)."""
+        return math.ceil(self.nprocs / ppn)
+
 
 class Pipeline(object):
     def __init__(self, runs):
@@ -145,13 +151,23 @@ class Pipeline(object):
             run.start(runner)
         self._running = True
 
+    def get_nodes_used(self, ppn):
+        """Get number of nodes needed to run pipeline with the given number
+        of process per node (ppn). Assumes each app run will gain exclusive
+        access to the node, i.e. each app consumes at least one node, even if
+        it doesn't use all available processes."""
+        nodes = 0
+        for run in self.runs:
+            nodes += math.ceil(run.nprocs / ppn)
+        return nodes
+
     def get_pids(self):
         assert self._running
         return [run.get_pid() for run in self.runs]
 
-    def poll_all_nprocs(self):
+    def poll_all(self):
         assert self._running
-        return [(run.poll(), run.nprocs, run.get_pid()) for run in self.runs]
+        return [(run.poll(), run) for run in self.runs]
 
     def set_loggers(self, logger, pipeline_id):
         for run in self.runs:

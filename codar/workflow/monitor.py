@@ -26,12 +26,12 @@ class PipelineMonitor(object):
     def run(self):
         while self._run or self._running_pids:
             for pipeline in self.pipelines:
-                polls_nprocs = pipeline.poll_all_nprocs()
-                for poll, nprocs, pid in polls_nprocs:
+                poll_items = pipeline.poll_all()
+                for poll, run in poll_items:
                     if poll is None:
                         continue
-                    if pid not in self._running_pids:
+                    if run.get_pid() not in self._running_pids:
                         continue
-                    self._running_pids.remove(pid)
-                    self.consumer.procs_finished(nprocs)
+                    self._running_pids.remove(run.get_pid())
+                    self.consumer.run_finished(run)
             time.sleep(self.check_interval)

@@ -3,17 +3,29 @@ specified total process limit."""
 
 import queue
 import threading
+import math
 
 
 class PipelineRunner(object):
-    def __init__(self, max_procs, runner, monitor, logger=None):
+    """Runner that assumes a homogonous set of nodes, and can be node limited
+    or process limited."""
+
+    def __init__(self, runner, monitor, max_procs=None, max_nodes=None,
+                 logger=None, processes_per_node=None):
+        if not (bool(max_procs) ^ bool(max_nodes)):
+            raise ValueError("specify one of max_procs and max_nodes")
+        if max_nodes and processes_per_node is None:
+            raise ValueError("max_nodes requires processes_per_node")
         self.max_procs = max_procs
+        self.max_nodes = max_nodes
+        self.ppn = processes_per_node
         self.runner = runner
         self.q = queue.Queue()
         self.pipelines = []
         self._run = True
         self.free_procs = max_procs
-        self.free_procs_cv = threading.Condition()
+        self.free_nodes = max_nodes
+        self.free_cv = threading.Condition()
         self.monitor = monitor
         self.logger = logger
         monitor.set_consumer(self)
@@ -24,11 +36,16 @@ class PipelineRunner(object):
     def stop(self):
         self.q.put(None)
 
-    def procs_finished(self, count):
-        """Monitor thread should call this as processes complete."""
-        with self.free_procs_cv:
-            self.free_procs += count
-            self.free_procs_cv.notify()
+    def run_finished(self, run):
+        """Monitor thread(s) should call this as processes complete."""
+        print("run finished", run.exe, run.nprocs)
+        with self.free_cv:
+            if self.max_procs is not None:
+                print("free procs", run.nprocs)
+                self.free_procs -= run.nprocs
+            else:
+                self.free_nodes -= run.get_nodes_used(self.ppn)
+            self.free_cv.notify()
 
     def run_pipelines(self):
         """Main loop of consumer thread."""
@@ -39,10 +56,17 @@ class PipelineRunner(object):
             pipeline = self.q.get()
             if pipeline is None:
                 return
-            with self.free_procs_cv:
-                self.free_procs_cv.wait_for(
-                    lambda: self.free_procs >= pipeline.total_procs)
-                self.free_procs -= pipeline.total_procs
+            with self.free_cv:
+                if self.max_procs is not None:
+                    print("wait for free procs", pipeline.total_procs)
+                    self.free_cv.wait_for(
+                        lambda: self.free_procs >= pipeline.total_procs)
+                    self.free_procs -= pipeline.total_procs
+                else:
+                    self.free_cv.wait_for(
+                        lambda: self.free_nodes
+                                >= pipeline.get_nodes_used(self.ppn))
+                    self.free_nodes -= pipeline.get_nodes_used(self.ppn)
             if self.logger is not None:
                 pipeline.set_loggers(self.logger, pipeline_id)
             pipeline.start(self.runner)
