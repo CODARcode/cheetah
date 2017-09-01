@@ -51,8 +51,8 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                 '--producer-input-file=%s' % pipelines_file_path,
                 '--log-file=%s' % os.path.join(out_dir, 'run.log'),
                 '--log-level=DEBUG'] + max_args)
-    times = check_output('grep "^start\\|end" "%s"/run*/*std*' % out_dir,
-                         shell=True)
+    times = check_output('grep "^start\\|end" "%s"/run*/*std* | grep -v "ENV "'
+                         % out_dir, shell=True)
     times = times.decode('utf8')
     for line in times.split('\n'):
         print(line[len(out_dir)+1:])
