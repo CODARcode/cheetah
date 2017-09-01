@@ -22,11 +22,12 @@ class PipelineRunner(object):
         self.runner = runner
         self.q = queue.Queue()
         self.pipelines = []
-        self._run = True
         self.free_procs = max_procs
         self.free_nodes = max_nodes
         self.free_cv = threading.Condition()
         self.logger = logger
+        self._running_pipelines = set()
+        self._running_pipelines_lock = threading.Lock()
 
     def add_pipeline(self, p):
         self.q.put(p)
@@ -43,12 +44,16 @@ class PipelineRunner(object):
                 self.free_nodes += run.get_nodes_used(self.ppn)
             self.free_cv.notify()
 
+    def pipeline_finished(self, pipeline):
+        """Monitor thread(s) should call this as pipelines complete."""
+        with self._running_pipelines_lock:
+            self._running_pipelines.remove(pipeline)
+
     def run_pipelines(self):
         """Main loop of consumer thread."""
         # TODO: should client be responsible for setting this in the
         # JSON input data?
         pipeline_id = 0
-        run_pipelines = []
         while True:
             pipeline = self.q.get()
             if pipeline is None:
@@ -66,10 +71,15 @@ class PipelineRunner(object):
             if self.logger is not None:
                 pipeline.set_loggers(self.logger, pipeline_id)
             pipeline.start(self, self.runner)
-            run_pipelines.append(pipeline)
+            with self._running_pipelines_lock:
+                self._running_pipelines.add(pipeline)
             pipeline_id += 1
 
-        # TODO: this requires keeping all the object around until the
-        # end, would be better to join and clean up at regular intervals.
-        for pipeline in run_pipelines:
+        # Wait for any pipelines that are still running to complete. Use
+        # a copy since the monitor threads may be removing pipelines as
+        # they complete (and joining an already complete pipeline is
+        # harmless).
+        with self._running_pipelines_lock:
+            still_running = list(self._running_pipelines)
+        for pipeline in still_running:
             pipeline.join_all()

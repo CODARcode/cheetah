@@ -73,12 +73,15 @@ class Run(threading.Thread):
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
-            self._p.kill()
-            self._p.wait()
             if self.logger is not None:
                 self.logger.warn('%s killing (timeout %d)', self.log_prefix,
                                  self.timeout)
+            self._p.kill()
+            self._p.wait()
         self._save_returncode(self._p.returncode)
+        if self.logger is not None:
+            self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
+                             self._p.returncode)
         for callback in self.callbacks:
             callback(self)
 
@@ -147,6 +150,8 @@ class Pipeline(object):
     def __init__(self, runs):
         self.runs = runs
         self._running = False
+        self._active_runs = set()
+        self.callbacks = set()
         self.total_procs = 0
         for run in runs:
             self.total_procs += run.nprocs
@@ -155,12 +160,27 @@ class Pipeline(object):
         """Start all runs in the pipeline, along with threads that monitor
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
+        self.add_callback(consumer.pipeline_finished)
         for run in self.runs:
             run.set_runner(runner)
             run.add_callback(consumer.run_finished)
+            run.add_callback(self.run_finished)
             run.start()
         self._running = True
+        self._active_runs = set(self.runs)
         return self.runs
+
+    def run_finished(self, run):
+        self._active_runs.remove(run)
+        if not self._active_runs:
+            for cb in self.callbacks:
+                cb(self)
+
+    def add_callback(self, fn):
+        self.callbacks.add(fn)
+
+    def remove_callback(self, fn):
+        self.callbacks.remove(fn)
 
     def get_nodes_used(self, ppn):
         """Get number of nodes needed to run pipeline with the given number
