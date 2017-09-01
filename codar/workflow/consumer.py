@@ -37,14 +37,12 @@ class PipelineRunner(object):
         self.q.put(None)
 
     def run_finished(self, run):
-        """Monitor thread(s) should call this as processes complete."""
-        print("run finished", run.exe, run.nprocs)
+        """Monitor thread(s) should call this as runs complete."""
         with self.free_cv:
             if self.max_procs is not None:
-                print("free procs", run.nprocs)
-                self.free_procs -= run.nprocs
+                self.free_procs += run.nprocs
             else:
-                self.free_nodes -= run.get_nodes_used(self.ppn)
+                self.free_nodes += run.get_nodes_used(self.ppn)
             self.free_cv.notify()
 
     def run_pipelines(self):
@@ -58,7 +56,6 @@ class PipelineRunner(object):
                 return
             with self.free_cv:
                 if self.max_procs is not None:
-                    print("wait for free procs", pipeline.total_procs)
                     self.free_cv.wait_for(
                         lambda: self.free_procs >= pipeline.total_procs)
                     self.free_procs -= pipeline.total_procs
