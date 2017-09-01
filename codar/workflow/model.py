@@ -3,6 +3,7 @@ import subprocess
 import os
 import shutil
 import math
+import threading
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -17,10 +18,14 @@ def _get_path(default_dir, default_name, specified_name):
     return path
 
 
-class Run(object):
+class Run(threading.Thread):
+    """Manage running a single executable within a pipeline. When start is
+    called, it will launch the process with Popen and call wait in the new
+    thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, logger=None, log_prefix=None):
+        threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
         self.args = args
@@ -40,10 +45,24 @@ class Run(object):
         self._complete = False
         self.log_prefix = log_prefix or name
         self.logger = logger
+        self.runner = None
+        self.callbacks = set()
 
-    def start(self, runner=None):
-        if runner is not None:
-            args = runner.wrap(self)
+    def set_runner(self, runner):
+        self.runner = runner
+
+    def add_callback(self, fn):
+        """Function takes single argument which is this run instance, and is
+        called when the process is complete (either normally or killed by
+        timeout)."""
+        self.callbacks.add(fn)
+
+    def remove_callback(fn):
+        self.callbacks.remove(fn)
+
+    def run(self):
+        if self.runner is not None:
+            args = self.runner.wrap(self)
         else:
             args = [self.exe] + self.args
         self._start_time = time.time()
@@ -51,6 +70,17 @@ class Run(object):
         if self.logger is not None:
             self.logger.info('%s start %d %r', self.log_prefix, self._p.pid,
                              args)
+        try:
+            self._p.wait(self.timeout)
+        except subprocess.TimeoutExpired:
+            self._p.kill()
+            self._p.wait()
+            if self.logger is not None:
+                self.logger.warn('%s killing (timeout %d)', self.log_prefix,
+                                 self.timeout)
+        self._save_returncode(self._p.returncode)
+        for callback in self.callbacks:
+            callback(self)
 
     @classmethod
     def from_data(self, data):
@@ -82,31 +112,6 @@ class Run(object):
         env.update(self.env)
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err)
-
-    def poll(self):
-        if self._complete:
-            return self.get_returncode()
-        if self._p is None:
-            raise ValueError('not running')
-        rval = self._p.poll()
-        if self.logger is not None:
-            self.logger.debug('%s poll %s', self.log_prefix, rval)
-        if rval is None:
-            # check if timeout has been reached and kill if it has
-            if (self.timeout is not None
-                    and time.time() - self._start_time > self.timeout):
-                if self.logger is not None:
-                    self.logger.warn('%s killing (timeout %d)', self.log_prefix,
-                                     self.timeout)
-                self._p.kill()
-                rval = self._p.wait()
-        if rval is not None:
-            self._complete = True
-            if self.logger is not None:
-                self.logger.warn('%s complete: %d', self.log_prefix, rval)
-            self._save_returncode(rval)
-            self.close()
-        return rval
 
     def _save_returncode(self, rcode):
         assert rcode is not None
@@ -146,10 +151,16 @@ class Pipeline(object):
         for run in runs:
             self.total_procs += run.nprocs
 
-    def start(self, runner=None):
+    def start(self, consumer, runner=None):
+        """Start all runs in the pipeline, along with threads that monitor
+        their progress and signal consumer when finished. Use join_all to
+        wait until they are all finished."""
         for run in self.runs:
-            run.start(runner)
+            run.set_runner(runner)
+            run.add_callback(consumer.run_finished)
+            run.start()
         self._running = True
+        return self.runs
 
     def get_nodes_used(self, ppn):
         """Get number of nodes needed to run pipeline with the given number
@@ -165,13 +176,14 @@ class Pipeline(object):
         assert self._running
         return [run.get_pid() for run in self.runs]
 
-    def poll_all(self):
-        assert self._running
-        return [(run.poll(), run) for run in self.runs]
-
     def set_loggers(self, logger, pipeline_id):
         for run in self.runs:
             run.set_logger(logger, "%d:%s" % (pipeline_id, run.name))
+
+    def join_all(self):
+        assert self._running
+        for run in runs:
+            run.join()
 
 
 class Runner(object):

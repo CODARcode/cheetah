@@ -10,7 +10,7 @@ class PipelineRunner(object):
     """Runner that assumes a homogonous set of nodes, and can be node limited
     or process limited."""
 
-    def __init__(self, runner, monitor, max_procs=None, max_nodes=None,
+    def __init__(self, runner, max_procs=None, max_nodes=None,
                  logger=None, processes_per_node=None):
         if not (bool(max_procs) ^ bool(max_nodes)):
             raise ValueError("specify one of max_procs and max_nodes")
@@ -26,9 +26,7 @@ class PipelineRunner(object):
         self.free_procs = max_procs
         self.free_nodes = max_nodes
         self.free_cv = threading.Condition()
-        self.monitor = monitor
         self.logger = logger
-        monitor.set_consumer(self)
 
     def add_pipeline(self, p):
         self.q.put(p)
@@ -50,6 +48,7 @@ class PipelineRunner(object):
         # TODO: should client be responsible for setting this in the
         # JSON input data?
         pipeline_id = 0
+        run_pipelines = []
         while True:
             pipeline = self.q.get()
             if pipeline is None:
@@ -66,6 +65,11 @@ class PipelineRunner(object):
                     self.free_nodes -= pipeline.get_nodes_used(self.ppn)
             if self.logger is not None:
                 pipeline.set_loggers(self.logger, pipeline_id)
-            pipeline.start(self.runner)
-            self.monitor.add_pipeline(pipeline)
+            pipeline.start(self, self.runner)
+            run_pipelines.append(pipeline)
             pipeline_id += 1
+
+        # TODO: this requires keeping all the object around until the
+        # end, would be better to join and clean up at regular intervals.
+        for pipeline in run_pipelines:
+            pipeline.join_all()

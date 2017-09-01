@@ -7,7 +7,6 @@ import logging
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
-from codar.workflow.monitor import PipelineMonitor
 from codar.workflow.model import mpiexec, aprun
 
 
@@ -55,8 +54,7 @@ def main():
     else:
         logger = None
 
-    monitor = PipelineMonitor()
-    consumer = PipelineRunner(runner=runner, monitor=monitor, logger=logger,
+    consumer = PipelineRunner(runner=runner, logger=logger,
                               max_procs=args.max_procs,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node)
@@ -64,9 +62,6 @@ def main():
 
     t_consumer = threading.Thread(target=consumer.run_pipelines)
     t_consumer.start()
-
-    t_monitor = threading.Thread(target=monitor.run)
-    t_monitor.start()
 
     # producer runs in this main thread
     for pipeline in producer.read_pipelines():
@@ -78,7 +73,3 @@ def main():
 
     # wait for consumer to finish all the pipelines
     t_consumer.join()
-
-    # signal monitor to finish after all processes have exited
-    monitor.stop()
-    t_monitor.join()
