@@ -1,10 +1,15 @@
 #!/bin/bash
 
-if [ -n "$CODAR_CHEETAH_SETUP_SCRIPT" -a -f "$CODAR_CHEETAH_SETUP_SCRIPT" ]; then
-    source "$CODAR_CHEETAH_SETUP_SCRIPT"
-fi
+GROUP_DIR="$1"
+shift
 
-cd "$(dirname $0)
+cd "$GROUP_DIR"
+source ../campaign-env.sh
+source group-env.sh
+
+if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
+    source "$CODAR_CHEETAH_MACHINE_CONFIG"
+fi
 
 # Main application run
 "$CODAR_WORKFLOW_SCRIPT" --runner={runner} \
