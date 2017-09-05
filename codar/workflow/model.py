@@ -9,6 +9,7 @@ import threading
 STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
 RETURN_NAME = 'codar.workflow.return'
+WALLTIME_NAME = 'codar.workflow.walltime'
 
 
 def _get_path(default_dir, default_name, specified_name):
@@ -24,7 +25,8 @@ class Run(threading.Thread):
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
-                 return_path=None, logger=None, log_prefix=None):
+                 return_path=None, walltime_path=None,
+                 logger=None, log_prefix=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -39,8 +41,11 @@ class Run(threading.Thread):
                                      stderr_path)
         self.return_path = _get_path(working_dir, RETURN_NAME + "." + name,
                                      return_path)
+        self.walltime_path = _get_path(working_dir, WALLTIME_NAME + "." + name,
+                                       walltime_path)
         self._p = None
         self._start_time = None
+        self._end_time = None
         self._open_files = []
         self._complete = False
         self.log_prefix = log_prefix or name
@@ -78,7 +83,9 @@ class Run(threading.Thread):
                                  self.timeout)
             self._p.kill()
             self._p.wait()
+        self._end_time = time.time()
         self._save_returncode(self._p.returncode)
+        self._save_walltime(self._end_time - self._start_time)
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
@@ -99,7 +106,8 @@ class Run(threading.Thread):
                 nprocs=data.get('nprocs', 1),
                 stdout_path=data.get('stdout_path'),
                 stderr_path=data.get('stderr_path'),
-                return_path=data.get('return_path'))
+                return_path=data.get('return_path'),
+                walltime_path=data.get('walltime_path'))
         return r
 
     def _popen(self, args):
@@ -119,7 +127,13 @@ class Run(threading.Thread):
     def _save_returncode(self, rcode):
         assert rcode is not None
         with open(self.return_path, 'w') as f:
-            f.write(str(rcode))
+            f.write(str(rcode) + "\n")
+
+    def _save_walltime(self, walltime):
+        # TODO: put in JSON file along with return code instead of
+        # separate files?
+        with open(self.walltime_path, 'w') as f:
+            f.write(str(walltime) + "\n")
 
     def get_returncode(self):
         if self._p is None:
