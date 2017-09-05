@@ -1,9 +1,7 @@
 #!/bin/bash
 
-GROUP_DIR="$1"
-shift
+cd "$PBS_O_WORKDIR"
 
-cd "$GROUP_DIR"
 source ../campaign-env.sh
 source group-env.sh
 
@@ -12,8 +10,8 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
 fi
 
 # Main application run
-"$CODAR_WORKFLOW_SCRIPT" --runner={runner} \
- --max-procs=$CODAR_GROUP_MAX_PROCS \
+"$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
+ --max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
  --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
