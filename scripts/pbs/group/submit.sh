@@ -1,10 +1,12 @@
 #!/bin/bash
 
+cd "$(dirname $0)"
+source ../campaign-env.sh
+source group-env.sh
+
 if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
     source "$CODAR_CHEETAH_MACHINE_CONFIG"
 fi
-
-cd $CODAR_CHEETAH_EXPERIMENT_DIR/$CODAR_CHEETAH_GROUP_DIR
 
 JOBID=$(qsub \
         -A $CODAR_CHEETAH_SCHEDULER_ACCOUNT \
