@@ -10,7 +10,7 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
 fi
 
 if [ -n "$CODAR_CHEETAH_GROUP_NODE_EXCLUSIVE" ]; then
-    max_args="--max-nodes=$CODAR_CHEETAH_GROUP_NODES --process-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE"
+    max_args="--max-nodes=$CODAR_CHEETAH_GROUP_NODES --processes-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE"
 else
     max_args="--max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS"
 fi
