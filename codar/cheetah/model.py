@@ -98,8 +98,8 @@ class Campaign(object):
                 raise ValueError("top level run groups must be SweepGroup")
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
-            group_output_dir = os.path.join(output_dir,
-                                            "group-%03d" % (group_i+1))
+            group_name = "group-%03d" % (group_i+1)
+            group_output_dir = os.path.join(output_dir, group_name)
             launcher = self.machine.get_launcher_instance(group_output_dir,
                                                           len(self.codes))
             group_instances = group.get_instances()
@@ -108,16 +108,32 @@ class Campaign(object):
                               self.inputs_fullpath)
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
-            max_nprocs = max([r.get_total_nprocs() for r in group_runs])
-            # TODO: tweak how we specify nodes/max_nprocs/ppn
-            group_ppn = math.ceil((max_nprocs) / group.nodes)
-            launcher.create_group_directory(group_runs,
-                                            max_nprocs,
-                                            ppn=group_ppn,
+            if group.max_procs is None:
+                max_procs = max([r.get_total_nprocs() for r in group_runs])
+            else:
+                procs_per_run = max([r.get_total_nprocs() for r in group_runs])
+                if group.max_procs < procs_per_run:
+                    # TODO: improve error message, specifying which
+                    # group and by how much it's off etc
+                    raise ValueError("max_procs for group is too low")
+                max_procs = group.max_procs
+            if self.machine.node_exclusive:
+                group_ppn = self.machine.processes_per_node
+            else:
+                group_ppn = math.ceil((max_procs) / group.nodes)
+            # TODO: refactor so we can just pass the campaign and group
+            # objects, i.e. add methods so launcher can get all info it needs
+            # and simplify this loop.
+            launcher.create_group_directory(self.name, group_name,
+                                            group_runs,
+                                            max_procs,
+                                            processes_per_node=group_ppn,
                                             queue=self.queue,
                                             nodes=group.nodes,
                                             project=self.project,
-                                            walltime=group.walltime)
+                                            walltime=group.walltime,
+                                            node_exclusive=
+                                                self.machine.node_exclusive)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")

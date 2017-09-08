@@ -29,6 +29,16 @@ class HeatTransfer(Campaign):
      # Each SweepGroup specifies a set of runs to be performed on a specified number of nodes. 
      # Here we have 1 SweepGroup, which will run on 2 nodes.
      p.SweepGroup(nodes=2, # Number of nodes to run on
+                  max_procs=14, # Optional. Set max number of processes to run
+                                # in parallel. Must fit on the nodes
+                                # specified for each target machine, and
+                                # each run in the swee group must use no
+                                # more then this number of processes. If
+                                # not specified, will be set to the max
+                                # of any individual run. Can be used to
+                                # do runs in parallel, i.e. setting to 28
+                                # for this experiment will allow to runs
+                                # at a time.
                   
       # Within a SweepGroup, each parameter_group specifies arguments for each of the parameters required for each code
       # Number of runs is the product of the number of options specified. Below, it is 2, as only one parameter has >1 arguments.

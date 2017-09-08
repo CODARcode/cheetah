@@ -49,9 +49,9 @@ class Launcher(object):
         self.output_directory = output_directory
         self.num_codes = num_codes
 
-    def create_group_directory(self, runs,
-                               max_nprocs, ppn, queue, nodes,
-                               project, walltime):
+    def create_group_directory(self, campaign_name, group_name, runs,
+                               max_nprocs, processes_per_node, queue, nodes,
+                               project, walltime, node_exclusive):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -66,12 +66,14 @@ class Launcher(object):
         group_env = templates.GROUP_ENV_TEMPLATE.format(
             walltime=walltime,
             max_procs=max_nprocs,
-            ppn=ppn,
+            processes_per_node=processes_per_node,
             nodes=nodes,
+            node_exclusive=node_exclusive,
             account=project,
             queue=queue,
-            campaign_name="TODO",
-            group_name="TODO"
+            # TODO: require name be valid for all schedulers
+            campaign_name='codar.cheetah.'+campaign_name,
+            group_name=group_name
         )
         with open(env_path, 'w') as f:
             f.write(group_env)
