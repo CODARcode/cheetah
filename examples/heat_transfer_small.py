@@ -30,9 +30,16 @@ class HeatTransfer(Campaign):
     sweeps = [
 
      # Each SweepGroup specifies a set of runs to be performed on a specified
-     # number of nodes. Here we have 1 SweepGroup, which will run on 2 nodes.
-     p.SweepGroup(nodes=2, # Number of nodes to run on
-                  max_procs=14, # Optional. Set max number of processes to run
+     # number of nodes. Here we have 1 SweepGroup, which will run on 4 nodes.
+     # On titan each executable consumes an entire node, even if it
+     # doesn't make use of all processes on the node, so this will run
+     # the first two instances at the same time across four nodes, and
+     # start the last instance as soon as one of those two instances
+     # finish. On a supercomputer without this limitation, with nodes
+     # that have >14 processes, all three could be submitted at the same
+     # time with one node unused.
+     p.SweepGroup(nodes=4, # Number of nodes to run on
+                  max_procs=28, # Optional. Set max number of processes to run
                                 # in parallel. Must fit on the nodes
                                 # specified for each target machine, and
                                 # each run in the sweep group must use no
