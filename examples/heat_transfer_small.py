@@ -39,6 +39,11 @@ class HeatTransfer(Campaign):
      # that have >14 processes, all three could be submitted at the same
      # time with one node unused.
      p.SweepGroup(nodes=4, # Number of nodes to run on
+                  walltime=3600,# Required. Set walltime for scheduler job.
+                  per_run_timeout=600,
+                                # Optional. If set, each run in the sweep
+                                # group will be killed if not complete
+                                # after this many seconds.
                   max_procs=28, # Optional. Set max number of processes to run
                                 # in parallel. Must fit on the nodes
                                 # specified for each target machine, and

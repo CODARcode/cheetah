@@ -51,7 +51,8 @@ class Launcher(object):
 
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, queue, nodes,
-                               project, walltime, node_exclusive):
+                               project, walltime, node_exclusive,
+                               timeout):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -116,12 +117,14 @@ class Launcher(object):
 
                 fob = []
                 for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
-                    # TODO: add timeout, env for tau
+                    # TODO: add env for tau
                     data = dict(name=pname,
                                 exe=argv[0],
                                 args=argv[1:],
                                 working_dir=run.run_path,
                                 nprocs=nprocs)
+                    if timeout is not None:
+                        data["timeout"] = timeout
                     fob.append(data)
                 f.write(json.dumps(fob))
                 f.write("\n")

@@ -132,6 +132,7 @@ class Campaign(object):
                                             nodes=group.nodes,
                                             project=self.project,
                                             walltime=group.walltime,
+                                            timeout=group.per_run_timeout,
                                             node_exclusive=
                                                 self.machine.node_exclusive)
 
