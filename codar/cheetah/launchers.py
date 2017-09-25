@@ -8,10 +8,9 @@ the correct scheduler and runner when passed appropriate options.
 import os
 import json
 import shlex
+import shutil
 
-from shutil import copy2
-
-from codar.cheetah import adios_transform, config
+from codar.cheetah import adios_transform, config, templates
 from codar.cheetah.parameters import ParamAdiosXML
 from codar.cheetah.helpers import make_executable, swift_escape_string
 
@@ -50,46 +49,86 @@ class Launcher(object):
         self.output_directory = output_directory
         self.num_codes = num_codes
 
-    def write_submit_script(self, max_nprocs):
-        """
-        Must at minimum produce a single script 'run.sh' within the
-        output_directory that will run the batch in the background or submit
-        the job to a real scheduler. Must also generate a file
-        'codar.cheetah.jobid.txt' in the output directory that can be read by
-        the monitor script to wait on the job (or process).
+    def create_group_directory(self, campaign_name, group_name, runs,
+                               max_nprocs, processes_per_node, queue, nodes,
+                               project, walltime, node_exclusive,
+                               timeout):
+        """Copy scripts for the appropriate scheduler to group directory,
+        and write environment configuration"""
+        script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
+                                  self.scheduler_name, 'group')
+        if not os.path.isdir(script_dir):
+            raise ValueError("scheduler '%s' is not yet supported"
+                             % self.scheduler_name)
+        shutil.copytree(script_dir, self.output_directory)
+        env_path = os.path.join(self.output_directory, 'group-env.sh')
+        # TODO: ideally walltime is always in seconds in Cheetah, try to use
+        # the per scheduler scripts to format
+        group_env = templates.GROUP_ENV_TEMPLATE.format(
+            walltime=walltime,
+            max_procs=max_nprocs,
+            processes_per_node=processes_per_node,
+            nodes=nodes,
+            node_exclusive=node_exclusive,
+            account=project,
+            queue=queue,
+            # TODO: require name be valid for all schedulers
+            campaign_name='codar.cheetah.'+campaign_name,
+            group_name=group_name
+        )
+        with open(env_path, 'w') as f:
+            f.write(group_env)
 
-        TODO: make executable
-        """
-        # subclass must implement
-        raise NotImplemented()
+        fobs_path = os.path.join(self.output_directory, 'fobs.json')
+        with open(fobs_path, 'w') as f:
+            for i, run in enumerate(runs):
+                # TODO: abstract this to higher levels
+                os.makedirs(run.run_path, exist_ok=True)
 
-    def write_status_script(self):
-        """
-        Save script that prints how long batch has been running, or an empty
-        string if it's complete.
-        """
-        # subclass must implement
-        raise NotImplemented()
+                for input_rpath in run.inputs:
+                    shutil.copy2(input_rpath, run.run_path+"/.")
 
-    def write_wait_script(self):
-        """
-        Save script that waits for the batch to complete, and prints the
-        total batch walltime.
-        """
-        # subclass must implement
-        raise NotImplemented()
+                codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
 
-    def write_batch_script(self, runs):
-        """
-        Must at minimum produce a single script 'run.sh' within the
-        group_output_dir that will run the batch in the background or submit
-        the job to a real scheduler. May also produce other auxiliary scripts,
-        e.g. sbatch or pbs files. The 'run.sh' file must generate a file
-        'codar.cheetah.jobid.txt' in the group output dir that can be read by
-        the monitor script to wait on the job.
-        """
-        # subclass must implement
-        raise NotImplemented()
+                # ADIOS XML param support
+                adios_transform_params = \
+                    run.instance.get_parameter_values_by_type(ParamAdiosXML)
+                for pv in adios_transform_params:
+                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    adios_transform.adios_xml_transform(xml_filepath,
+                                        pv.group_name, pv.var_name, pv.value)
+
+                # save code commands as text
+                params_path_txt = os.path.join(run.run_path,
+                                               self.run_command_name)
+                with open(params_path_txt, 'w') as params_f:
+                    for _, argv, _ in codes_argv_nprocs:
+                        params_f.write(' '.join(map(shlex.quote, argv)))
+                        params_f.write('\n')
+
+                # save params as JSON for use in post-processing, more
+                # useful for post-processing scripts then the command
+                # text
+                params_path_json = os.path.join(run.run_path,
+                                                self.run_json_name)
+                run_data = run.as_dict()
+                with open(params_path_json, 'w') as params_f:
+                    json.dump(run_data, params_f, indent=2)
+
+                fob = []
+                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
+                    # TODO: add env for tau
+                    data = dict(name=pname,
+                                exe=argv[0],
+                                args=argv[1:],
+                                working_dir=run.run_path,
+                                nprocs=nprocs)
+                    if timeout is not None:
+                        data["timeout"] = timeout
+                    fob.append(data)
+                f.write(json.dumps(fob))
+                f.write("\n")
+
 
     def read_jobid(self):
         jobid_file_path = os.path.join(self.output_directory,
@@ -97,16 +136,6 @@ class Launcher(object):
         with open(jobid_file_path) as f:
             jobid = f.read()
         return jobid
-
-    def write_monitor_script(self):
-        """Must at minimum produce a script 'monitor.sh' which will monitor the
-        progress of the job after 'run.sh' produced by `write_batch_script`
-        is run. The 'run.sh' script will run the experiment batch in the
-        background, and this script will monitor it's progress and optionally
-        trigger actions, such as sending an email or running result
-        analysis."""
-        # subclass must implement
-        raise NotImplemented()
 
 
 class LauncherSwift(Launcher):
@@ -431,7 +460,7 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
                 os.makedirs(run.run_path, exist_ok=True)
 
                 for input_rpath in run.inputs:
-                    copy2(input_rpath, run.run_path+"/.")
+                    shutil.copy2(input_rpath, run.run_path+"/.")
 
                 codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
 
@@ -490,6 +519,110 @@ ps -p $(cat {jobid_file_name} | cut -d: -f2) -o time=
             else:
                 f.write(self.BATCH_FOOTER)
         make_executable(script_path)
+        return script_path
+
+
+class LauncherFOBrun(Launcher):
+    """
+    Launcher that generates a JSON file of FOBs for the workflow.py/FOBrun
+    script, copies scripts, and sets up environment for the scripts.
+    """
+    name = 'FOBrun'
+    batch_script_name = 'run.pbs'
+
+    def write_submit_script(self, max_nprocs, ppn="", project="",
+                            queue="", nodes=1):
+        self.nodes = nodes
+        self.max_nprocs = max_nprocs # hack
+        submit_path = os.path.join(self.output_directory,
+                                   self.submit_script_name)
+        body = self.SUBMIT_TEMPLATE.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name,
+                        setup_script=
+                            config.machine_submit_env_path(self.machine_name),
+                        project=project,
+                        queue=queue,
+                        ppn=ppn,
+                        max_procs=max_nprocs,
+                        scheduler_name=self.scheduler_name,
+                        runner=self.runner_name)
+
+        with open(submit_path, 'w') as f:
+             f.write(body)
+        make_executable(submit_path)
+        return submit_path
+
+    def write_batch_script(self, runs, mock=False):
+        script_path = os.path.join(self.output_directory,
+                                   self.batch_script_name)
+
+        body = self.BATCH_TEMPLATE.format(
+                        group_directory=self.output_directory,
+                        batch_script_name=self.batch_script_name,
+                        submit_out_name=self.submit_out_name,
+                        jobid_file_name=self.jobid_file_name,
+                        name=self.name,
+                        setup_script=
+                            config.machine_submit_env_path(self.machine_name),
+                        project=project,
+                        queue=queue,
+                        nodes=self.nodes,
+                        max_procs=self.max_nprocs)
+
+        with open(script_path, 'w') as f:
+             f.write(body)
+
+        fobs_path = os.path.join(self.output_directory, 'fobs.json')
+        with open(fobs_path, 'w') as f:
+            for i, run in enumerate(runs):
+                # TODO: abstract this to higher levels
+                os.makedirs(run.run_path, exist_ok=True)
+
+                for input_rpath in run.inputs:
+                    shutil.copy2(input_rpath, run.run_path+"/.")
+
+                codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
+
+                # ADIOS XML param support
+                adios_transform_params = \
+                    run.instance.get_parameter_values_by_type(ParamAdiosXML)
+                for pv in adios_transform_params:
+                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    adios_transform.adios_xml_transform(xml_filepath,
+                                        pv.group_name, pv.var_name, pv.value)
+
+                # save code commands as text
+                params_path_txt = os.path.join(run.run_path,
+                                               self.run_command_name)
+                with open(params_path_txt, 'w') as params_f:
+                    for _, argv, _ in codes_argv_nprocs:
+                        params_f.write(' '.join(map(shlex.quote, argv)))
+                        params_f.write('\n')
+
+                # save params as JSON for use in post-processing, more
+                # useful for post-processing scripts then the command
+                # text
+                params_path_json = os.path.join(run.run_path,
+                                                self.run_json_name)
+                run_data = run.as_dict()
+                with open(params_path_json, 'w') as params_f:
+                    json.dump(run_data, params_f, indent=2)
+
+                fob = []
+                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
+                    # TODO: add timeout, env for tau
+                    data = dict(name=pname,
+                                exe=argv[0],
+                                args=argv[1:],
+                                working_dir=run.run_path,
+                                nprocs=nprocs)
+                    fob.append(data)
+                f.write(json.dumps(fob))
+                f.write("\n")
         return script_path
 
     def write_status_script(self):

@@ -11,25 +11,9 @@ name.
 import os
 import json
 import math
+import shutil
 
-from codar.cheetah import machines, parameters, helpers
-
-
-RUN_ALL_TEMPLATE = """#!/bin/bash
-set -e
-
-cd {experiment_dir}
-start=$(date +%s)
-for group_dir in group-*; do
-    echo -n "Start $group_dir ... "
-    cd "$group_dir"
-    ./submit.sh
-    ./wait.sh
-    cd ..
-done
-end=$(date +%s)
-echo $(($end - $start)) > codar.cheetah.walltime.txt
-"""
+from codar.cheetah import machines, parameters, helpers, config, templates
 
 
 class Campaign(object):
@@ -89,18 +73,33 @@ class Campaign(object):
 
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
-        run. """
+        run."""
         output_dir = os.path.abspath(output_dir)
+        run_all_script = os.path.join(config.CHEETAH_PATH_SCRIPTS,
+                                      self.machine.scheduler_name,
+                                      'run-all.sh')
         os.makedirs(output_dir, exist_ok=True)
+        shutil.copy2(run_all_script, output_dir)
+
+        campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
+            experiment_dir=output_dir,
+            machine_config=config.machine_submit_env_path(self.machine.name),
+            workflow_script_path=config.WORKFLOW_SCRIPT,
+            workflow_runner=self.machine.runner_name,
+            workflow_debug_level="DEBUG"
+        )
+        campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
+        with open(campaign_env_path, 'w') as f:
+            f.write(campaign_env)
+
         for group_i, group in enumerate(self.sweeps):
             # top level should be SweepGroup, open scheduler file
             if not isinstance(group, parameters.SweepGroup):
                 raise ValueError("top level run groups must be SweepGroup")
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
-            group_output_dir = os.path.join(output_dir,
-                                            "group-%03d" % (group_i+1))
-            os.makedirs(group_output_dir, exist_ok=True)
+            group_name = "group-%03d" % (group_i+1)
+            group_output_dir = os.path.join(output_dir, group_name)
             launcher = self.machine.get_launcher_instance(group_output_dir,
                                                           len(self.codes))
             group_instances = group.get_instances()
@@ -109,23 +108,36 @@ class Campaign(object):
                               self.inputs_fullpath)
                           for i, inst in enumerate(group_instances)]
             self.runs.extend(group_runs)
-            max_nprocs = max([r.get_total_nprocs() for r in group_runs])
-            # +1 for ALDBX process
-            group_ppn = math.ceil((max_nprocs + 1) / group.nodes)
-            launcher.write_submit_script(max_nprocs, ppn=group_ppn,
-                                         queue=self.queue,
-                                         project=self.project)
-            launcher.write_status_script()
-            launcher.write_wait_script()
-            launcher.write_batch_script(group_runs, mock=False)
-        run_all_path = os.path.join(output_dir, "run-all.sh")
+            if group.max_procs is None:
+                max_procs = max([r.get_total_nprocs() for r in group_runs])
+            else:
+                procs_per_run = max([r.get_total_nprocs() for r in group_runs])
+                if group.max_procs < procs_per_run:
+                    # TODO: improve error message, specifying which
+                    # group and by how much it's off etc
+                    raise ValueError("max_procs for group is too low")
+                max_procs = group.max_procs
+            if self.machine.node_exclusive:
+                group_ppn = self.machine.processes_per_node
+            else:
+                group_ppn = math.ceil((max_procs) / group.nodes)
+            # TODO: refactor so we can just pass the campaign and group
+            # objects, i.e. add methods so launcher can get all info it needs
+            # and simplify this loop.
+            launcher.create_group_directory(self.name, group_name,
+                                            group_runs,
+                                            max_procs,
+                                            processes_per_node=group_ppn,
+                                            queue=self.queue,
+                                            nodes=group.nodes,
+                                            project=self.project,
+                                            walltime=group.walltime,
+                                            timeout=group.per_run_timeout,
+                                            node_exclusive=
+                                                self.machine.node_exclusive)
+
+        # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
-        with open(run_all_path, "w") as f:
-            f.write(RUN_ALL_TEMPLATE.format(experiment_dir=output_dir))
-            if self.post_process_script:
-                pps_path = os.path.join(self.app_dir, self.post_process_script)
-                f.write('\n%s %s\n' % (pps_path, all_params_json_path))
-        helpers.make_executable(run_all_path)
         with open(all_params_json_path, "w") as f:
             json.dump([run.as_dict() for run in self.runs], f, indent=2)
 
