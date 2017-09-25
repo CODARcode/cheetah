@@ -31,6 +31,10 @@ class Campaign(object):
     inputs = []
     inputs_fullpath = []
 
+    # If set and there are multiple codes making up the application,
+    # kill all remaining codes if one code fails.
+    kill_on_partial_failure = False
+
     # Schedular options. Not used when using machine 'local', required
     # if using 'titan'.
     project = "" # project allocation to use
@@ -86,7 +90,8 @@ class Campaign(object):
             machine_config=config.machine_submit_env_path(self.machine.name),
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
-            workflow_debug_level="DEBUG"
+            workflow_debug_level="DEBUG",
+            workflow_kill_on_partial_failure=self.kill_on_partial_failure
         )
         campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
         with open(campaign_env_path, 'w') as f:

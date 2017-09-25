@@ -15,6 +15,12 @@ else
     max_args="--max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS"
 fi
 
+if [ -n "$CODAR_WORKFLOW_KILL_ON_PARTIAL_FAILURE" ]; then
+    extra_args="--kill-on-partial-failure"
+else
+    extra_args=""
+fi
+
 start=$(date +%s)
 
 # Main application run
@@ -22,7 +28,8 @@ start=$(date +%s)
  $max_args \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
- --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
+ --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL \
+ $extra_args
 
 end=$(date +%s)
 echo $(($end - $start)) > codar.cheetah.walltime.txt

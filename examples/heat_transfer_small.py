@@ -24,6 +24,13 @@ class HeatTransfer(Campaign):
     # Cheetah for each run
     inputs = ["heat_transfer.xml"]
 
+    # If the heat or stage code fails (nonzero exit code) during a run,
+    # kill the other code if still running. This is useful for multi-code
+    # apps that require all codes to complete for useful results. This
+    # is usually the case when using an adios stage code.
+    kill_on_partial_failure = True
+
+    # Options to pass to the scheduler (PBS or slurm)
     project = "CSC242"
     queue = "debug"
 

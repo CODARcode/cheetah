@@ -5,6 +5,12 @@
 
 cd "$(dirname $0)"
 
+if [ -n "$CODAR_WORKFLOW_KILL_ON_PARTIAL_FAILURE" ]; then
+    extra_args="--kill-on-partial-failure"
+else
+    extra_args=""
+fi
+
 start=$(date +%s)
 
 # Main application run
