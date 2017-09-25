@@ -92,6 +92,17 @@ class Run(threading.Thread):
         for callback in self.callbacks:
             callback(self)
 
+    def kill(self):
+        if self._p is None:
+            raise ValueError('not running')
+        if self._end_time is not None:
+            return
+        # TODO: what happens if this is called after the process is
+        # complete? We want to ignore that case.
+        if self.logger is not None:
+            self.logger.warn('%s kill requested', self.log_prefix)
+        self._p.kill()
+
     @classmethod
     def from_data(self, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -161,12 +172,15 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, runs):
+    def __init__(self, runs, kill_on_partial_failure=False):
         self.runs = runs
+        self.kill_on_partial_failure = kill_on_partial_failure
         self._running = False
         self._active_runs = set()
         self.callbacks = set()
         self.total_procs = 0
+        self.logger = None
+        self.log_prefix = None
         for run in runs:
             self.total_procs += run.nprocs
 
@@ -189,6 +203,14 @@ class Pipeline(object):
         if not self._active_runs:
             for cb in self.callbacks:
                 cb(self)
+        elif self.kill_on_partial_failure and run.get_returncode() != 0:
+            if self.logger is not None:
+                self.logger.warn('%s run %s failed, killing remaining',
+                                 self.log_prefix, run.name)
+            # if configured, kill all runs in the pipeline if one of
+            # them has a nonzero exit code
+            for run2 in self._active_runs:
+                run2.kill()
 
     def add_callback(self, fn):
         self.callbacks.add(fn)
@@ -211,6 +233,8 @@ class Pipeline(object):
         return [run.get_pid() for run in self.runs]
 
     def set_loggers(self, logger, pipeline_id):
+        self.logger = logger
+        self.log_prefix = "%d" % pipeline_id
         for run in self.runs:
             run.set_logger(logger, "%d:%s" % (pipeline_id, run.name))
 

@@ -8,11 +8,14 @@ from subprocess import check_call, check_output
 
 
 def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
-                  timeout):
+                  timeout, kill_on_partial_failure):
     cheetah_dir = os.path.abspath(os.path.join(
                             os.path.dirname(__file__), '..'))
     out_dir = os.path.join(cheetah_dir, 'test_output', 'workflow')
-    test_script = os.path.join(cheetah_dir, 'scripts', 'test.sh')
+    if kill_on_partial_failure:
+        test_script = os.path.join(cheetah_dir, 'scripts', 'test-randfail.sh')
+    else:
+        test_script = os.path.join(cheetah_dir, 'scripts', 'test.sh')
 
     # clean up after old runs, ignore if doesn't exist
     shutil.rmtree(out_dir, ignore_errors=True)
@@ -47,6 +50,9 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
         max_args = ['--max-nodes=%d' % max_nodes,
                     '--processes-per-node=%d' % processes_per_node]
 
+    if kill_on_partial_failure:
+        max_args += ['--kill-on-partial-failure']
+
     check_call([cheetah_dir + '/workflow.py', '--runner=none',
                 '--producer-input-file=%s' % pipelines_file_path,
                 '--log-file=%s' % os.path.join(out_dir, 'run.log'),
@@ -70,6 +76,7 @@ if __name__ == '__main__':
     max_nodes = None
     processes_per_node = None
     timeout = 10
+    kill_on_partial_failure = False
     if len(sys.argv) > 1:
         nruns = int(sys.argv[1])
     if len(sys.argv) > 2:
@@ -82,6 +89,8 @@ if __name__ == '__main__':
         max_nodes = max_procs
         max_procs = None
         processes_per_node = int(sys.argv[5])
+    if len(sys.argv) > 6:
+        kill_on_partial_failure = True
 
     test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
-                  timeout)
+                  timeout, kill_on_partial_failure)

@@ -23,6 +23,7 @@ def parse_args():
     parser.add_argument('--log-level',
                         choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
                         default='INFO')
+    parser.add_argument('--kill-on-partial-failure', action='store_true')
 
     args = parser.parse_args()
 
@@ -58,7 +59,9 @@ def main():
                               max_procs=args.max_procs,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node)
-    producer = JSONFilePipelineReader(args.producer_input_file)
+
+    producer = JSONFilePipelineReader(args.producer_input_file,
+                      kill_on_partial_failure=args.kill_on_partial_failure)
 
     t_consumer = threading.Thread(target=consumer.run_pipelines)
     t_consumer.start()
