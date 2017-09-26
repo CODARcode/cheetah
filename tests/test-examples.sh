@@ -33,3 +33,8 @@ rm -rf test_output/titan-heat/*
 ./cheetah.py -e examples/heat_transfer_small.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/titan-heat
+
+rm -rf test_output/exaalt/*
+./cheetah.py -e examples/exaalt.py -m titan \
+    -a "$CODAR_APPDIR/Example-EXAALT/" \
+    -o test_output/exaalt
