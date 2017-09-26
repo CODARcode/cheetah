@@ -102,33 +102,72 @@ class Instance(object):
         # their target
         self._parameter_values = defaultdict(dict)
 
+        # temporary containers for staging params so derived values can
+        # be calculated after all are added.
+        self._simple_pv_list = defaultdict(list)
+        self._derived_pv_list = defaultdict(list)
+
         # subset of paramaters related to application codes that will
         # need to be run
         self._code_commands = dict()
 
-    def add_parameter(self, p, idx):
-        pv = ParameterValue(p, idx)
-        target_p = self._parameter_values[pv.target]
-        if isinstance(p, ParamCmdLineArg):
-            # TODO: this is a hacky way to distinguish between
-            # application code targets and middlewear targets, should
-            # make it more explicit somehow.
-            if p.target not in self._code_commands:
-                self._code_commands[pv.target] = CodeCommand(pv.target)
-            self._code_commands[pv.target].add_arg(p.position, pv.value)
+        self._values_calculated = False
 
-        if isinstance(p, ParamCmdLineOption):
-            if p.target not in self._code_commands:
-                self._code_commands[p.target] = CodeCommand(pv.target)
-            self._code_commands[p.target].add_option(p.option, pv.value)
-        # TODO: how do we model parallelism and other middlewear params?
-        if pv.name in target_p:
-            raise ValueError('parameter name conflict: "%s"' % pv.name)
-        target_p[pv.name] = pv
+    def add_parameter(self, p, idx):
+        if self._values_calculated:
+            raise ValueError("new parameters can't be added after get")
+        pv = ParameterValue(p, idx)
+        if callable(pv.value):
+            self._derived_pv_list[pv.target].append(pv)
+        else:
+            self._simple_pv_list[pv.target].append(pv)
+
+    @property
+    def parameter_values(self):
+        """Wrapper to allow delayed calculation of derived parameter values."""
+        if not self._values_calculated:
+            self._calculate_values()
+        return self._parameter_values
+
+    @property
+    def code_commands(self):
+        """Wrapper to allow delayed calculation of derived parameter values."""
+        if not self._values_calculated:
+            self._calculate_values()
+        return self._code_commands
+
+    def _calculate_values(self):
+        for target, target_pv_list in self._simple_pv_list.items():
+            target_p = self._parameter_values[target]
+
+            # NB: not attempting to support deriving values from other
+            # derived values.
+            simple_value_map = dict((pv.name, pv.value)
+                                    for pv in target_pv_list)
+            for derived_pv in self._derived_pv_list[target]:
+                derived_pv.value = derived_pv.value(simple_value_map)
+                target_pv_list.append(derived_pv)
+
+            for pv in target_pv_list:
+                # Custom handling for command line param types: start
+                # building up the command.
+                if pv.is_type(ParamCmdLineArg):
+                    if target not in self._code_commands:
+                        self._code_commands[target] = CodeCommand(target)
+                    self._code_commands[target].add_arg(pv.position, pv.value)
+                elif pv.is_type(ParamCmdLineOption):
+                    if target not in self._code_commands:
+                        self._code_commands[target] = CodeCommand(target)
+                    self._code_commands[target].add_option(pv.option, pv.value)
+                if pv.name in target_p:
+                    raise ValueError('parameter name conflict: "%s"' % pv.name)
+                # Always save the value, regardless of param type.
+                target_p[pv.name] = pv
+        self._values_calculated = True
 
     def get_codes_argv(self):
         return dict([(k, cc.get_argv())
-                     for (k, cc) in self._code_commands.items()])
+                     for (k, cc) in self.code_commands.items()])
 
     def as_string(self):
         """Get a command line like value for the instance. Note that this
@@ -151,14 +190,14 @@ class Instance(object):
         Get a list of ParamaterValues of the specified type in the instance.
         """
         pvs = []
-        for target, target_params in self._parameter_values.items():
+        for target, target_params in self.parameter_values.items():
             for name, pv in target_params.items():
                 if pv.is_type(param_class):
                     pvs.append(pv)
         return pvs
 
     def get_nprocs(self, target):
-        pv = self._parameter_values[target].get('nprocs')
+        pv = self.parameter_values[target].get('nprocs')
         if pv is None:
             return 1
         return pv.value
@@ -170,7 +209,7 @@ class Instance(object):
         name value pairs.
         """
         return dict((target, dict((pv.name, pv.value) for pv in d.values()))
-                    for target, d in self._parameter_values.items())
+                    for target, d in self.parameter_values.items())
 
 
 class CodeCommand(object):
@@ -293,6 +332,14 @@ class Param(object):
     def __init__(self, target, name, values):
         self.target = target
         self.name = name
+
+        # allow a function to be specified instead of list of values, for
+        # derived parameters. Wrap in a list to simplify the cross
+        # product calculation, calculate during generation when the
+        # other values are known.
+        if callable(values):
+            values = [values]
+
         self.values = values
 
     def __get__(self, idx):
