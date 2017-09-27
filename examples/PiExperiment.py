@@ -6,7 +6,7 @@ class PiExperiment(Campaign):
     # TODO: in future could support multiple executables if needed, with
     # the idea that they have same input/output/params, but are compiled
     # with different options. Could be modeled as p.ParamExecutable.
-    codes = dict(pi="pi-gmp")
+    codes = [("pi", dict(exe="pi-gmp"))]
     supported_machines = ['local']
 
     sweeps = [

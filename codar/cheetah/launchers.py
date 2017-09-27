@@ -102,7 +102,7 @@ class Launcher(object):
                 params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
-                    for _, argv, _ in codes_argv_nprocs:
+                    for _, argv, _, _ in codes_argv_nprocs:
                         params_f.write(' '.join(map(shlex.quote, argv)))
                         params_f.write('\n')
 
@@ -116,13 +116,15 @@ class Launcher(object):
                     json.dump(run_data, params_f, indent=2)
 
                 fob = []
-                for j, (pname, argv, nprocs) in enumerate(codes_argv_nprocs):
+                for j, (pname, argv, nprocs, sleep_after) in enumerate(
+                                                            codes_argv_nprocs):
                     # TODO: add env for tau
                     data = dict(name=pname,
                                 exe=argv[0],
                                 args=argv[1:],
                                 working_dir=run.run_path,
-                                nprocs=nprocs)
+                                nprocs=nprocs,
+                                sleep_after=sleep_after)
                     if timeout is not None:
                         data["timeout"] = timeout
                     fob.append(data)

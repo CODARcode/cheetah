@@ -12,6 +12,7 @@ import os
 import json
 import math
 import shutil
+from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, helpers, config, templates
 
@@ -25,7 +26,7 @@ class Campaign(object):
 
     # subclasses must populate these
     name = None
-    codes = {}
+    codes = []
     supported_machines = []
     sweeps = []
     inputs = []
@@ -61,6 +62,8 @@ class Campaign(object):
         for input_rpath in self.inputs:
             self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
 
+        if not isinstance(self.codes, OrderedDict):
+            self.codes = OrderedDict(self.codes)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -170,10 +173,13 @@ class Run(object):
         """
         argv_nprocs_list = []
         for (target, argv) in self.instance.get_codes_argv().items():
-            relative_exe = self.codes[target]
-            exe_path = os.path.join(self.codes_path, relative_exe)
+            exe_path = self.codes[target]['exe']
+            if not exe_path.startswith('/'):
+                exe_path = os.path.join(self.codes_path, exe_path)
             nprocs = self.instance.get_nprocs(target)
-            argv_nprocs_list.append((target, [exe_path] + argv, nprocs))
+            sleep_after = self.codes[target].get('sleep_after', 0)
+            item = (target, [exe_path] + argv, nprocs, sleep_after)
+            argv_nprocs_list.append(item)
         return argv_nprocs_list
 
     def get_total_nprocs(self):

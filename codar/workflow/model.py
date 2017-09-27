@@ -26,7 +26,7 @@ class Run(threading.Thread):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
-                 logger=None, log_prefix=None):
+                 logger=None, log_prefix=None, sleep_after=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -43,6 +43,7 @@ class Run(threading.Thread):
                                      return_path)
         self.walltime_path = _get_path(working_dir, WALLTIME_NAME + "." + name,
                                        walltime_path)
+        self.sleep_after = sleep_after
         self._p = None
         self._start_time = None
         self._end_time = None
@@ -62,7 +63,7 @@ class Run(threading.Thread):
         timeout)."""
         self.callbacks.add(fn)
 
-    def remove_callback(fn):
+    def remove_callback(self, fn):
         self.callbacks.remove(fn)
 
     def run(self):
@@ -118,7 +119,8 @@ class Run(threading.Thread):
                 stdout_path=data.get('stdout_path'),
                 stderr_path=data.get('stderr_path'),
                 return_path=data.get('return_path'),
-                walltime_path=data.get('walltime_path'))
+                walltime_path=data.get('walltime_path'),
+                sleep_after=data.get('sleep_after'))
         return r
 
     def _popen(self, args):
@@ -177,6 +179,7 @@ class Pipeline(object):
         self.kill_on_partial_failure = kill_on_partial_failure
         self._running = False
         self._active_runs = set()
+        self._pipe_thread = None
         self.callbacks = set()
         self.total_procs = 0
         self.logger = None
@@ -185,6 +188,14 @@ class Pipeline(object):
             self.total_procs += run.nprocs
 
     def start(self, consumer, runner=None):
+        self._running = True
+        # NB: start pipeline in separate thread and return immediately,
+        # so we can inject a wait time between starting runs.
+        self._pipe_thread = threading.Thread(target=self._start,
+                                             args=(consumer, runner))
+        self._pipe_thread.start()
+
+    def _start(self, consumer, runner=None):
         """Start all runs in the pipeline, along with threads that monitor
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
@@ -194,7 +205,9 @@ class Pipeline(object):
             run.add_callback(consumer.run_finished)
             run.add_callback(self.run_finished)
             run.start()
-        self._running = True
+            if run.sleep_after:
+                print("sleep", run.sleep_after)
+                time.sleep(run.sleep_after)
         self._active_runs = set(self.runs)
         return self.runs
 
@@ -240,7 +253,8 @@ class Pipeline(object):
 
     def join_all(self):
         assert self._running
-        for run in runs:
+        self._pipe_thread.join()
+        for run in self.runs:
             run.join()
 
 

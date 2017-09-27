@@ -3,8 +3,8 @@ from codar.cheetah import parameters as p
 
 class Exaalt(Campaign):
     name = "Exaalt"
-    codes = dict(exaalt="pt_producer_global",
-                 stage_write="./stage_write/stage_write")
+    codes = [("stage_write", dict(exe="stage_write/stage_write")),
+             ("exaalt", dict(exe="pt_producer_global"))]
 
     supported_machines = ['titan']
 
