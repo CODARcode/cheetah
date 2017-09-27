@@ -206,7 +206,6 @@ class Pipeline(object):
             run.add_callback(self.run_finished)
             run.start()
             if run.sleep_after:
-                print("sleep", run.sleep_after)
                 time.sleep(run.sleep_after)
         self._active_runs = set(self.runs)
         return self.runs
