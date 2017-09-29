@@ -12,7 +12,8 @@ import shutil
 
 from codar.cheetah import adios_transform, config, templates
 from codar.cheetah.parameters import ParamAdiosXML
-from codar.cheetah.helpers import make_executable, swift_escape_string
+from codar.cheetah.helpers import make_executable, swift_escape_string, \
+    parse_timedelta_seconds
 
 
 class Launcher(object):
@@ -62,10 +63,8 @@ class Launcher(object):
                              % self.scheduler_name)
         shutil.copytree(script_dir, self.output_directory)
         env_path = os.path.join(self.output_directory, 'group-env.sh')
-        # TODO: ideally walltime is always in seconds in Cheetah, try to use
-        # the per scheduler scripts to format
         group_env = templates.GROUP_ENV_TEMPLATE.format(
-            walltime=walltime,
+            walltime=parse_timedelta_seconds(walltime),
             max_procs=max_nprocs,
             processes_per_node=processes_per_node,
             nodes=nodes,
@@ -126,7 +125,7 @@ class Launcher(object):
                                 nprocs=nprocs,
                                 sleep_after=sleep_after)
                     if timeout is not None:
-                        data["timeout"] = timeout
+                        data["timeout"] = parse_timedelta_seconds(timeout)
                     fob.append(data)
                 f.write(json.dumps(fob))
                 f.write("\n")
