@@ -16,6 +16,9 @@ from codar.cheetah.helpers import make_executable, swift_escape_string, \
     parse_timedelta_seconds
 
 
+TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
+
+
 class Launcher(object):
     """
     Class to represent a single batch job or submission script.
@@ -114,15 +117,21 @@ class Launcher(object):
                     json.dump(run_data, params_f, indent=2)
 
                 fob = []
-                for j, (pname, argv, nprocs, sleep_after) in enumerate(
+                for j, (cname, argv, nprocs, sleep_after) in enumerate(
                                                             codes_argv_nprocs):
-                    # TODO: add env for tau
-                    data = dict(name=pname,
+
+                    tau_profile_dir = os.path.join(run.run_path,
+                                TAU_PROFILE_PATTERN.format(code=cname))
+                    os.makedirs(tau_profile_dir)
+                    env = dict(PROFILEDIR=tau_profile_dir)
+
+                    data = dict(name=cname,
                                 exe=argv[0],
                                 args=argv[1:],
                                 working_dir=run.run_path,
                                 nprocs=nprocs,
-                                sleep_after=sleep_after)
+                                sleep_after=sleep_after,
+                                env=env)
                     if timeout is not None:
                         data["timeout"] = parse_timedelta_seconds(timeout)
                     fob.append(data)
