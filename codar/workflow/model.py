@@ -204,10 +204,11 @@ class Pipeline(object):
             run.set_runner(runner)
             run.add_callback(consumer.run_finished)
             run.add_callback(self.run_finished)
+            self._active_runs.add(run)
             run.start()
             if run.sleep_after:
                 time.sleep(run.sleep_after)
-        self._active_runs = set(self.runs)
+
         return self.runs
 
     def run_finished(self, run):
