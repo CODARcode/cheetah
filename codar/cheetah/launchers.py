@@ -135,6 +135,15 @@ class Launcher(object):
                     if timeout is not None:
                         data["timeout"] = parse_timedelta_seconds(timeout)
                     fob.append(data)
+
+                # write to file run dir
+                run_fob_path = os.path.join(run.run_path,
+                                            "codar.cheetah.fob.json")
+                with open(run_fob_path, "w") as runf:
+                    runf.write(json.dumps(fob))
+                    runf.write("\n")
+
+                # append to fob list file in group dir
                 f.write(json.dumps(fob))
                 f.write("\n")
 
