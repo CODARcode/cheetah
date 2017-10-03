@@ -55,7 +55,7 @@ class Launcher(object):
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, queue, nodes,
                                project, walltime, node_exclusive,
-                               timeout):
+                               timeout, tau_config=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -85,6 +85,9 @@ class Launcher(object):
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)
+
+                if tau_config is not None:
+                    shutil.copy(tau_config, run.run_path)
 
                 for input_rpath in run.inputs:
                     shutil.copy2(input_rpath, run.run_path+"/.")

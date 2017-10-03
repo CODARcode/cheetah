@@ -41,6 +41,9 @@ class Campaign(object):
     project = "" # project allocation to use
     queue = "" # scheduler queue to submit to
 
+    # None means use default
+    tau_config = None
+
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
     # app directory, just like codes values. It will be run from the
@@ -64,6 +67,11 @@ class Campaign(object):
 
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
+
+        if self.tau_config is None:
+            self.tau_config = config.etc_path('tau.conf')
+        elif not self.tau_confifg.startswith('/'):
+            self.tau_config = os.path.join(self.app_dir, self.tau_config)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -142,7 +150,8 @@ class Campaign(object):
                                             walltime=group.walltime,
                                             timeout=group.per_run_timeout,
                                             node_exclusive=
-                                                self.machine.node_exclusive)
+                                                self.machine.node_exclusive,
+                                            tau_config=self.tau_config)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")

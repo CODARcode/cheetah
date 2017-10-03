@@ -19,3 +19,7 @@ def script_path(script_name):
 def machine_submit_env_path(machine_name):
     return os.path.join(CHEETAH_PATH_MACHINE_CONFIG, machine_name,
                         'submit-env.sh')
+
+
+def etc_path(conf_name):
+    return os.path.join(CHEETAH_PATH, "etc", conf_name)
