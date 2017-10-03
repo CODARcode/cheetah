@@ -70,7 +70,7 @@ class Campaign(object):
 
         if self.tau_config is None:
             self.tau_config = config.etc_path('tau.conf')
-        elif not self.tau_confifg.startswith('/'):
+        elif not self.tau_config.startswith('/'):
             self.tau_config = os.path.join(self.app_dir, self.tau_config)
 
     def _get_machine(self, machine_name):
