@@ -46,7 +46,8 @@ class HeatTransfer(Campaign):
      # finish. On a supercomputer without this limitation, with nodes
      # that have >14 processes, all three could be submitted at the same
      # time with one node unused.
-     p.SweepGroup(nodes=4, # Number of nodes to run on
+     p.SweepGroup("small_scale",
+                  nodes=4, # Number of nodes to run on
                   walltime=3600,# Required. Set walltime for scheduler job.
                   per_run_timeout=600,
                                 # Optional. If set, each run in the sweep

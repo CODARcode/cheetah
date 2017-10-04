@@ -94,6 +94,11 @@ class Campaign(object):
                                       self.machine.scheduler_name,
                                       'run-all.sh')
         os.makedirs(output_dir, exist_ok=True)
+
+        # Check if campaign dir already has groups with the same name
+        self._assert_unique_group_names(output_dir)
+
+        # Create run script and campaign environment info file
         shutil.copy2(run_all_script, output_dir)
 
         campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
@@ -108,13 +113,11 @@ class Campaign(object):
         with open(campaign_env_path, 'w') as f:
             f.write(campaign_env)
 
+        # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
-            # top level should be SweepGroup, open scheduler file
-            if not isinstance(group, parameters.SweepGroup):
-                raise ValueError("top level run groups must be SweepGroup")
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
-            group_name = "group-%03d" % (group_i+1)
+            group_name = group.name
             group_output_dir = os.path.join(output_dir, group_name)
             launcher = self.machine.get_launcher_instance(group_output_dir,
                                                           len(self.codes))
@@ -157,6 +160,22 @@ class Campaign(object):
         all_params_json_path = os.path.join(output_dir, "params.json")
         with open(all_params_json_path, "w") as f:
             json.dump([run.as_dict() for run in self.runs], f, indent=2)
+
+    def _assert_unique_group_names(self, campaign_dir):
+        """Assert new groups being added to the campaign do not have the
+        same name as existing groups.
+        """
+        requested_group_names = []
+        for group_i, group in enumerate(self.sweeps):
+            if not isinstance(group, parameters.SweepGroup):
+                raise ValueError("top level run groups must be SweepGroup")
+            requested_group_names.append(group.name)
+
+        existing_groups = next(os.walk(campaign_dir))[1]
+        common_groups = set(requested_group_names) & set(existing_groups)
+        if common_groups:
+            raise FileExistsError("One or more SweepGroups already exist: "
+                                  + ", ".join(common_groups))
 
 
 class Run(object):
