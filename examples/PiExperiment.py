@@ -10,7 +10,7 @@ class PiExperiment(Campaign):
     supported_machines = ['local']
 
     sweeps = [
-     p.SweepGroup(nodes=1,
+     p.SweepGroup(name="all-methods-small", nodes=1,
       parameter_groups=
       [p.Sweep([
         p.ParamCmdLineArg("pi", "method", 1, ["mc", "trap"]),

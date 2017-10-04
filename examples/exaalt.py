@@ -22,7 +22,8 @@ class Exaalt(Campaign):
       # Submit everything as a single job, to avoid queuing delay.
       # Titan allows 12 hour walltime for jobs of 313-3,749 nodes in
       # the batch queue.
-      p.SweepGroup(nodes=384,
+      p.SweepGroup(name="64-128-256",
+                   nodes=384,
                    walltime=timedelta(hours=12),
                    per_run_timeout=timedelta(hours=1),
                    parameter_groups=[
