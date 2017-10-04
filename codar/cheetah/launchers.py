@@ -55,7 +55,8 @@ class Launcher(object):
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, queue, nodes,
                                project, walltime, node_exclusive,
-                               timeout, tau_config=None):
+                               timeout, tau_config=None,
+                               kill_on_partial_failure=False):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -119,7 +120,7 @@ class Launcher(object):
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
-                fob = []
+                fob_runs = []
                 for j, (cname, argv, nprocs, sleep_after) in enumerate(
                                                             codes_argv_nprocs):
 
@@ -137,17 +138,21 @@ class Launcher(object):
                                 env=env)
                     if timeout is not None:
                         data["timeout"] = parse_timedelta_seconds(timeout)
-                    fob.append(data)
+                    fob_runs.append(data)
+
+                fob = dict(id=run.run_id, runs=fob_runs,
+                           kill_on_partial_failure=kill_on_partial_failure)
+                fob_s = json.dumps(fob)
 
                 # write to file run dir
                 run_fob_path = os.path.join(run.run_path,
                                             "codar.cheetah.fob.json")
                 with open(run_fob_path, "w") as runf:
-                    runf.write(json.dumps(fob))
+                    runf.write(fob_s)
                     runf.write("\n")
 
                 # append to fob list file in group dir
-                f.write(json.dumps(fob))
+                f.write(fob_s)
                 f.write("\n")
 
 

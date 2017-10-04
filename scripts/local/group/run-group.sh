@@ -18,6 +18,7 @@ start=$(date +%s)
  --max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
+ --status-file=codar.workflow.status.json \
  --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
 
 end=$(date +%s)

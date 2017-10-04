@@ -3,7 +3,8 @@ specified total process limit."""
 
 import queue
 import threading
-import math
+
+from codar.workflow import status
 
 
 class PipelineRunner(object):
@@ -11,7 +12,7 @@ class PipelineRunner(object):
     or process limited."""
 
     def __init__(self, runner, max_procs=None, max_nodes=None,
-                 logger=None, processes_per_node=None):
+                 logger=None, processes_per_node=None, status_file=None):
         if not (bool(max_procs) ^ bool(max_nodes)):
             raise ValueError("specify one of max_procs and max_nodes")
         if max_nodes and processes_per_node is None:
@@ -26,10 +27,20 @@ class PipelineRunner(object):
         self.free_nodes = max_nodes
         self.free_cv = threading.Condition()
         self.logger = logger
+        self._pipeline_ids = set()
         self._running_pipelines = set()
         self._running_pipelines_lock = threading.Lock()
+        if status_file is not None:
+            self._status = status.WorkflowStatus(status_file)
+        else:
+            self._status = None
 
     def add_pipeline(self, p):
+        if p.id in self._pipeline_ids:
+            raise ValueError("duplicate pipeline id: %s" % p.id)
+        self._pipeline_ids.add(p.id)
+        if self._status is not None:
+            self._status.set_state(p.get_state())
         self.q.put(p)
 
     def stop(self):
@@ -48,12 +59,13 @@ class PipelineRunner(object):
         """Monitor thread(s) should call this as pipelines complete."""
         with self._running_pipelines_lock:
             self._running_pipelines.remove(pipeline)
+        if self._status is not None:
+            self._status.set_state(pipeline.get_state())
 
     def run_pipelines(self):
         """Main loop of consumer thread."""
         # TODO: should client be responsible for setting this in the
         # JSON input data?
-        pipeline_id = 0
         while True:
             pipeline = self.q.get()
             if pipeline is None:
@@ -69,11 +81,12 @@ class PipelineRunner(object):
                                 >= pipeline.get_nodes_used(self.ppn))
                     self.free_nodes -= pipeline.get_nodes_used(self.ppn)
             if self.logger is not None:
-                pipeline.set_loggers(self.logger, pipeline_id)
+                pipeline.set_loggers(self.logger)
             pipeline.start(self, self.runner)
             with self._running_pipelines_lock:
                 self._running_pipelines.add(pipeline)
-            pipeline_id += 1
+            if self._status is not None:
+                self._status.set_state(pipeline.get_state())
 
         # Wait for any pipelines that are still running to complete. Use
         # a copy since the monitor threads may be removing pipelines as

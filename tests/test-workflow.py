@@ -30,7 +30,7 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
             work_dir = os.path.join(out_dir, 'run%02d' % (i+1))
             os.makedirs(work_dir)
             # dynamicly construct a pipeline
-            pipeline_data = []
+            runs_data = []
             for j in range(ncodes):
                 run_data = dict(name='code%02d' % (j+1),
                                 exe=test_script,
@@ -40,9 +40,13 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                                 env=dict(CODAR_WORKFLOW_PIPE=str(i),
                                          CODAR_WORKFLOW_CODE=str(j)),
                                 timeout=timeout)
-                pipeline_data.append(run_data)
+                runs_data.append(run_data)
+            pipeline_data = dict(id=str(i), runs=runs_data,
+                kill_on_partial_failure=kill_on_partial_failure)
             json.dump(pipeline_data, f)
             f.write('\n')
+
+    status_file = os.path.join(out_dir, 'status.json')
 
     if max_procs is not None:
         max_args = ['--max-procs=%d' % max_procs]
@@ -50,11 +54,9 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
         max_args = ['--max-nodes=%d' % max_nodes,
                     '--processes-per-node=%d' % processes_per_node]
 
-    if kill_on_partial_failure:
-        max_args += ['--kill-on-partial-failure']
-
     check_call([cheetah_dir + '/workflow.py', '--runner=none',
                 '--producer-input-file=%s' % pipelines_file_path,
+                '--status-file=%s' % status_file,
                 '--log-file=%s' % os.path.join(out_dir, 'run.log'),
                 '--log-level=DEBUG'] + max_args)
     times = check_output('grep "^start\\|end" "%s"/run*/*std* | grep -v "ENV "'
@@ -67,6 +69,9 @@ def test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
     rcodes = rcodes.decode('utf8')
     for line in rcodes.split('\n'):
         print(line[len(out_dir)+1:])
+
+    with open(status_file) as f:
+        print(f.read())
 
 
 if __name__ == '__main__':
