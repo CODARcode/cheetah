@@ -257,58 +257,6 @@ class CodeCommand(object):
         return argv
 
 
-class Command(object):
-    """
-    DEPRECATED.
-
-    Helper class for building up a command by parts.
-    """
-    def __init__(self, exe):
-        self.exe = exe
-        self.args = {}
-        self.options = {}
-        # TODO: namespace param names somehow
-        self.parameters = dict(exe=exe)
-
-    def set_output_directory(self, value):
-        """
-        Add output directory information. Not known at initial object
-        create time, filled in by higher level code.
-        """
-        self.parameters['output_directory'] = value
-
-    def add_parameter(self, p, idx):
-        value = p.values[idx]
-        if isinstance(p, ParamCmdLineArg):
-            self.args[p.position] = value
-        if isinstance(p, ParamCmdLineOption):
-            self.options[p.option] = value
-        if p.name in self.parameters:
-            raise ValueError('parameter name conflict: "%s"' % p.name)
-        self.parameters[p.name] = value
-
-    def as_string(self):
-        parts = [self.exe]
-        for position in range(1, 101):
-            if position in self.args:
-                parts.append(str(self.args[position]))
-            else:
-                break
-        for option, value in self.options.items():
-            # TODO: handle separator between option and value, e.g. '',
-            # '=', or ' '.
-            parts.append(option + ' ' + value)
-        return " ".join(parts)
-
-    def as_dict(self):
-        """
-        Produce dict (mainly for for JSON seriliazation) with keys based on
-        parameter names. This ignores the type of the param, it's just the
-        name value pairs.
-        """
-        return dict(self.parameters)
-
-
 class Param(object):
     """Abstract base class representing a parameter to an application. This
     includes any method for modifying the run characteristics of an
