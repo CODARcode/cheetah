@@ -184,14 +184,23 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, kill_on_partial_failure=False):
+    def __init__(self, pipe_id, runs, kill_on_partial_failure=False,
+                 post_process_script=None,
+                 post_process_args=None,
+                 post_process_stop_on_failure=False):
         self.id = pipe_id
         self.runs = runs
         self.kill_on_partial_failure = kill_on_partial_failure
+        self.post_process_script = post_process_script
+        self.post_process_args = post_process_args
+        self.post_process_stop_on_failure = post_process_stop_on_failure
         self._running = False
+        self._force_killed = False
         self._active_runs = set()
         self._pipe_thread = None
-        self.callbacks = set()
+        self._post_thread = None
+        self.done_callbacks = set()
+        self.fatal_callbacks = set()
         self.total_procs = 0
         self.logger = None
         self.log_prefix = None
@@ -210,52 +219,93 @@ class Pipeline(object):
         pipe_id = str(data["id"])
         runs = [Run.from_data(rd) for rd in runs_data]
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
+        post_process_script = data.get("post_process_script")
+        post_process_args = data.get("post_process_args", [])
+        if not isinstance(post_process_args, list):
+            raise ValueError("'post_process_args' must be a list")
+        post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         return Pipeline(pipe_id, runs=runs,
-                        kill_on_partial_failure=kill_on_partial_failure)
+                    kill_on_partial_failure=kill_on_partial_failure,
+                    post_process_script=post_process_script,
+                    post_process_args=post_process_args,
+                    post_process_stop_on_failure=post_process_stop_on_failure)
 
     def start(self, consumer, runner=None):
-        self._running = True
-        # NB: start pipeline in separate thread and return immediately,
-        # so we can inject a wait time between starting runs.
-        self._pipe_thread = threading.Thread(target=self._start,
-                                             args=(consumer, runner))
-        self._pipe_thread.start()
-
-    def _start(self, consumer, runner=None):
-        """Start all runs in the pipeline, along with threads that monitor
-        their progress and signal consumer when finished. Use join_all to
-        wait until they are all finished."""
-        self.add_callback(consumer.pipeline_finished)
+        # Mark all runs as active before they are actually started
+        # in a separate thread, so other methods know the state.
+        self.add_done_callback(consumer.pipeline_finished)
+        self.add_fatal_callback(consumer.pipeline_fatal)
         for run in self.runs:
             run.set_runner(runner)
             run.add_callback(consumer.run_finished)
             run.add_callback(self.run_finished)
             self._active_runs.add(run)
+        self._running = True
+
+        # Next start pipeline runs in separate thread and return immediately,
+        # so we can inject a wait time between starting runs.
+        self._pipe_thread = threading.Thread(target=self._start)
+        self._pipe_thread.start()
+
+    def _start(self):
+        """Start all runs in the pipeline, along with threads that monitor
+        their progress and signal consumer when finished. Use join_all to
+        wait until they are all finished."""
+        for run in self.runs:
             run.start()
             if run.sleep_after:
                 time.sleep(run.sleep_after)
 
-        return self.runs
-
     def run_finished(self, run):
+        assert self._running
         self._active_runs.remove(run)
         if not self._active_runs:
-            for cb in self.callbacks:
+            self.run_post_process_script()
+            for cb in self.done_callbacks:
                 cb(self)
         elif self.kill_on_partial_failure and run.get_returncode() != 0:
             if self.logger is not None:
                 self.logger.warn('%s run %s failed, killing remaining',
                                  self.log_prefix, run.name)
             # if configured, kill all runs in the pipeline if one of
-            # them has a nonzero exit code
+            # them has a nonzero exit code. Still allow post process to
+            # run if set.
             for run2 in self._active_runs:
                 run2.kill()
 
-    def add_callback(self, fn):
-        self.callbacks.add(fn)
+    def run_post_process_script(self):
+        if self.post_process_script is None:
+            return None
+        if self._force_killed:
+            return None
+        self._post_thread = threading.Thread(target=self._post_process_thread)
+        self._post_thread.run()
 
-    def remove_callback(self, fn):
-        self.callbacks.remove(fn)
+    def _post_process_thread(self):
+        args = [self.post_process_script] + self.post_process_args
+        try:
+            rval = subprocess.call(args)
+        except subprocess.SubprocessError as e:
+            if self.logger is not None:
+                self.logger.warn(
+                    "pipe '%s' failed to run post process script: %s",
+                    self.id, str(e))
+            rval = None
+        if rval != 0 and self.post_process_stop_on_failure:
+            for cb in self.fatal_callbacks:
+                cb(self)
+
+    def add_done_callback(self, fn):
+        self.done_callbacks.add(fn)
+
+    def remove_done_callback(self, fn):
+        self.done_callbacks.remove(fn)
+
+    def add_fatal_callback(self, fn):
+        self.fatal_callbacks.add(fn)
+
+    def remove_fatal_callback(self, fn):
+        self.fatal_callbacks.remove(fn)
 
     def get_nodes_used(self, ppn):
         """Get number of nodes needed to run pipeline with the given number
@@ -293,11 +343,25 @@ class Pipeline(object):
         for run in self.runs:
             run.set_logger(logger, "%s:%s" % (self.id, run.name))
 
+    def force_kill_all(self):
+        """
+        Kill all runs and don't run post processing. Note that this call may
+        block waiting for all runs to be started, to avoid confusing races.
+        """
+        assert self._running
+        # Let
+        self._pipe_thread.join()
+        self._force_killed = True
+        for run in self._active_runs:
+            run.kill()
+
     def join_all(self):
         assert self._running
         self._pipe_thread.join()
         for run in self.runs:
             run.join()
+        if self._post_thread is not None:
+            self._post_thread.join()
 
 
 class Runner(object):

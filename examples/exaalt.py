@@ -16,6 +16,11 @@ class Exaalt(Campaign):
 
     kill_on_partial_failure = True
 
+    # Example post process script which saves the contents of the output
+    # directory after a run, then deletes it to make room for future
+    # runs without worrying about the user's disk quota.
+    run_post_process_script = "post-run-rm-staged.py"
+
     inputs = ["states_list.txt"]
 
     sweeps = [

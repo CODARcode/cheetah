@@ -56,7 +56,9 @@ class Launcher(object):
                                max_nprocs, processes_per_node, queue, nodes,
                                project, walltime, node_exclusive,
                                timeout, tau_config=None,
-                               kill_on_partial_failure=False):
+                               kill_on_partial_failure=False,
+                               run_post_process_script=None,
+                               run_post_process_stop_on_failure=False):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -140,13 +142,18 @@ class Launcher(object):
                         data["timeout"] = parse_timedelta_seconds(timeout)
                     fob_runs.append(data)
 
+                run_fob_path = os.path.join(run.run_path,
+                                            "codar.cheetah.fob.json")
+
                 fob = dict(id=run.run_id, runs=fob_runs,
-                           kill_on_partial_failure=kill_on_partial_failure)
+                           kill_on_partial_failure=kill_on_partial_failure,
+                           post_process_script=run_post_process_script,
+                           post_process_stop_on_failure=
+                                run_post_process_stop_on_failure,
+                           post_process_args=[run_fob_path])
                 fob_s = json.dumps(fob)
 
                 # write to file run dir
-                run_fob_path = os.path.join(run.run_path,
-                                            "codar.cheetah.fob.json")
                 with open(run_fob_path, "w") as runf:
                     runf.write(fob_s)
                     runf.write("\n")
