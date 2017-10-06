@@ -253,7 +253,7 @@ class CodeCommand(object):
             # TODO: handle separator between option and value, e.g. '',
             # '=', or ' '?
             argv.append(option)
-            argv.append(value)
+            argv.append(str(value))
         return argv
 
 
