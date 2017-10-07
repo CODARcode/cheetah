@@ -154,7 +154,9 @@ class Campaign(object):
                                             timeout=group.per_run_timeout,
                                             node_exclusive=
                                                 self.machine.node_exclusive,
-                                            tau_config=self.tau_config)
+                                            tau_config=self.tau_config,
+                                            kill_on_partial_failure=
+                                                self.kill_on_partial_failure)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
@@ -189,6 +191,7 @@ class Run(object):
         self.codes = codes
         self.codes_path = codes_path
         self.run_path = run_path
+        self.run_id = os.path.basename(run_path)
         self.inputs = inputs
 
     def get_codes_argv_with_exe_and_nprocs(self):

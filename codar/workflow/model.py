@@ -5,6 +5,8 @@ import shutil
 import math
 import threading
 
+from codar.workflow import status
+
 
 STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
@@ -53,6 +55,8 @@ class Run(threading.Thread):
         self.logger = logger
         self.runner = None
         self.callbacks = set()
+        self.succeeded = False
+        self.fail_reason = None
 
     def set_runner(self, runner):
         self.runner = runner
@@ -84,9 +88,15 @@ class Run(threading.Thread):
                                  self.timeout)
             self._p.kill()
             self._p.wait()
+            if self._p.returncode != 0:
+                # check return code in case it completes while handling
+                # the exception before kill.
+                self.fail_reason = 'timeout'
         self._end_time = time.time()
         self._save_returncode(self._p.returncode)
         self._save_walltime(self._end_time - self._start_time)
+        if self._p.returncode == 0:
+            self.succeeded = True
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
@@ -174,7 +184,8 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, runs, kill_on_partial_failure=False):
+    def __init__(self, pipe_id, runs, kill_on_partial_failure=False):
+        self.id = pipe_id
         self.runs = runs
         self.kill_on_partial_failure = kill_on_partial_failure
         self._running = False
@@ -186,6 +197,21 @@ class Pipeline(object):
         self.log_prefix = None
         for run in runs:
             self.total_procs += run.nprocs
+
+    @classmethod
+    def from_data(self, data):
+        """Create Pipeline instance from dictionary data structure, containing
+        at least "id" and "runs" keys. The "runs" key must have a list of dict,
+        and each dict is parsed using Run.as_data.
+        Raises KeyError if a required key is missing."""
+        runs_data = data["runs"]
+        if not isinstance(runs_data, list):
+            raise ValueError("'runs' key must be a list of dictionaries")
+        pipe_id = str(data["id"])
+        runs = [Run.from_data(rd) for rd in runs_data]
+        kill_on_partial_failure = data.get("kill_on_partial_failure", False)
+        return Pipeline(pipe_id, runs=runs,
+                        kill_on_partial_failure=kill_on_partial_failure)
 
     def start(self, consumer, runner=None):
         self._running = True
@@ -241,15 +267,31 @@ class Pipeline(object):
             nodes += math.ceil(run.nprocs / ppn)
         return nodes
 
+    def get_state(self):
+        if not self._running:
+            return status.PipelineState(self.id, status.NOT_STARTED)
+        elif self._active_runs:
+            return status.PipelineState(self.id, status.RUNNING)
+        # done
+        return_codes = dict((r.name, r.get_returncode()) for r in self.runs)
+        reason = status.REASON_SUCCEEDED
+        for r in self.runs:
+            if r.fail_reason == status.REASON_TIMEOUT:
+                reason = status.REASON_TIMEOUT
+                break
+            if r.get_returncode() != 0:
+                reason = status.REASON_FAILED
+        return status.PipelineState(self.id, status.DONE, reason, return_codes)
+
     def get_pids(self):
         assert self._running
         return [run.get_pid() for run in self.runs]
 
-    def set_loggers(self, logger, pipeline_id):
+    def set_loggers(self, logger):
         self.logger = logger
-        self.log_prefix = "%d" % pipeline_id
+        self.log_prefix = self.id
         for run in self.runs:
-            run.set_logger(logger, "%d:%s" % (pipeline_id, run.name))
+            run.set_logger(logger, "%s:%s" % (self.id, run.name))
 
     def join_all(self):
         assert self._running

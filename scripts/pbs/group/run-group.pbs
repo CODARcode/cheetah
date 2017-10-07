@@ -28,6 +28,7 @@ start=$(date +%s)
  $max_args \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
+ --status-file=codar.workflow.status.json \
  --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL \
  $extra_args
 
