@@ -4,10 +4,14 @@ runners."""
 import argparse
 import threading
 import logging
+import signal
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
 from codar.workflow.model import mpiexec, aprun
+
+
+consumer = None
 
 
 def parse_args():
@@ -36,6 +40,8 @@ def parse_args():
 
 
 def main():
+    global consumer
+
     args = parse_args()
 
     if args.runner == 'mpiexec':
@@ -74,5 +80,16 @@ def main():
     # when reached
     consumer.stop()
 
-    # wait for consumer to finish all the pipelines
-    t_consumer.join()
+    # set up signal handlers for graceful exit
+    def handle_signal_kill_consumer(signum, frame):
+        consumer.kill_all()
+
+    signal.signal(signal.SIGTERM, handle_signal_kill_consumer)
+    signal.signal(signal.SIGINT,  handle_signal_kill_consumer)
+
+    # All threads created for workflow are non-daemon, so the
+    # interpreter will not exit until all threads exit. Doing an
+    # explicit join on the consumer thread is not necessary, and
+    # actually causes problems because Python can't handle signals if
+    # the main thread is in a join, since that is basically pure C code
+    # (pthread_join).

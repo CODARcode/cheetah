@@ -11,6 +11,7 @@ from collections import defaultdict
 NOT_STARTED = 'not_started'
 RUNNING = 'running'
 DONE = 'done'
+KILLED = 'killed'
 
 REASON_TIMEOUT = 'timeout'
 REASON_FAILED = 'failed'
