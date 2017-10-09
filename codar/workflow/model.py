@@ -342,7 +342,7 @@ class Pipeline(object):
         if self._force_killed:
             return None
         self._post_thread = threading.Thread(target=self._post_process_thread)
-        self._post_thread.run()
+        self._post_thread.start()
 
     def _post_process_thread(self):
         args = [self.post_process_script] + self.post_process_args

@@ -9,6 +9,8 @@ class PiExperiment(Campaign):
     codes = [("pi", dict(exe="pi-gmp"))]
     supported_machines = ['local']
 
+    run_post_process_script = 'pi-post-run-compare-digits.py'
+
     sweeps = [
      p.SweepGroup(name="all-methods-small", nodes=1,
       parameter_groups=
