@@ -345,6 +345,12 @@ class Pipeline(object):
         self._post_thread.start()
 
     def _post_process_thread(self):
+        # TODO: should capture stderr/stdout to standard files, but it's
+        # not clear where, because we don't currently have the concept
+        # of a per fob/pipeline directory, just per run directories
+        # which could be different. For now scripts can redirect their
+        # own output to a file in the working dir of their choice (or
+        # assume they are the same).
         args = [self.post_process_script] + self.post_process_args
         try:
             rval = subprocess.call(args)

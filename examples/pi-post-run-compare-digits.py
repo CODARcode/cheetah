@@ -36,3 +36,6 @@ def main(fob_path):
 if __name__ == '__main__':
     fob_path = sys.argv[1]
     main(fob_path)
+
+    # uncomment to test forcing workflow exit when this has nonzero exit
+    #sys.exit(1)

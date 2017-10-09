@@ -11,6 +11,10 @@ class PiExperiment(Campaign):
 
     run_post_process_script = 'pi-post-run-compare-digits.py'
 
+    # set this and uncomment the exit(1) in the script to test
+    # triggering failure.
+    #run_post_process_stop_group_on_failure = True
+
     sweeps = [
      p.SweepGroup(name="all-methods-small", nodes=1,
       parameter_groups=
