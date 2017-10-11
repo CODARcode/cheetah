@@ -193,6 +193,7 @@ class Run(object):
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
+        self.codes_argv = self._get_codes_argv_ordered()
 
     def get_codes_argv_with_exe_and_nprocs(self):
         """
@@ -203,7 +204,7 @@ class Run(object):
         TODO: less hacky way of handling nprocs and other middlewear params.
         """
         argv_nprocs_list = []
-        for (target, argv) in self.instance.get_codes_argv().items():
+        for (target, argv) in self.codes_argv.items():
             exe_path = self.codes[target]['exe']
             if not exe_path.startswith('/'):
                 exe_path = os.path.join(self.codes_path, exe_path)
@@ -213,9 +214,18 @@ class Run(object):
             argv_nprocs_list.append(item)
         return argv_nprocs_list
 
+    def _get_codes_argv_ordered(self):
+        """Wrapper around instance.get_codes_argv which uses correct order
+        from self.codes OrderedDict."""
+        codes_argv = self.instance.get_codes_argv()
+        # Note that a given Run may not use all codes, e.g. for base
+        # case app runs that don't use adios stage_write or dataspaces.
+        return OrderedDict((k, codes_argv[k]) for k in self.codes.keys()
+                           if k in codes_argv)
+
     def get_total_nprocs(self):
         total_nprocs = 0
-        for (target, argv) in self.instance.get_codes_argv().items():
+        for (target, argv) in self.codes_argv.items():
             total_nprocs += self.instance.get_nprocs(target)
         return total_nprocs
 

@@ -167,6 +167,9 @@ class Instance(object):
         self._values_calculated = True
 
     def get_codes_argv(self):
+        """Get an _unordered_ dict mapping code name to list of args for
+        that code. Higher levels of model are responsible for re-ordering
+        as needed."""
         return dict([(k, cc.get_argv())
                      for (k, cc) in self.code_commands.items()])
 
