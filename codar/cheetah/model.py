@@ -106,8 +106,7 @@ class Campaign(object):
             machine_config=config.machine_submit_env_path(self.machine.name),
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
-            workflow_debug_level="DEBUG",
-            workflow_kill_on_partial_failure=self.kill_on_partial_failure
+            workflow_debug_level="DEBUG"
         )
         campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
         with open(campaign_env_path, 'w') as f:

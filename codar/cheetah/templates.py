@@ -12,7 +12,6 @@ export CODAR_CHEETAH_MACHINE_CONFIG="{machine_config}"
 export CODAR_WORKFLOW_SCRIPT="{workflow_script_path}"
 export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"
-export CODAR_WORKFLOW_KILL_ON_PARTIAL_FAILURE="{workflow_kill_on_partial_failure}"
 """
 
 GROUP_ENV_TEMPLATE = """
