@@ -24,7 +24,7 @@ def main(fob_path):
     ref_path = os.path.join(os.path.dirname(__file__), 'pi1M.txt')
     with open(fob_path) as f:
         fob_data = json.load(f)
-    out_dir = fob_data['runs'][0]['working_dir']
+    out_dir = fob_data['working_dir']
     run_output = os.path.join(out_dir, 'codar.workflow.stdout.pi')
     digits = compare_pi_digits(ref_path, run_output)
     digits_file_path = os.path.join(out_dir, 'post-digits.txt')

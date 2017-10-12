@@ -21,8 +21,10 @@ def save_list_and_remove_staged(fob_path, output_dir_name):
 
     seen = set()
 
+    default_working_dir = fob["working_dir"]
+
     for run in fob["runs"]:
-        working_dir = run["working_dir"]
+        working_dir = run.get("working_dir") or default_working_dir
         if working_dir in seen:
             continue
         seen.add(working_dir)

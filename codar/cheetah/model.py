@@ -18,6 +18,9 @@ from collections import OrderedDict
 from codar.cheetah import machines, parameters, helpers, config, templates
 
 
+RESERVED_CODE_NAMES = set(['post-process'])
+
+
 class Campaign(object):
     """An experiment class specifies an application, a set of parameter to
     sweep over, and a set of supported target machine. A specific instance
@@ -79,6 +82,11 @@ class Campaign(object):
 
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
+
+        conflict_names = set(self.codes.keys()) & RESERVED_CODE_NAMES
+        if conflict_names:
+            raise ValueError('Code names conflict with reserved names: '
+                + ", ".join(str(name) for name in conflict_names))
 
         if self.tau_config is None:
             self.tau_config = config.etc_path('tau.conf')

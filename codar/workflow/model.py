@@ -168,7 +168,7 @@ class Run(threading.Thread):
         self._p.kill()
 
     @classmethod
-    def from_data(self, data):
+    def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
         parsed from JSON. The keys 'name', 'exe', 'args' are required, all the
         other keys are optional and have the same names as the constructor
@@ -237,12 +237,14 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, kill_on_partial_failure=False,
+    def __init__(self, pipe_id, runs, working_dir,
+                 kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
                  post_process_stop_on_failure=False):
         self.id = pipe_id
         self.runs = runs
+        self.working_dir = working_dir
         self.kill_on_partial_failure = kill_on_partial_failure
         self.post_process_script = post_process_script
         self.post_process_args = post_process_args
@@ -264,12 +266,22 @@ class Pipeline(object):
             self.total_procs += run.nprocs
 
     @classmethod
-    def from_data(self, data):
+    def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
         at least "id" and "runs" keys. The "runs" key must have a list of dict,
-        and each dict is parsed using Run.as_data.
+        and each dict is parsed using Run.from_data.
         Raises KeyError if a required key is missing."""
         runs_data = data["runs"]
+        working_dir = data["working_dir"]
+        # Run working dir defaults to pipeline working dir, and can be
+        # specified relative to pipeline working dir.
+        for rd in runs_data:
+            run_working_dir = rd.get("working_dir")
+            if run_working_dir is None:
+                run_working_dir = working_dir
+            elif not run_working_dir.startswith("/"):
+                run_working_dir = os.path.join(working_dir, run_working_dir)
+            rd["working_dir"] = run_working_dir
         if not isinstance(runs_data, list):
             raise ValueError("'runs' key must be a list of dictionaries")
         pipe_id = str(data["id"])
@@ -280,7 +292,7 @@ class Pipeline(object):
         if not isinstance(post_process_args, list):
             raise ValueError("'post_process_args' must be a list")
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
-        return Pipeline(pipe_id, runs=runs,
+        return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
                     kill_on_partial_failure=kill_on_partial_failure,
                     post_process_script=post_process_script,
                     post_process_args=post_process_args,
@@ -345,21 +357,41 @@ class Pipeline(object):
         self._post_thread.start()
 
     def _post_process_thread(self):
-        # TODO: should capture stderr/stdout to standard files, but it's
-        # not clear where, because we don't currently have the concept
-        # of a per fob/pipeline directory, just per run directories
-        # which could be different. For now scripts can redirect their
-        # own output to a file in the working dir of their choice (or
-        # assume they are the same).
         args = [self.post_process_script] + self.post_process_args
+        # TODO: make sure this doesn't conflict with other names
+        name = 'post-process'
+        stdout_path = _get_path(self.working_dir,
+                                STDOUT_NAME + "." + name, None)
+        stderr_path = _get_path(self.working_dir,
+                                STDERR_NAME + "." + name, None)
+        return_path = _get_path(self.working_dir,
+                                RETURN_NAME + "." + name, None)
+        walltime_path = _get_path(self.working_dir,
+                                  WALLTIME_NAME + "." + name, None)
+
+        outf = errf = None
+        start_time = time.time()
         try:
-            rval = subprocess.call(args)
+            outf = open(stdout_path, 'w')
+            errf = open(stderr_path, 'w')
+            rval = subprocess.call(args, stdout=outf, stderr=errf)
         except subprocess.SubprocessError as e:
             if self.logger is not None:
                 self.logger.warn(
                     "pipe '%s' failed to run post process script: %s",
                     self.id, str(e))
             rval = None
+        finally:
+            end_time = time.time()
+            if outf is not None:
+                outf.close()
+            if errf is not None:
+                errf.close()
+            with open(return_path, 'w') as rf:
+                rf.write(str(rval))
+                rf.write('\n')
+            with open(walltime_path, 'w') as wf:
+                wf.write(str(end_time - start_time) + '\n')
         if rval != 0 and self.post_process_stop_on_failure:
             self._execute_fatal_callbacks()
 

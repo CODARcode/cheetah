@@ -40,12 +40,12 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                                 exe=test_script,
                                 args=['test spaces', str(i), str(j),
                                       'test \' quote'],
-                                working_dir=work_dir,
                                 env=dict(CODAR_WORKFLOW_PIPE=str(i),
                                          CODAR_WORKFLOW_CODE=str(j)),
                                 timeout=timeout)
                 runs_data.append(run_data)
             pipeline_data = dict(id=str(i), runs=runs_data,
+                working_dir=work_dir,
                 kill_on_partial_failure=kill_on_partial_failure)
             json.dump(pipeline_data, f)
             f.write('\n')

@@ -134,7 +134,6 @@ class Launcher(object):
                     data = dict(name=cname,
                                 exe=argv[0],
                                 args=argv[1:],
-                                working_dir=run.run_path,
                                 nprocs=nprocs,
                                 sleep_after=sleep_after,
                                 env=env)
@@ -146,6 +145,7 @@ class Launcher(object):
                                             "codar.cheetah.fob.json")
 
                 fob = dict(id=run.run_id, runs=fob_runs,
+                           working_dir=run.run_path,
                            kill_on_partial_failure=kill_on_partial_failure,
                            post_process_script=run_post_process_script,
                            post_process_stop_on_failure=
