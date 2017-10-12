@@ -24,18 +24,18 @@ class Exaalt(Campaign):
     inputs = ["states_list.txt"]
 
     sweeps = [
-      # Small test group that can be run separately to test that binaries and
+      # Test group that can be run separately to test that binaries and
       # post process script are working. Only generates a four runs,
       # with same number of nodes but different compression options for
       # stage.
-      p.SweepGroup(name="test-32",
-                   nodes=34,
-                   walltime=timedelta(hours=1),
-                   per_run_timeout=timedelta(minutes=30),
+      p.SweepGroup(name="test-128",
+                   nodes=136,
+                   walltime=timedelta(hours=3),
+                   per_run_timeout=timedelta(minutes=45),
                    parameter_groups=[
         p.Sweep([
-          # 32 exaalt nodes
-          p.ParamRunner("exaalt", "nprocs", [512]),
+          # 128 exaalt nodes
+          p.ParamRunner("exaalt", "nprocs", [2048]),
           p.ParamCmdLineArg("exaalt", "states_list_file", 1,
                             ["states_list.txt"]),
           p.ParamCmdLineArg("exaalt", "no_of_states", 2, [1433600]),
@@ -44,8 +44,8 @@ class Exaalt(Campaign):
           p.ParamCmdLineArg("exaalt", "transport_variables", 5, [""]),
           p.ParamCmdLineArg("exaalt", "transport_options", 6, ["none"]),
 
-          # 2 stage nodes
-          p.ParamRunner("stage_write", "nprocs", [32]),
+          # 8 stage nodes
+          p.ParamRunner("stage_write", "nprocs", [128]),
           p.ParamCmdLineArg("stage_write", "input_bp_file", 1, ["output.bp"]),
           p.ParamCmdLineArg("stage_write", "output_bp_file", 2, ["staged.bp"]),
           p.ParamCmdLineArg("stage_write", "adios_read_method", 3,
