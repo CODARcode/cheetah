@@ -29,7 +29,8 @@ def save_list_and_remove_staged(fob_path, output_dir_name):
             continue
         seen.add(working_dir)
         output_path = os.path.join(working_dir, output_dir_name)
-        if not os.is_dir(output_path):
+        print("checking for", output_path)
+        if not os.path.isdir(output_path):
             continue
 
         ls_out_file = os.path.join(working_dir, 'codar.post_run.ls.txt')
@@ -43,3 +44,7 @@ def main():
         print("Usage: %s fob_file_path" % sys.argv[0])
         sys.exit(1)
     save_list_and_remove_staged(sys.argv[1], OUTPUT_DIR_NAME)
+
+
+if __name__ == "__main__":
+    main()

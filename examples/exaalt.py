@@ -11,7 +11,7 @@ class Exaalt(Campaign):
     # Note that titan has 16 processes per node
     supported_machines = ['titan']
 
-    project = "PROJECT123"
+    project = "CSC242"
     queue = "batch"
 
     kill_on_partial_failure = True
@@ -28,24 +28,24 @@ class Exaalt(Campaign):
       # post process script are working. Only generates a four runs,
       # with same number of nodes but different compression options for
       # stage.
-      p.SweepGroup(name="test-128",
-                   nodes=136,
-                   walltime=timedelta(hours=3),
-                   per_run_timeout=timedelta(minutes=45),
+      p.SweepGroup(name="test-32",
+                   nodes=34,
+                   walltime=timedelta(hours=1),
+                   per_run_timeout=timedelta(minutes=15),
                    parameter_groups=[
         p.Sweep([
-          # 128 exaalt nodes
-          p.ParamRunner("exaalt", "nprocs", [2048]),
+          # 32 exaalt nodes
+          p.ParamRunner("exaalt", "nprocs", [512]),
           p.ParamCmdLineArg("exaalt", "states_list_file", 1,
                             ["states_list.txt"]),
-          p.ParamCmdLineArg("exaalt", "no_of_states", 2, [1433600]),
+          p.ParamCmdLineArg("exaalt", "no_of_states", 2, [20480]),
           p.ParamCmdLineArg("exaalt", "bp_output_file", 3, ["output.bp"]),
           p.ParamCmdLineArg("exaalt", "transport_method", 4, ["FLEXPATH"]),
           p.ParamCmdLineArg("exaalt", "transport_variables", 5, [""]),
           p.ParamCmdLineArg("exaalt", "transport_options", 6, ["none"]),
 
-          # 8 stage nodes
-          p.ParamRunner("stage_write", "nprocs", [128]),
+          # 2 stage nodes
+          p.ParamRunner("stage_write", "nprocs", [32]),
           p.ParamCmdLineArg("stage_write", "input_bp_file", 1, ["output.bp"]),
           p.ParamCmdLineArg("stage_write", "output_bp_file", 2, ["staged.bp"]),
           p.ParamCmdLineArg("stage_write", "adios_read_method", 3,
