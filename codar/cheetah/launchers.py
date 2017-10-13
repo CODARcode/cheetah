@@ -204,13 +204,7 @@ class Launcher(object):
         # adios_advance_step() calls are made,
         # and when the application terminates.
         env["TAU_SOS"] = 1
-
-        # Make sure sosd can find libenet.so
-        # Do this only for Titan
-        # @TODO Clean up hard-coded path
-        if re.search('titan', self.machine_name, re.IGNORECASE):
-            env["LD_LIBRARY_PATH"] = "${LD_LIBRARY_PATH}:/sw/xk6/flexpath/1.12/cle5.2_gnu4.9.3/lib"
-
+        
         # Tell SOS how many application ranks per node there are
         # How do you get this information?
         # @TODO This will change when we have the ability to set a different
