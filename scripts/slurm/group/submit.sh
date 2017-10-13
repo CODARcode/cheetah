@@ -13,14 +13,21 @@ fi
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
 SLURM_WALLTIME=$(printf '%02d:%02d:%02d\n' $(($secs/3600)) $(($secs%3600/60)) $(($secs%60)))
 
+extra_args=""
+if [ -n "$CODAR_CHEETAH_SCHEDULER_ACCOUNT" ]; then
+    extra_args="--account $CODAR_CHEETAH_SCHEDULER_ACCOUNT"
+fi
+
+# TODO: add option to us knl and configure filesystems
+# TODO: abstract cori specfic options out of generic slurm dir
 OUTPUT=$(sbatch --parsable \
-        -A $CODAR_CHEETAH_SCHEDULER_ACCOUNT \
-        -p $CODAR_CHEETAH_SCHEDULER_QUEUE \
-        -J "$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
-        -N $CODAR_CHEETAH_GROUP_NODES \
-        -t $SLURM_WALLTIME \
-        -C haswell \ # TODO: add option to use knl
-        -L SCRATCH,project \ # TODO: add option to configure filesystems
+        --partition=$CODAR_CHEETAH_SCHEDULER_QUEUE \
+        --job-name="$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
+        --nodes=$CODAR_CHEETAH_GROUP_NODES \
+        --time=$SLURM_WALLTIME \
+        --constraint=haswell \
+        --license=SCRATCH,project \
+        $extra_args \
         run-group.sbatch)
 
 rval=$?

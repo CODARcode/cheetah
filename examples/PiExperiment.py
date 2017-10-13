@@ -1,6 +1,8 @@
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 
+from datetime import timedelta
+
 class PiExperiment(Campaign):
     name = "pi-small-one-node"
     # TODO: in future could support multiple executables if needed, with
@@ -8,6 +10,8 @@ class PiExperiment(Campaign):
     # with different options. Could be modeled as p.ParamExecutable.
     codes = [("pi", dict(exe="pi-gmp"))]
     supported_machines = ['local', 'cori']
+
+    queue = "debug"
 
     run_post_process_script = 'pi-post-run-compare-digits.py'
 
@@ -17,6 +21,7 @@ class PiExperiment(Campaign):
 
     sweeps = [
      p.SweepGroup(name="all-methods-small", nodes=1,
+                  walltime=timedelta(minutes=30),
       parameter_groups=
       [p.Sweep([
         p.ParamCmdLineArg("pi", "method", 1, ["mc", "trap"]),
