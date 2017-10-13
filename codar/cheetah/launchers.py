@@ -9,6 +9,9 @@ import os
 import json
 import shlex
 import shutil
+import re
+import math
+from collections import OrderedDict
 
 from codar.cheetah import adios_transform, config, templates
 from codar.cheetah.parameters import ParamAdiosXML
@@ -55,10 +58,11 @@ class Launcher(object):
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, queue, nodes,
                                project, walltime, node_exclusive,
-                               timeout, tau_config=None,
+                               timeout, machine, tau_config=None,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
-                               run_post_process_stop_on_failure=False):
+                               run_post_process_stop_on_failure=False,
+                               sos=False):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -123,13 +127,25 @@ class Launcher(object):
                     json.dump(run_data, params_f, indent=2)
 
                 fob_runs = []
+                sos_node_index = 0
                 for j, (cname, argv, nprocs, sleep_after) in enumerate(
                                                             codes_argv_nprocs):
 
                     tau_profile_dir = os.path.join(run.run_path,
                                 TAU_PROFILE_PATTERN.format(code=cname))
                     os.makedirs(tau_profile_dir)
-                    env = dict(PROFILEDIR=tau_profile_dir)
+
+                    env = dict()
+                    env["PROFILEDIR"] = tau_profile_dir
+
+                    if sos:
+                        self.add_sos_env(env, run.run_path,
+                                         machine.processes_per_node,
+                                         sos_node_index)
+                        # sos_node_index is the node index where this component starts
+                        # @TODO this assumes all ppn were used for the component
+                        sos_node_index = sos_node_index + \
+                                     math.ceil(nprocs / machine.processes_per_node)
 
                     data = dict(name=cname,
                                 exe=argv[0],
@@ -169,3 +185,33 @@ class Launcher(object):
         with open(jobid_file_path) as f:
             jobid = f.read()
         return jobid
+
+    def add_sos_env(self, env, run_path, ppn, node_index):
+        """Add environment variables required for SOSflow.
+        Contact: Kevin Huck at U of Oregon.
+        """
+
+        # Set the TCP port that the listener will listen to,
+        # and the port that clients will attempt to connect to.
+        env["SOS_CMD_PORT"] = 22500
+
+        # Set the directory where the SOS listeners and aggregators
+        # will use to establish EVPath links to each other
+        env["SOS_EVPATH_MEETUP"] = run_path
+
+        # Tell TAU that it should connect to SOS
+        # and send TAU data to SOS when adios_close(),
+        # adios_advance_step() calls are made,
+        # and when the application terminates.
+        env["TAU_SOS"] = 1
+        
+        # Tell SOS how many application ranks per node there are
+        # How do you get this information?
+        # @TODO This will change when we have the ability to set a different
+        #   number of procs per node
+        env["SOS_APP_RANKS_PER_NODE"] = ppn
+
+        # Tell SOS what "rank" it's listeners should start with
+        # the aggregator was "rank" 0, so this node's listener will be 1
+        # This offset is the node count where this fob component starts
+        env["SOS_LISTENER_RANK_OFFSET"] = node_index

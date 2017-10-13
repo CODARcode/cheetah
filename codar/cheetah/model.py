@@ -177,11 +177,13 @@ class Campaign(object):
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
                 node_exclusive=self.machine.node_exclusive,
+                machine=self.machine,
                 tau_config=self.tau_config,
                 kill_on_partial_failure=self.kill_on_partial_failure,
                 run_post_process_script=self.run_post_process_script,
                 run_post_process_stop_on_failure=
-                    self.run_post_process_stop_group_on_failure)
+                    self.run_post_process_stop_group_on_failure,
+                sos=group.sos)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
