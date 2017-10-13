@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+import time
+import signal
 
-from common_workflow import test_workflow
+from common_workflow import run_workflow, show_results
 
 
 if __name__ == '__main__':
@@ -28,5 +30,10 @@ if __name__ == '__main__':
     if len(sys.argv) > 6:
         kill_on_partial_failure = True
 
-    test_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
-                  timeout, kill_on_partial_failure)
+    p = run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
+                     timeout, kill_on_partial_failure)
+    time.sleep(2)
+    p.send_signal(signal.SIGTERM)
+    #p.send_signal(signal.SIGINT)
+    p.wait()
+    show_results()

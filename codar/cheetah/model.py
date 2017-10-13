@@ -12,9 +12,13 @@ import os
 import json
 import math
 import shutil
+import inspect
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, helpers, config, templates
+
+
+RESERVED_CODE_NAMES = set(['post-process'])
 
 
 class Campaign(object):
@@ -36,6 +40,15 @@ class Campaign(object):
     # kill all remaining codes if one code fails.
     kill_on_partial_failure = False
 
+    # Optional. If set, passed single argument which is the absolute
+    # path to a JSON file containing the FOB definition for the run.
+    # The path can be absolute (starts with /), or relative to the app
+    # directory (if does not start with /).
+    # If the script has nonzero exit status, then the entire sweep group
+    # can optionally be stopped. This can be used to detect errors early.
+    run_post_process_script = None
+    run_post_process_stop_group_on_failure = False
+
     # Schedular options. Not used when using machine 'local', required
     # if using 'titan'.
     project = "" # project allocation to use
@@ -47,8 +60,10 @@ class Campaign(object):
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
     # app directory, just like codes values. It will be run from the
-    # top level experiment directory. TODO: could allow absolute paths
-    # too
+    # top level experiment directory.
+    # TODO: this is broken. It should really be a group post process
+    # script now, and it could be passed as an arg to the workflow
+    # script.
     post_process_script = None
 
     def __init__(self, machine_name, app_dir):
@@ -68,10 +83,19 @@ class Campaign(object):
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
 
+        conflict_names = set(self.codes.keys()) & RESERVED_CODE_NAMES
+        if conflict_names:
+            raise ValueError('Code names conflict with reserved names: '
+                + ", ".join(str(name) for name in conflict_names))
+
         if self.tau_config is None:
             self.tau_config = config.etc_path('tau.conf')
         elif not self.tau_config.startswith('/'):
             self.tau_config = os.path.join(self.app_dir, self.tau_config)
+
+        if self.run_post_process_script is not None:
+            self.run_post_process_script = self._experiment_relative_path(
+                                                self.run_post_process_script)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -142,22 +166,24 @@ class Campaign(object):
             # TODO: refactor so we can just pass the campaign and group
             # objects, i.e. add methods so launcher can get all info it needs
             # and simplify this loop.
-            launcher.create_group_directory(self.name, group_name,
-                                            group_runs,
-                                            max_procs,
-                                            processes_per_node=group_ppn,
-                                            queue=self.queue,
-                                            nodes=group.nodes,
-                                            project=self.project,
-                                            walltime=group.walltime,
-                                            timeout=group.per_run_timeout,
-                                            node_exclusive=
-                                                self.machine.node_exclusive,
-                                            machine=self.machine,
-                                            tau_config=self.tau_config,
-                                            kill_on_partial_failure=
-                                                self.kill_on_partial_failure,
-                                            sos=group.sos)
+            launcher.create_group_directory(
+                self.name, group_name,
+                group_runs,
+                max_procs,
+                processes_per_node=group_ppn,
+                queue=self.queue,
+                nodes=group.nodes,
+                project=self.project,
+                walltime=group.walltime,
+                timeout=group.per_run_timeout,
+                node_exclusive=self.machine.node_exclusive,
+                machine=self.machine,
+                tau_config=self.tau_config,
+                kill_on_partial_failure=self.kill_on_partial_failure,
+                run_post_process_script=self.run_post_process_script,
+                run_post_process_stop_on_failure=
+                    self.run_post_process_stop_group_on_failure,
+                sos=group.sos)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
@@ -179,6 +205,13 @@ class Campaign(object):
         if common_groups:
             raise FileExistsError("One or more SweepGroups already exist: "
                                   + ", ".join(common_groups))
+
+    def _experiment_relative_path(self, p):
+        if p.startswith("/"):
+            return p
+        experiment_spec_path = inspect.getsourcefile(self.__class__)
+        experiment_dir = os.path.dirname(experiment_spec_path)
+        return os.path.join(experiment_dir, p)
 
 
 class Run(object):

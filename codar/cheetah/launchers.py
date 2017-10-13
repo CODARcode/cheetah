@@ -60,6 +60,8 @@ class Launcher(object):
                                project, walltime, node_exclusive,
                                timeout, machine, tau_config=None,
                                kill_on_partial_failure=False,
+                               run_post_process_script=None,
+                               run_post_process_stop_on_failure=False,
                                sos=False):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
@@ -148,7 +150,6 @@ class Launcher(object):
                     data = dict(name=cname,
                                 exe=argv[0],
                                 args=argv[1:],
-                                working_dir=run.run_path,
                                 nprocs=nprocs,
                                 sleep_after=sleep_after,
                                 env=env)
@@ -156,13 +157,19 @@ class Launcher(object):
                         data["timeout"] = parse_timedelta_seconds(timeout)
                     fob_runs.append(data)
 
-                fob = OrderedDict(id=run.run_id, runs=fob_runs,
-                           kill_on_partial_failure=kill_on_partial_failure)
+                run_fob_path = os.path.join(run.run_path,
+                                            "codar.cheetah.fob.json")
+
+                fob = dict(id=run.run_id, runs=fob_runs,
+                           working_dir=run.run_path,
+                           kill_on_partial_failure=kill_on_partial_failure,
+                           post_process_script=run_post_process_script,
+                           post_process_stop_on_failure=
+                                run_post_process_stop_on_failure,
+                           post_process_args=[run_fob_path])
                 fob_s = json.dumps(fob)
 
                 # write to file run dir
-                run_fob_path = os.path.join(run.run_path,
-                                            "codar.cheetah.fob.json")
                 with open(run_fob_path, "w") as runf:
                     runf.write(fob_s)
                     runf.write("\n")
