@@ -183,7 +183,9 @@ class Campaign(object):
                 run_post_process_script=self.run_post_process_script,
                 run_post_process_stop_on_failure=
                     self.run_post_process_stop_group_on_failure,
-                scheduler_options=self.machine_scheduler_options)
+                scheduler_options=self.machine_scheduler_options,
+                machine=self.machine,
+                sos=group.sos)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
