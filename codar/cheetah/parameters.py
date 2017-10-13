@@ -16,7 +16,7 @@ class SweepGroup(object):
     which scheduler (if any) that machine uses.
     """
     def __init__(self, name, nodes, parameter_groups, walltime=3600,
-                 max_procs=None, per_run_timeout=None):
+                 max_procs=None, per_run_timeout=None, sos=False):
         self.name = name
         self.nodes = nodes
         self.max_procs = max_procs
@@ -24,6 +24,7 @@ class SweepGroup(object):
         self.walltime = walltime
         # TODO: allow override in Sweeps?
         self.per_run_timeout = per_run_timeout
+        self.sos = sos
 
     def get_instances(self):
         inst = []
