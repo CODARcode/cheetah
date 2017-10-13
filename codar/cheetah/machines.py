@@ -36,6 +36,12 @@ local=Machine('local', launchers.Launcher, "local", "mpiexec")
 titan=Machine('titan', launchers.Launcher, "pbs", "aprun",
               processes_per_node=16, node_exclusive=True)
 
+# TODO: remove node exclusive restriction, which can be avoided on cori
+# using correct sbatch and srun options. As a start just get feature
+# parity with titan.
+cori=Machine('cori', launchers.Launcher, "slurm", "srun",
+             processes_per_node=32, node_exclusive=True)
+
 
 def get_by_name(name):
     assert name == name.lower()

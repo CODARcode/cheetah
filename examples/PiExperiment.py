@@ -7,7 +7,7 @@ class PiExperiment(Campaign):
     # the idea that they have same input/output/params, but are compiled
     # with different options. Could be modeled as p.ParamExecutable.
     codes = [("pi", dict(exe="pi-gmp"))]
-    supported_machines = ['local']
+    supported_machines = ['local', 'cori']
 
     run_post_process_script = 'pi-post-run-compare-digits.py'
 

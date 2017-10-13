@@ -24,6 +24,11 @@ rm -rf test_output/pi/*
     -a "$CODAR_APPDIR/Example-pi/" \
     -o test_output/pi
 
+rm -rf test_output/cori-pi/*
+./cheetah.py -e examples/PiExperiment.py -m cori \
+    -a "$CODAR_APPDIR/Example-pi/" \
+    -o test_output/cori-pi
+
 rm -rf test_output/heat/*
 ./cheetah.py -e examples/heat_transfer_small.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
