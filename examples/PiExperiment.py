@@ -4,14 +4,34 @@ from codar.cheetah import parameters as p
 from datetime import timedelta
 
 class PiExperiment(Campaign):
+    # Used in job names submitted to scheduler.
     name = "pi-small-one-node"
-    # TODO: in future could support multiple executables if needed, with
-    # the idea that they have same input/output/params, but are compiled
-    # with different options. Could be modeled as p.ParamExecutable.
-    codes = [("pi", dict(exe="pi-gmp"))]
-    supported_machines = ['local', 'cori']
 
-    queue = "debug"
+    # This application has a single executable, which we give the
+    # friendly name 'pi' for later reference in parameter specification.
+    # The executable path is taken relative to the application directory
+    # specified on the cheetah command line.
+    codes = [("pi", dict(exe="pi-gmp"))]
+
+    # Document which machines the campaign is designed to run on. An
+    # error will be raised if a different machine is specified on the
+    # cheetah command line.
+    supported_machines = ['local', 'cori', 'titan']
+
+    # Per machine scheduler options. Keys are the machine name, values
+    # are dicts of name value pairs for the options for that machine.
+    # Options must be explicitly supported by Cheetah, this is not
+    # currently a generic mechanism.
+    scheduler_options = {
+        "cori": {
+            "queue": "debug",
+            "constraint": "haswell",
+            "license": "SCRATCH,project",
+        },
+        "titan": {
+            "queue": "debug",
+        }
+    }
 
     run_post_process_script = 'pi-post-run-compare-digits.py'
 
@@ -20,7 +40,7 @@ class PiExperiment(Campaign):
     #run_post_process_stop_group_on_failure = True
 
     sweeps = [
-     p.SweepGroup(name="all-methods-small", nodes=1,
+     p.SweepGroup(name="all-methods-small", nodes=4,
                   walltime=timedelta(minutes=30),
       parameter_groups=
       [p.Sweep([

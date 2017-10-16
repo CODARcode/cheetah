@@ -18,15 +18,19 @@ if [ -n "$CODAR_CHEETAH_SCHEDULER_ACCOUNT" ]; then
     extra_args="--account $CODAR_CHEETAH_SCHEDULER_ACCOUNT"
 fi
 
-# TODO: add option to us knl and configure filesystems
-# TODO: abstract cori specfic options out of generic slurm dir
+if [ -n "$CODAR_CHEETAH_SCHEDULER_CONSTRAINT" ]; then
+    extra_args="$extra_args --constraint=haswell $CODAR_CHEETAH_SCHEDULER_CONSTRAINT"
+fi
+
+if [ -n "$CODAR_CHEETAH_SCHEDULER_LICENSE" ]; then
+    extra_args="$extra_args --license=haswell $CODAR_CHEETAH_SCHEDULER_LICENSE"
+fi
+
 OUTPUT=$(sbatch --parsable \
         --partition=$CODAR_CHEETAH_SCHEDULER_QUEUE \
         --job-name="$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
         --nodes=$CODAR_CHEETAH_GROUP_NODES \
         --time=$SLURM_WALLTIME \
-        --constraint=haswell \
-        --license=SCRATCH,project \
         $extra_args \
         run-group.sbatch)
 

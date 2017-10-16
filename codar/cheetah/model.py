@@ -50,9 +50,8 @@ class Campaign(object):
     run_post_process_stop_group_on_failure = False
 
     # Schedular options. Not used when using machine 'local', required
-    # if using 'titan'.
-    project = "" # project allocation to use
-    queue = "" # scheduler queue to submit to
+    # when using super computers.
+    scheduler_options = {}
 
     # None means use default
     tau_config = None
@@ -96,6 +95,10 @@ class Campaign(object):
         if self.run_post_process_script is not None:
             self.run_post_process_script = self._experiment_relative_path(
                                                 self.run_post_process_script)
+
+        o = self.scheduler_options.get(machine_name, {})
+        # TODO: deeper validation with knowledge of scheduler
+        self.machine_scheduler_options = self.machine.get_scheduler_options(o)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -171,9 +174,7 @@ class Campaign(object):
                 group_runs,
                 max_procs,
                 processes_per_node=group_ppn,
-                queue=self.queue,
                 nodes=group.nodes,
-                project=self.project,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
                 node_exclusive=self.machine.node_exclusive,
@@ -181,7 +182,8 @@ class Campaign(object):
                 kill_on_partial_failure=self.kill_on_partial_failure,
                 run_post_process_script=self.run_post_process_script,
                 run_post_process_stop_on_failure=
-                    self.run_post_process_stop_group_on_failure)
+                    self.run_post_process_stop_group_on_failure,
+                scheduler_options=self.machine_scheduler_options)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
