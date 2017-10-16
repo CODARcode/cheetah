@@ -62,7 +62,8 @@ class Launcher(object):
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
-                               scheduler_options=None, sos=False):
+                               scheduler_options=None,
+                               sosflow=False):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -142,7 +143,7 @@ class Launcher(object):
                     env = dict()
                     env["PROFILEDIR"] = tau_profile_dir
 
-                    if sos:
+                    if sosflow:
                         self.add_sos_env(env, run.run_path,
                                          machine.processes_per_node,
                                          sos_node_index)
@@ -194,6 +195,9 @@ class Launcher(object):
         """Add environment variables required for SOSflow.
         Contact: Kevin Huck at U of Oregon.
         """
+
+        env["sos_cmd"] = ""
+        env["SOS_FORK_COMMAND"] = "${sos_cmd} -k @LISTENER_RANK@ -r listener"
 
         # Set the TCP port that the listener will listen to,
         # and the port that clients will attempt to connect to.
