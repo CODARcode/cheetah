@@ -197,7 +197,7 @@ class Launcher(object):
 
         # Set the TCP port that the listener will listen to,
         # and the port that clients will attempt to connect to.
-        env["SOS_CMD_PORT"] = 22500
+        env["SOS_CMD_PORT"] = "22500"
 
         # Set the directory where the SOS listeners and aggregators
         # will use to establish EVPath links to each other
@@ -207,15 +207,15 @@ class Launcher(object):
         # and send TAU data to SOS when adios_close(),
         # adios_advance_step() calls are made,
         # and when the application terminates.
-        env["TAU_SOS"] = 1
+        env["TAU_SOS"] = "1"
         
         # Tell SOS how many application ranks per node there are
         # How do you get this information?
         # @TODO This will change when we have the ability to set a different
         #   number of procs per node
-        env["SOS_APP_RANKS_PER_NODE"] = ppn
+        env["SOS_APP_RANKS_PER_NODE"] = str(ppn)
 
         # Tell SOS what "rank" it's listeners should start with
         # the aggregator was "rank" 0, so this node's listener will be 1
         # This offset is the node count where this fob component starts
-        env["SOS_LISTENER_RANK_OFFSET"] = node_index
+        env["SOS_LISTENER_RANK_OFFSET"] = str(node_index)
