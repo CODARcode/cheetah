@@ -19,11 +19,11 @@ if [ -n "$CODAR_CHEETAH_SCHEDULER_ACCOUNT" ]; then
 fi
 
 if [ -n "$CODAR_CHEETAH_SCHEDULER_CONSTRAINT" ]; then
-    extra_args="$extra_args --constraint=haswell $CODAR_CHEETAH_SCHEDULER_CONSTRAINT"
+    extra_args="$extra_args --constraint=$CODAR_CHEETAH_SCHEDULER_CONSTRAINT"
 fi
 
 if [ -n "$CODAR_CHEETAH_SCHEDULER_LICENSE" ]; then
-    extra_args="$extra_args --license=haswell $CODAR_CHEETAH_SCHEDULER_LICENSE"
+    extra_args="$extra_args --license=$CODAR_CHEETAH_SCHEDULER_LICENSE"
 fi
 
 OUTPUT=$(sbatch --parsable \
