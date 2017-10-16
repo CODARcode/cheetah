@@ -31,9 +31,13 @@ class HeatTransfer(Campaign):
     # is usually the case when using an adios stage code.
     kill_on_partial_failure = True
 
-    # Options to pass to the scheduler (PBS or slurm)
-    project = "CSC242"
-    queue = "debug"
+    # Options to pass to the scheduler (PBS or slurm). These are set per
+    # target machine, since likely different options will be needed for
+    # each.
+    scheduler_options = {
+        "titan": { "project": "CSC242",
+                   "queue": "debug" }
+    }
 
     sweeps = [
 
