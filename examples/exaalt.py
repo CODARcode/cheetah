@@ -11,8 +11,10 @@ class Exaalt(Campaign):
     # Note that titan has 16 processes per node
     supported_machines = ['titan']
 
-    project = "CSC242"
-    queue = "batch"
+    scheduler_options = {
+        "titan": { "project": "CSC242",
+                   "queue": "batch" }
+    }
 
     kill_on_partial_failure = True
 

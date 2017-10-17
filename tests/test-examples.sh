@@ -19,10 +19,12 @@ if [ "x$CODAR_APPDIR" == "x" ]; then
     exit 1
 fi
 
-rm -rf test_output/pi/*
-./cheetah.py -e examples/PiExperiment.py -m local \
-    -a "$CODAR_APPDIR/Example-pi/" \
-    -o test_output/pi
+for machine in local titan cori; do
+    rm -rf test_output/$machine-pi/*
+    ./cheetah.py -e examples/PiExperiment.py -m $machine \
+        -a "$CODAR_APPDIR/Example-pi/" \
+        -o test_output/$machine-pi
+done
 
 rm -rf test_output/heat/*
 ./cheetah.py -e examples/heat_transfer_small.py -m local \

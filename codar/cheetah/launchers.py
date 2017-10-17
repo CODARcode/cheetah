@@ -53,12 +53,13 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, group_name, runs,
-                               max_nprocs, processes_per_node, queue, nodes,
-                               project, walltime, node_exclusive,
+                               max_nprocs, processes_per_node, nodes,
+                               walltime, node_exclusive,
                                timeout, tau_config=None,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
-                               run_post_process_stop_on_failure=False):
+                               run_post_process_stop_on_failure=False,
+                               scheduler_options=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -66,6 +67,8 @@ class Launcher(object):
         if not os.path.isdir(script_dir):
             raise ValueError("scheduler '%s' is not yet supported"
                              % self.scheduler_name)
+        if scheduler_options is None:
+            scheduler_options = {}
         shutil.copytree(script_dir, self.output_directory)
         env_path = os.path.join(self.output_directory, 'group-env.sh')
         group_env = templates.GROUP_ENV_TEMPLATE.format(
@@ -74,11 +77,13 @@ class Launcher(object):
             processes_per_node=processes_per_node,
             nodes=nodes,
             node_exclusive=node_exclusive,
-            account=project,
-            queue=queue,
+            account=scheduler_options.get('project', ''),
+            queue=scheduler_options.get('queue', ''),
             # TODO: require name be valid for all schedulers
             campaign_name='codar.cheetah.'+campaign_name,
-            group_name=group_name
+            group_name=group_name,
+            constraint=scheduler_options.get('constraint', ''),
+            license=scheduler_options.get('license', '')
         )
         with open(env_path, 'w') as f:
             f.write(group_env)

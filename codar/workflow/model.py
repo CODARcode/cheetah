@@ -515,3 +515,4 @@ class MPIRunner(Runner):
 
 mpiexec = MPIRunner('mpiexec', '-n')
 aprun = MPIRunner('aprun', '-n')
+srun = MPIRunner('srun', '-n')

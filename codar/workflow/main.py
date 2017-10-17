@@ -19,7 +19,8 @@ def parse_args():
     parser.add_argument('--max-procs', type=int)
     parser.add_argument('--max-nodes', type=int)
     parser.add_argument('--processes-per-node', type=int)
-    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'none'],
+    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun',
+                                             'none'],
                         required=True)
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
