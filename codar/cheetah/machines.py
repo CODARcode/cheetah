@@ -61,7 +61,9 @@ def _check_known_scheduler_options(supported_set, options):
 # definitions etc. This allows the module to act as a sort of enum
 # container with all the machines.
 
-local=Machine('local', launchers.Launcher, "local", "mpiexec")
+# NOTE: set process per node to avoid errors with sosflow calculations
+local=Machine('local', launchers.Launcher, "local", "mpiexec",
+              processes_per_node=1)
 
 titan=Machine('titan', launchers.Launcher, "pbs", "aprun",
               processes_per_node=16, node_exclusive=True,

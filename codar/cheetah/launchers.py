@@ -147,10 +147,12 @@ class Launcher(object):
                         self.add_sos_env(env, run.run_path,
                                          machine.processes_per_node,
                                          sos_node_index)
-                        # sos_node_index is the node index where this component starts
-                        # @TODO this assumes all ppn were used for the component
+                        # sos_node_index is the node index where this component
+                        # starts
+                        # @TODO this assumes all ppn were used for the
+                        # component
                         sos_node_index = sos_node_index + \
-                                     math.ceil(nprocs / machine.processes_per_node)
+                            math.ceil(nprocs / machine.processes_per_node)
 
                     data = dict(name=cname,
                                 exe=argv[0],
