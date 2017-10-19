@@ -26,17 +26,22 @@ for machine in local titan cori; do
         -o test_output/$machine-pi
 done
 
-rm -rf test_output/heat/*
-./cheetah.py -e examples/heat_transfer_small.py -m local \
+rm -rf test_output/local-heat-simple/*
+./cheetah.py -e examples/heat_transfer_simple.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/heat
+    -o test_output/local-heat-simple
 
-rm -rf test_output/titan-heat/*
-./cheetah.py -e examples/heat_transfer_small.py -m titan \
+rm -rf test_output/titan-heat-simple/*
+./cheetah.py -e examples/heat_transfer_simple.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/titan-heat
+    -o test_output/titan-heat-simple
 
-rm -rf test_output/exaalt/*
+rm -rf test_output/titan-heat-sosflow/*
+./cheetah.py -e examples/heat_transfer_sosflow.py -m titan \
+    -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
+    -o test_output/titan-heat-sosflow
+
+rm -rf test_output/titan-exaalt/*
 ./cheetah.py -e examples/exaalt.py -m titan \
     -a "$CODAR_APPDIR/Example-EXAALT/" \
-    -o test_output/exaalt
+    -o test_output/titan-exaalt

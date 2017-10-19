@@ -9,13 +9,12 @@ class HeatTransfer(Campaign):
     using no compression, zfp, or sz. All other options are fixed, so there
     are only three runs."""
 
-    name = "heat-transfer-small"
+    name = "heat-transfer-simple"
 
     # This applications consists of two codes, with nicknames "heat" and
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
-    codes = [('sosflow', dict(exe="/something/sosd", sleep_after=5)),
-             ('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
+    codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
              ('heat', dict(exe="heat_transfer_adios2", sleep_after=0))]
 
     # The application is designed to run on two machines.
@@ -68,8 +67,6 @@ class HeatTransfer(Campaign):
                                 # do runs in parallel, i.e. setting to 28
                                 # for this experiment will allow two runs
                                 # at a time, since 28/14=2.
-                  sosflow=True,
-
       # Within a SweepGroup, each parameter_group specifies arguments for
       # each of the parameters required for each code. Number of runs is the
       # product of the number of options specified. Below, it is 3, as only
