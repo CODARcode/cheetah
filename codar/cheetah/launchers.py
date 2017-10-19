@@ -63,7 +63,8 @@ class Launcher(object):
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
                                scheduler_options=None,
-                               sosflow=False):
+                               sosflow=False,
+                               sosd_path=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -98,6 +99,11 @@ class Launcher(object):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)
 
+                if sosflow:
+                    # TODO: make num aggregators configurable
+                    run.insert_sosflow(sosd_path, run.run_path, 1,
+                                       machine.processes_per_node)
+
                 if tau_config is not None:
                     shutil.copy(tau_config, run.run_path)
 
@@ -131,32 +137,18 @@ class Launcher(object):
                     json.dump(run_data, params_f, indent=2)
 
                 fob_runs = []
-                sos_node_index = 0
                 for j, rc in enumerate(run.run_components):
 
                     tau_profile_dir = os.path.join(run.run_path,
                                 TAU_PROFILE_PATTERN.format(code=rc.name))
                     os.makedirs(tau_profile_dir)
 
-                    env = dict()
-                    env["PROFILEDIR"] = tau_profile_dir
+                    rc.env["PROFILEDIR"] = tau_profile_dir
 
-                    if sosflow:
-                        self.add_sos_env(env, run.run_path,
-                                         machine.processes_per_node,
-                                         sos_node_index)
-                        # sos_node_index is the node index where this component
-                        # starts
-                        # TODO: add node layout options to spec and
-                        # build this based on node layout for machine
-                        sos_node_index = sos_node_index + \
-                            math.ceil(rc.nprocs / machine.processes_per_node)
-
-                    data = rc.as_fob_data()
-                    data["env"] = env
                     if timeout is not None:
-                        data["timeout"] = parse_timedelta_seconds(timeout)
-                    fob_runs.append(data)
+                        rc.timeout = parse_timedelta_seconds(timeout)
+
+                    fob_runs.append(rc.as_fob_data())
 
                 run_fob_path = os.path.join(run.run_path,
                                             "codar.cheetah.fob.json")
@@ -187,35 +179,4 @@ class Launcher(object):
             jobid = f.read()
         return jobid
 
-    def add_sos_env(self, env, run_path, ppn, node_index):
-        """Add environment variables required for SOSflow.
-        Contact: Kevin Huck at U of Oregon.
-        """
 
-        env["sos_cmd"] = ""
-        env["SOS_FORK_COMMAND"] = "${sos_cmd} -k @LISTENER_RANK@ -r listener"
-
-        # Set the TCP port that the listener will listen to,
-        # and the port that clients will attempt to connect to.
-        env["SOS_CMD_PORT"] = "22500"
-
-        # Set the directory where the SOS listeners and aggregators
-        # will use to establish EVPath links to each other
-        env["SOS_EVPATH_MEETUP"] = run_path
-
-        # Tell TAU that it should connect to SOS
-        # and send TAU data to SOS when adios_close(),
-        # adios_advance_step() calls are made,
-        # and when the application terminates.
-        env["TAU_SOS"] = "1"
-        
-        # Tell SOS how many application ranks per node there are
-        # How do you get this information?
-        # @TODO This will change when we have the ability to set a different
-        #   number of procs per node
-        env["SOS_APP_RANKS_PER_NODE"] = str(ppn)
-
-        # Tell SOS what "rank" it's listeners should start with
-        # the aggregator was "rank" 0, so this node's listener will be 1
-        # This offset is the node count where this fob component starts
-        env["SOS_LISTENER_RANK_OFFSET"] = str(node_index)

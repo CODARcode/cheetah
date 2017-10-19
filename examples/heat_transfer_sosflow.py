@@ -7,15 +7,18 @@ from codar.cheetah import parameters as p
 class HeatTransfer(Campaign):
     """Small example to run the heat_transfer application with stage_write,
     using no compression, zfp, or sz. All other options are fixed, so there
-    are only three runs."""
+    are only three runs.
 
-    name = "heat-transfer-small"
+    Has sosflow enabled. Note that sosd does not need to be listed explicitly
+    in codes, but the path does need to be specified if it's not located
+    in the app dir (see sosd_path option below)."""
+
+    name = "heat-transfer-sosflow"
 
     # This applications consists of two codes, with nicknames "heat" and
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
-    codes = [('sosflow', dict(exe="/path/to/sosd", sleep_after=5)),
-             ('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
+    codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
              ('heat', dict(exe="heat_transfer_adios2", sleep_after=0))]
 
     # The application is designed to run on two machines.
@@ -39,6 +42,9 @@ class HeatTransfer(Campaign):
         "titan": { "project": "CSC242",
                    "queue": "debug" }
     }
+
+    # If sosd is not present inside app_dir, specify the location here.
+    # sosd_path = "/path/to/sosd"
 
     sweeps = [
 

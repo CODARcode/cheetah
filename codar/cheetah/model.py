@@ -56,6 +56,11 @@ class Campaign(object):
     # None means use default
     tau_config = None
 
+    # None means use 'sosd' in the app dir
+    # TODO: make this part of machine config? Or does it make sense to
+    # have per-app binaries for sos?
+    sosd_path = None
+
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
     # app directory, just like codes values. It will be run from the
@@ -95,6 +100,11 @@ class Campaign(object):
         if self.run_post_process_script is not None:
             self.run_post_process_script = self._experiment_relative_path(
                                                 self.run_post_process_script)
+
+        if self.sosd_path is None:
+            self.sosd_path = os.path.join(self.app_dir, 'sosd')
+        elif not self.sosd_path.startswith('/'):
+            self.tau_config = os.path.join(self.app_dir, self.sosd_path)
 
         o = self.scheduler_options.get(machine_name, {})
         # TODO: deeper validation with knowledge of scheduler
@@ -185,7 +195,8 @@ class Campaign(object):
                     self.run_post_process_stop_group_on_failure,
                 scheduler_options=self.machine_scheduler_options,
                 machine=self.machine,
-                sosflow=group.sosflow)
+                sosflow=group.sosflow,
+                sosd_path=self.sosd_path)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
@@ -268,18 +279,90 @@ class Run(object):
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
 
+    def insert_sosflow(self, sosd_path, run_path, num_aggregators, ppn):
+        """Insert a new component at start of list to launch sosflow daemon.
+        Should be called only once."""
+        assert self.run_components[0].name != 'sosflow'
+        sos_args = [
+            '-l', str(self.get_total_nprocs()),
+            '-a', str(num_aggregators),
+            '-w', str(run_path)
+        ]
+        sos_cmd = ' '.join([sosd_path] + sos_args)
+        sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
+        sosd_args = sos_args + [
+            '-k', '0',
+            '-r', 'aggregator',
+        ]
+
+        # Insert sosd component so it runs at start after 5 seconds
+        rc = RunComponent('sosflow', sosd_path, sosd_args,
+                          nprocs=1, sleep_after=5)
+        self.run_components.insert(0, rc)
+
+        node_offset = 0
+
+        # add env vars to each run, including sosflow daemon
+        # NOTE: not sure how many if any are required for sosd, but
+        # should not hurt to have them, and simplifies the offset
+        # calculation
+        for rc in self.run_components:
+            # TODO: is this actually used directly?
+            rc.env['sos_cmd'] = sos_cmd
+            rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
+
+            # Set the TCP port that the listener will listen to,
+            # and the port that clients will attempt to connect to.
+            rc.env['SOS_CMD_PORT'] = '22500'
+
+            # Set the directory where the SOS listeners and aggregators
+            # will use to establish EVPath links to each other
+            rc.env['SOS_EVPATH_MEETUP'] = run_path
+
+            # Tell TAU that it should connect to SOS
+            # and send TAU data to SOS when adios_close(),
+            # adios_advance_step() calls are made,
+            # and when the application terminates.
+            rc.env['TAU_SOS'] = '1'
+
+            # Tell SOS how many application ranks per node there are
+            # How do you get this information?
+            # TODO: This will change when we have the ability to set a
+            # different number of procs per node
+            rc.env['SOS_APP_RANKS_PER_NODE'] = str(ppn)
+
+            # Tell SOS what 'rank' it's listeners should start with
+            # the aggregator was 'rank' 0, so this node's listener will be 1
+            # This offset is the node count where this fob component starts
+            rc.env['SOS_LISTENER_RANK_OFFSET'] = str(node_offset)
+
+            # TODO: this assumes node exclusive. To support node sharing
+            # with custom layouts, will need to know layout here and
+            # calculate actual node usage. This potentially duplicates
+            # functionality needed in workflow, should eventual converge
+            # so they are using the same model.
+            node_offset += math.ceil(rc.nprocs / ppn)
+
 
 class RunComponent(object):
-    def __init__(self, name, exe, args, nprocs, sleep_after=None):
+    def __init__(self, name, exe, args, nprocs, sleep_after=None,
+                 env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
         self.nprocs = nprocs
         self.sleep_after = sleep_after
+        self.env = env or {}
+        self.timeout = timeout
 
     def as_fob_data(self):
-        return dict(name=self.name,
+        data = dict(name=self.name,
                     exe=self.exe,
                     args=self.args,
                     nprocs=self.nprocs,
                     sleep_after=self.sleep_after)
+        if self.env:
+            data['env'] = self.env
+        if self.timeout:
+            data['timeout'] = self.timeout
+        return data
