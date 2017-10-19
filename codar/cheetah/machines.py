@@ -21,7 +21,8 @@ class Machine(object):
 
     def __init__(self, name, launcher_class, scheduler_name, runner_name,
                  processes_per_node=None, node_exclusive=False,
-                 scheduler_options=None):
+                 scheduler_options=None,
+                 node_partitioning_available=False):
         self.name = name
         self.launcher_class = launcher_class
         self.scheduler_name = scheduler_name
@@ -32,6 +33,8 @@ class Machine(object):
         self.node_exclusive = node_exclusive
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)
         self.scheduler_options = scheduler_options or {}
+        # can partition a node? Default is False, can be overridden
+        self.node_partitioning_available = False
 
     def get_launcher_instance(self, output_directory, num_codes):
         return self.launcher_class(self.name, self.scheduler_name,

@@ -79,6 +79,12 @@ class HeatTransfer(Campaign):
       parameter_groups=
       [p.Sweep([
 
+        # Partition a compute node to have 8 heat PEs and
+        # 2 stage write processes per node
+        set_node_partition({"heat":8, "stage": 2}),
+        # default partitioning should be node-exclusive, that is
+        # set_node_partition(heat:0, stage: 0, viz: 0),
+
         # First, the parameters for the STAGE program
 
         # ParamRunner passes an argument to launch_multi_swift
