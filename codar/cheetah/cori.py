@@ -66,3 +66,19 @@ class Cori(machines.Machine):
                                   if app_ranks_node_partition[i] == 0])
 
         return num_nodes_required
+
+    def get_scheduler_submit_options(self,
+                                     total_requested_app_ranks,
+                                    app_ranks_node_partition,):
+        """
+        Return all scheduler options to submit the experiment
+        For each app in the input list, look at the partitioning type and
+        return the scheduler options.
+        For example, for node-sharing, we could return the '-gres=1' option
+        """
+        scheduler_options = # look at the partitioning type here
+        scheduler_submit_opts =
+            self.launcher.launcher_name + # "srun"
+            scheduler_options # "...gres=1... depending on the partition"
+
+        return scheduler_submit_options
