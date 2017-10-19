@@ -104,8 +104,6 @@ class Launcher(object):
                 for input_rpath in run.inputs:
                     shutil.copy2(input_rpath, run.run_path+"/.")
 
-                codes_argv_nprocs = run.get_codes_argv_with_exe_and_nprocs()
-
                 # ADIOS XML param support
                 adios_transform_params = \
                     run.instance.get_parameter_values_by_type(ParamAdiosXML)
@@ -118,8 +116,9 @@ class Launcher(object):
                 params_path_txt = os.path.join(run.run_path,
                                                self.run_command_name)
                 with open(params_path_txt, 'w') as params_f:
-                    for _, argv, _, _ in codes_argv_nprocs:
-                        params_f.write(' '.join(map(shlex.quote, argv)))
+                    for rc in run.run_components:
+                        params_f.write(' '.join(map(shlex.quote,
+                                                    [rc.exe] + rc.args)))
                         params_f.write('\n')
 
                 # save params as JSON for use in post-processing, more
@@ -127,17 +126,16 @@ class Launcher(object):
                 # text
                 params_path_json = os.path.join(run.run_path,
                                                 self.run_json_name)
-                run_data = run.as_dict()
+                run_data = run.get_app_param_dict()
                 with open(params_path_json, 'w') as params_f:
                     json.dump(run_data, params_f, indent=2)
 
                 fob_runs = []
                 sos_node_index = 0
-                for j, (cname, argv, nprocs, sleep_after) in enumerate(
-                                                            codes_argv_nprocs):
+                for j, rc in enumerate(run.run_components):
 
                     tau_profile_dir = os.path.join(run.run_path,
-                                TAU_PROFILE_PATTERN.format(code=cname))
+                                TAU_PROFILE_PATTERN.format(code=rc.name))
                     os.makedirs(tau_profile_dir)
 
                     env = dict()
@@ -149,17 +147,13 @@ class Launcher(object):
                                          sos_node_index)
                         # sos_node_index is the node index where this component
                         # starts
-                        # @TODO this assumes all ppn were used for the
-                        # component
+                        # TODO: add node layout options to spec and
+                        # build this based on node layout for machine
                         sos_node_index = sos_node_index + \
-                            math.ceil(nprocs / machine.processes_per_node)
+                            math.ceil(rc.nprocs / machine.processes_per_node)
 
-                    data = dict(name=cname,
-                                exe=argv[0],
-                                args=argv[1:],
-                                nprocs=nprocs,
-                                sleep_after=sleep_after,
-                                env=env)
+                    data = rc.as_fob_data()
+                    data["env"] = env
                     if timeout is not None:
                         data["timeout"] = parse_timedelta_seconds(timeout)
                     fob_runs.append(data)

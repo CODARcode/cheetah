@@ -190,7 +190,8 @@ class Campaign(object):
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
         with open(all_params_json_path, "w") as f:
-            json.dump([run.as_dict() for run in self.runs], f, indent=2)
+            json.dump([run.get_app_param_dict()
+                       for run in self.runs], f, indent=2)
 
     def _assert_unique_group_names(self, campaign_dir):
         """Assert new groups being added to the campaign do not have the
@@ -221,6 +222,8 @@ class Run(object):
     Class representing how to actually run an instance on a given environment,
     including how to generate arg arrays for executing each code required for
     the application.
+
+    TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs):
         self.instance = instance
@@ -229,26 +232,24 @@ class Run(object):
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
-        self.codes_argv = self._get_codes_argv_ordered()
+        self.run_components = self._get_run_components()
 
-    def get_codes_argv_with_exe_and_nprocs(self):
-        """
-        Return list of tuples with target name, argv lists, and nprocs.
-        The 0th element of each argv is the application executable
-        (absolute path).
-
-        TODO: less hacky way of handling nprocs and other middlewear params.
-        """
-        argv_nprocs_list = []
-        for (target, argv) in self.codes_argv.items():
+    def _get_run_components(self):
+        comps = []
+        codes_argv = self._get_codes_argv_ordered()
+        for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
             if not exe_path.startswith('/'):
                 exe_path = os.path.join(self.codes_path, exe_path)
-            nprocs = self.instance.get_nprocs(target)
             sleep_after = self.codes[target].get('sleep_after', 0)
-            item = (target, [exe_path] + argv, nprocs, sleep_after)
-            argv_nprocs_list.append(item)
-        return argv_nprocs_list
+            comp = RunComponent(name=target, exe=exe_path, args=argv,
+                                nprocs=self.instance.get_nprocs(target),
+                                sleep_after=sleep_after)
+            comps.append(comp)
+        return comps
+
+    def get_fob_data_list(self):
+        return [comp.as_fob_data() for comp in self.run_components]
 
     def _get_codes_argv_ordered(self):
         """Wrapper around instance.get_codes_argv which uses correct order
@@ -260,10 +261,25 @@ class Run(object):
                            if k in codes_argv)
 
     def get_total_nprocs(self):
-        total_nprocs = 0
-        for (target, argv) in self.codes_argv.items():
-            total_nprocs += self.instance.get_nprocs(target)
-        return total_nprocs
+        return sum(rc.nprocs for rc in self.run_components)
 
-    def as_dict(self):
+    def get_app_param_dict(self):
+        """Return dictionary containing only the app parameters
+        (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
+
+
+class RunComponent(object):
+    def __init__(self, name, exe, args, nprocs, sleep_after=None):
+        self.name = name
+        self.exe = exe
+        self.args = args
+        self.nprocs = nprocs
+        self.sleep_after = sleep_after
+
+    def as_fob_data(self):
+        return dict(name=self.name,
+                    exe=self.exe,
+                    args=self.args,
+                    nprocs=self.nprocs,
+                    sleep_after=self.sleep_after)
