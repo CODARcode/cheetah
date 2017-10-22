@@ -157,11 +157,25 @@ class Campaign(object):
             group_output_dir = os.path.join(output_dir, group_name)
             launcher = self.machine.get_launcher_instance(group_output_dir,
                                                           len(self.codes))
-            group_instances = group.get_instances()
-            group_runs = [Run(inst, self.codes, self.app_dir,
-                              os.path.join(group_output_dir, 'run-%03d' % i),
-                              self.inputs_fullpath)
-                          for i, inst in enumerate(group_instances)]
+            group_runs = []
+            for sweep in group.parameter_groups:
+                # node layout is map of machine names to layout for each
+                # machine. If unspecified, or certain machine is
+                # unspecified, use default.
+                if sweep.node_layout is None:
+                    node_layout = None
+                else:
+                    node_layout = sweep.node_layout.get(self.machine.name)
+                if node_layout is None:
+                    node_layout = NodeLayout.default_no_share_layout(
+                                        self.machine.processes_per_node,
+                                        self.codes)
+                group_runs = [Run(inst, self.codes, self.app_dir,
+                                  os.path.join(group_output_dir,
+                                               'run-%03d' % i),
+                                  self.inputs_fullpath,
+                                  node_layout=node_layout)
+                              for i, inst in enumerate(sweep.get_instances())]
             self.runs.extend(group_runs)
             if group.max_procs is None:
                 max_procs = max([r.get_total_nprocs() for r in group_runs])
@@ -283,6 +297,13 @@ class NodeLayout(object):
             raise ValueError("Node layout error: %d shared nodes > max %d"
                              % (layout_shared_nodes, shared_nodes))
 
+    @classmethod
+    def default_no_share_layout(cls, ppn, codes):
+        """Create a layout object for the specified codes and ppn, where each
+        code uses max procs on it's own node."""
+        layout = [{ code: ppn } for code in codes.keys()]
+        return cls(layout)
+
 
 class Run(object):
     """
@@ -292,7 +313,8 @@ class Run(object):
 
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
-    def __init__(self, instance, codes, codes_path, run_path, inputs):
+    def __init__(self, instance, codes, codes_path, run_path, inputs,
+                 node_layout=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path

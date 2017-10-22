@@ -26,20 +26,15 @@ class SweepGroup(object):
         self.per_run_timeout = per_run_timeout
         self.sosflow = sosflow
 
-    def get_instances(self):
-        inst = []
-        for group in self.parameter_groups:
-            inst.extend(group.get_instances())
-        return inst
-
 
 class Sweep(object):
     """
     Class representing a set of parameter values to search over as
     a cross product.
     """
-    def __init__(self, parameters):
+    def __init__(self, parameters, node_layout=None):
         self.parameters = parameters
+        self.node_layout = node_layout
 
     def get_instances(self):
         """
