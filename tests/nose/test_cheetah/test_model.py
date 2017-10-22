@@ -4,7 +4,7 @@ import json
 
 from nose.tools import assert_equal
 
-from codar.cheetah.model import Campaign
+from codar.cheetah.model import Campaign, NodeLayout
 from codar.cheetah.parameters import SweepGroup, Sweep, ParamCmdLineArg
 
 from test_cheetah import TEST_OUTPUT_DIR
@@ -86,3 +86,46 @@ def test_codes_ordering():
     for fob in fobs:
         fob_order = [run['name'] for run in fob['runs']]
         assert_equal(fob_order, correct_order)
+
+
+def test_node_layout_repeated_code():
+    layout = [{ 'stage': 3, 'heat': 10}, { 'ds': 1, 'heat': 5 }]
+    try:
+        nl = NodeLayout(layout)
+    except ValueError as e:
+        assert 'heat' in str(e), str(e)
+    else:
+        assert False, 'error not raised on repeated code'
+
+
+def test_node_layout_bad_ppn():
+    layout = [{ 'stage': 3, 'heat': 10}, { 'ds': 12 }]
+    nl = NodeLayout(layout)
+    try:
+        nl.validate(12, 2, 2)
+    except ValueError as e:
+        assert 'ppn > max' in str(e), str(e)
+    else:
+        assert False, 'error not raised on repeated code'
+
+
+def test_node_layout_bad_codes_per_node():
+    layout = [{ 'stage': 3, 'core': 4, 'edge': 4 }, { 'ds': 12 }]
+    nl = NodeLayout(layout)
+    try:
+        nl.validate(12, 2, 2)
+    except ValueError as e:
+        assert 'codes > max' in str(e), str(e)
+    else:
+        assert False, 'error not raised on repeated code'
+
+
+def test_node_layout_bad_shared_nodes():
+    layout = [{ 'stage': 3, 'core': 4, 'edge': 4 }, { 'ds': 10, 'heat': 5 }]
+    nl = NodeLayout(layout)
+    try:
+        nl.validate(24, 4, 1)
+    except ValueError as e:
+        assert 'shared nodes > max' in str(e), str(e)
+    else:
+        assert False, 'error not raised on repeated code'

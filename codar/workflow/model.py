@@ -502,9 +502,10 @@ class Runner(object):
 
 
 class MPIRunner(Runner):
-    def __init__(self, exe, nprocs_arg):
+    def __init__(self, exe, nprocs_arg, nodes_arg=None):
         self.exe = exe
         self.nprocs_arg = nprocs_arg
+        self.nodes_arg = nodes_arg
 
     def wrap(self, run):
         exe_path = shutil.which(self.exe)
@@ -515,4 +516,4 @@ class MPIRunner(Runner):
 
 mpiexec = MPIRunner('mpiexec', '-n')
 aprun = MPIRunner('aprun', '-n')
-srun = MPIRunner('srun', '-n')
+srun = MPIRunner('srun', '-n', '-N')
