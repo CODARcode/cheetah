@@ -170,6 +170,12 @@ class Campaign(object):
                     node_layout = NodeLayout.default_no_share_layout(
                                         self.machine.processes_per_node,
                                         self.codes)
+                else:
+                    node_layout = NodeLayout(node_layout)
+                if group.sosflow:
+                    node_layout.add_node({ 'sosflow': 1 })
+                # TODO: validate node layout against machine model
+
                 group_runs = [Run(inst, self.codes, self.app_dir,
                                   os.path.join(group_output_dir,
                                                'run-%03d' % i),
@@ -384,12 +390,12 @@ class Run(object):
         """Insert a new component at start of list to launch sosflow daemon.
         Should be called only once."""
         assert self.run_components[0].name != 'sosflow'
-        self.node_layout.add_node({ 'sosflow': 1 })
         sos_args = [
             '-l', str(self.get_total_nprocs()),
             '-a', str(num_aggregators),
             '-w', str(run_path)
         ]
+        # TODO: this will break if there are spaces in run_path
         sos_cmd = ' '.join([sosd_path] + sos_args)
         sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
         sosd_args = sos_args + [
