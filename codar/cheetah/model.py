@@ -210,7 +210,8 @@ class Campaign(object):
                 scheduler_options=self.machine_scheduler_options,
                 machine=self.machine,
                 sosflow=group.sosflow,
-                sosd_path=self.sosd_path)
+                sosd_path=self.sosd_path,
+                node_layout=node_layout)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")
@@ -270,6 +271,22 @@ class NodeLayout(object):
                     raise ValueError("code(s) appear multiple times: "
                                      + ",".join(shared))
         self.layout_list = layout_list
+        self.layout_map = {}
+        for d in layout_list:
+            for k in d.keys():
+                self.layout_map[k] = d
+
+    def add_node(self, node_dict):
+        """Add a node to an existing layout, e.g. add sosflow."""
+        node_dict = dict(node_dict) # copy
+        self.layout_list.append(node_dict)
+        for k in node_dict.keys():
+            self.layout_map[k] = node_dict
+
+    def get_node_containing_code(self, code):
+        """Get node dict containing the specified code. Raises KeyError if
+        not found."""
+        return self.layout_map[code]
 
     def codes_per_node(self):
         return max(len(d) for d in self.layout_list)
@@ -297,6 +314,11 @@ class NodeLayout(object):
             raise ValueError("Node layout error: %d shared nodes > max %d"
                              % (layout_shared_nodes, shared_nodes))
 
+    def as_data_list(self):
+        """Get a copy of the data list passed to the constructor,
+        suitable for JSON serialization."""
+        return list(self.layout_list)
+
     @classmethod
     def default_no_share_layout(cls, ppn, codes):
         """Create a layout object for the specified codes and ppn, where each
@@ -314,13 +336,14 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout=None):
+                 node_layout):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
+        self.node_layout = node_layout
         self.run_components = self._get_run_components()
 
     def _get_run_components(self):
@@ -361,6 +384,7 @@ class Run(object):
         """Insert a new component at start of list to launch sosflow daemon.
         Should be called only once."""
         assert self.run_components[0].name != 'sosflow'
+        self.node_layout.add_node({ 'sosflow': 1 })
         sos_args = [
             '-l', str(self.get_total_nprocs()),
             '-a', str(num_aggregators),
@@ -389,6 +413,16 @@ class Run(object):
             rc.env['sos_cmd'] = sos_cmd
             rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
 
+            code_node = self.node_layout.get_node_containing_code(rc.name)
+
+            # TODO: we don't yet know how SOSFLOW will support apps that
+            # do node shairng, so for now require that there is no
+            # sharing.
+            assert len(code_node) == 1
+
+            code_procs_per_node = code_node[rc.name]
+            code_nodes = int(math.ceil(rc.nprocs / code_procs_per_node))
+
             # Set the TCP port that the listener will listen to,
             # and the port that clients will attempt to connect to.
             rc.env['SOS_CMD_PORT'] = '22500'
@@ -407,7 +441,7 @@ class Run(object):
             # How do you get this information?
             # TODO: This will change when we have the ability to set a
             # different number of procs per node
-            rc.env['SOS_APP_RANKS_PER_NODE'] = str(ppn)
+            rc.env['SOS_APP_RANKS_PER_NODE'] = str(code_nodes)
 
             # Tell SOS what 'rank' it's listeners should start with
             # the aggregator was 'rank' 0, so this node's listener will be 1
@@ -419,7 +453,7 @@ class Run(object):
             # calculate actual node usage. This potentially duplicates
             # functionality needed in workflow, should eventual converge
             # so they are using the same model.
-            node_offset += math.ceil(rc.nprocs / ppn)
+            node_offset += code_nodes
 
 
 class RunComponent(object):

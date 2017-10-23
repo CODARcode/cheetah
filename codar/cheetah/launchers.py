@@ -64,7 +64,8 @@ class Launcher(object):
                                run_post_process_stop_on_failure=False,
                                scheduler_options=None,
                                sosflow=False,
-                               sosd_path=None):
+                               sosd_path=None,
+                               node_layout=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -159,7 +160,8 @@ class Launcher(object):
                            post_process_script=run_post_process_script,
                            post_process_stop_on_failure=
                                 run_post_process_stop_on_failure,
-                           post_process_args=[run_fob_path])
+                           post_process_args=[run_fob_path],
+                           node_layout=node_layout.as_data_list())
                 fob_s = json.dumps(fob)
 
                 # write to file run dir
