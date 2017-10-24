@@ -16,8 +16,8 @@ class SweepGroup(object):
     which scheduler (if any) that machine uses.
     """
     def __init__(self, name, nodes, parameter_groups, component_subdirs=False,
-                 component_inputs=None, walltime=3600, max_procs=None, per_run_timeout=None,
-                 sosflow=False):
+                 component_inputs=None, walltime=3600, max_procs=None,
+                 per_run_timeout=None, sosflow=False):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
