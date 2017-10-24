@@ -112,8 +112,16 @@ class Launcher(object):
                 if tau_config is not None:
                     shutil.copy(tau_config, run.run_path)
 
+                # Copy the global input files common to all components
                 for input_rpath in run.inputs:
                     shutil.copy2(input_rpath, run.run_path+"/.")
+
+                # Copy input files requested by each component
+                for rc in run.run_components:
+                    if rc.component_inputs is not None:
+                        for input_file in rc.component_inputs:
+                            file_path = os.path.abspath(run.codes_path+"/"+input_file)
+                            shutil.copy(file_path, rc.working_dir+"/.")
 
                 # ADIOS XML param support
                 adios_transform_params = \
