@@ -12,6 +12,7 @@ import os
 import json
 import math
 import shutil
+import shlex
 import inspect
 from collections import OrderedDict
 
@@ -424,7 +425,7 @@ class Run(object):
         sos_args = [
             '-l', str(self.get_total_nprocs()),
             '-a', str(num_aggregators),
-            '-w', str(run_path)
+            '-w', shlex.quote(run_path)
         ]
         # TODO: this will break if there are spaces in run_path
         sos_cmd = ' '.join([sosd_path] + sos_args)
