@@ -193,9 +193,9 @@ class Campaign(object):
                                   os.path.join(group_output_dir,
                                                'run-%03d' % i),
                                   self.inputs_fullpath,
+                                  node_layout,
                                   group.component_subdirs,
-                                  group.component_inputs,
-                                  node_layout=node_layout)
+                                  group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
             self.runs.extend(group_runs)
             if group.max_procs is None:
@@ -359,7 +359,7 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 component_subdirs, node_layout, component_inputs=None):
+                 node_layout, component_subdirs, component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
