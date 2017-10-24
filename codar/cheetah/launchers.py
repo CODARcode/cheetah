@@ -100,6 +100,7 @@ class Launcher(object):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)
 
+                # Create working dir for each component
                 for rc in run.run_components:
                     os.makedirs(rc.working_dir, exist_ok=True)
 

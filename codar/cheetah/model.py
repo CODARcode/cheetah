@@ -363,7 +363,11 @@ class Run(object):
             if not exe_path.startswith('/'):
                 exe_path = os.path.join(self.codes_path, exe_path)
             sleep_after = self.codes[target].get('sleep_after', 0)
-            working_dir = os.path.abspath(self.run_path + "/" + target)
+
+            # Set separate subdirs for individual components if requested
+            working_dir = os.path.abspath(self.run_path)
+            if self.component_subdirs:
+                working_dir = os.path.abspath(self.run_path + "/" + target)
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
