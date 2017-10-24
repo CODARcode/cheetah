@@ -83,8 +83,7 @@ class HeatTransfer(Campaign):
                   # component.
                   # Copying source file just for demonstration.
                   component_inputs={"stage": ["stage_write/utils.h",
-                                              "stage_write/decompose.h"],
-                                    "heat": ["CODAR-fig.jpg"]},
+                                              "stage_write/decompose.h"]},
 
       # Within a SweepGroup, each parameter_group specifies arguments for
       # each of the parameters required for each code. Number of runs is the

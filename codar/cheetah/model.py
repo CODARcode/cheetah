@@ -370,7 +370,12 @@ class Run(object):
             working_dir = os.path.abspath(self.run_path)
             if self.component_subdirs:
                 working_dir = os.path.abspath(self.run_path + "/" + target)
-            component_inputs = self.component_inputs[target]
+
+            component_inputs = None
+            if self.component_inputs:
+                if target in self.component_inputs:
+                    component_inputs = self.component_inputs[target]
+
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
