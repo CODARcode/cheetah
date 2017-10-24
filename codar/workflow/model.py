@@ -20,6 +20,7 @@ import math
 import threading
 
 from codar.workflow import status
+from codar.cheetah.model import NodeLayout
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -74,6 +75,10 @@ class Run(threading.Thread):
         self.logger = logger
         self.runner = None
         self.callbacks = set()
+
+        # calculated by Pipeline based on node layout
+        self.nodes = None
+        self.tasks_per_node = None
 
     def set_runner(self, runner):
         self.runner = runner
@@ -241,7 +246,8 @@ class Pipeline(object):
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
-                 post_process_stop_on_failure=False):
+                 post_process_stop_on_failure=False,
+                 node_layout=None):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
@@ -249,6 +255,7 @@ class Pipeline(object):
         self.post_process_script = post_process_script
         self.post_process_args = post_process_args
         self.post_process_stop_on_failure = post_process_stop_on_failure
+        self.node_layout = node_layout
 
         self._state_lock = threading.Lock()
         self._running = False
@@ -264,6 +271,8 @@ class Pipeline(object):
         self.log_prefix = None
         for run in runs:
             self.total_procs += run.nprocs
+        # requires ppn to determine, in case node layout is not specified
+        self.total_nodes = None
 
     @classmethod
     def from_data(cls, data):
@@ -292,11 +301,13 @@ class Pipeline(object):
         if not isinstance(post_process_args, list):
             raise ValueError("'post_process_args' must be a list")
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
+        node_layout = data.get("node_layout")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
                     kill_on_partial_failure=kill_on_partial_failure,
                     post_process_script=post_process_script,
                     post_process_args=post_process_args,
-                    post_process_stop_on_failure=post_process_stop_on_failure)
+                    post_process_stop_on_failure=post_process_stop_on_failure,
+                    node_layout=node_layout)
 
     def start(self, consumer, runner=None):
         # Mark all runs as active before they are actually started
@@ -417,15 +428,31 @@ class Pipeline(object):
         for cb in self.fatal_callbacks:
             cb(self)
 
-    def get_nodes_used(self, ppn):
-        """Get number of nodes needed to run pipeline with the given number
-        of process per node (ppn). Assumes each app run will gain exclusive
-        access to the node, i.e. each app consumes at least one node, even if
-        it doesn't use all available processes."""
-        nodes = 0
+    def get_nodes_used(self):
+        if self.total_nodes is None:
+            raise ValueError("set_ppn must be called before getting node usage")
+        return self.total_nodes
+
+    def set_ppn(self, ppn):
+        """Determine number of nodes needed to run pipeline with the specified
+        node layout or full occupancy layout with ppn. Also updates runs
+        to set node and task per node counts."""
+        if self.node_layout is None:
+            run_names = [run.name for run in self.runs]
+            node_layout = NodeLayout.default_no_share_layout(ppn, run_names)
+        else:
+            node_layout = NodeLayout(self.node_layout)
+
+        self.total_nodes = 0
         for run in self.runs:
-            nodes += math.ceil(run.nprocs / ppn)
-        return nodes
+            run_node = node_layout.get_node_containing_code(run.name)
+
+            # node sharing is not yet supported
+            assert len(run_node) == 1
+
+            run.tasks_per_node = run_node[run.name]
+            run.nodes = int(math.ceil(run.nprocs / run.tasks_per_node))
+            self.total_nodes += run.nodes
 
     def get_state(self):
         with self._state_lock:
@@ -502,18 +529,29 @@ class Runner(object):
 
 
 class MPIRunner(Runner):
-    def __init__(self, exe, nprocs_arg, nodes_arg=None):
+    def __init__(self, exe, nprocs_arg, nodes_arg=None,
+                 tasks_per_node_arg=None):
         self.exe = exe
         self.nprocs_arg = nprocs_arg
         self.nodes_arg = nodes_arg
+        self.tasks_per_node_arg = tasks_per_node_arg
 
-    def wrap(self, run):
-        exe_path = shutil.which(self.exe)
+    def wrap(self, run, find_in_path=True):
+        if find_in_path:
+            exe_path = shutil.which(self.exe)
+        else:
+            # for test cases
+            exe_path = self.exe
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
-        return [exe_path, self.nprocs_arg, str(run.nprocs), run.exe] + run.args
+        runner_args = [exe_path, self.nprocs_arg, str(run.nprocs)]
+        if self.nodes_arg:
+            runner_args += [self.nodes_arg, str(run.nodes)]
+        if self.tasks_per_node_arg:
+            runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
+        return runner_args + [run.exe] + run.args
 
 
 mpiexec = MPIRunner('mpiexec', '-n')
-aprun = MPIRunner('aprun', '-n')
-srun = MPIRunner('srun', '-n', '-N')
+aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N')
+srun = MPIRunner('srun', '-n', nodes_arg='-N')

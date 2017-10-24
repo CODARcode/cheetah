@@ -182,7 +182,7 @@ class Campaign(object):
                 if node_layout is None:
                     node_layout = NodeLayout.default_no_share_layout(
                                         self.machine.processes_per_node,
-                                        self.codes)
+                                        self.codes.keys())
                 else:
                     node_layout = NodeLayout(node_layout)
                 if group.sosflow:
@@ -343,10 +343,10 @@ class NodeLayout(object):
         return list(self.layout_list)
 
     @classmethod
-    def default_no_share_layout(cls, ppn, codes):
+    def default_no_share_layout(cls, ppn, code_names):
         """Create a layout object for the specified codes and ppn, where each
         code uses max procs on it's own node."""
-        layout = [{ code: ppn } for code in codes.keys()]
+        layout = [{ code: ppn } for code in code_names]
         return cls(layout)
 
 
