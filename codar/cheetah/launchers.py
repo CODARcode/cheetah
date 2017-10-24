@@ -57,7 +57,7 @@ class Launcher(object):
 
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, nodes,
-                               walltime, node_exclusive,
+                               component_subdirs, walltime, node_exclusive,
                                timeout, machine, tau_config=None,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
@@ -99,6 +99,9 @@ class Launcher(object):
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
                 os.makedirs(run.run_path, exist_ok=True)
+
+                for rc in run.run_components:
+                    os.makedirs(rc.working_dir, exist_ok=True)
 
                 if sosflow:
                     # TODO: make num aggregators configurable

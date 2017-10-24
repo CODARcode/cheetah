@@ -15,10 +15,11 @@ class SweepGroup(object):
     How this gets converted into a script depends on the target machine and
     which scheduler (if any) that machine uses.
     """
-    def __init__(self, name, nodes, parameter_groups, walltime=3600,
-                 max_procs=None, per_run_timeout=None, sosflow=False):
+    def __init__(self, name, nodes, parameter_groups, component_subdirs=False,
+                 walltime=3600, max_procs=None, per_run_timeout=None, sosflow=False):
         self.name = name
         self.nodes = nodes
+        self.component_subdirs=component_subdirs
         self.max_procs = max_procs
         self.parameter_groups = parameter_groups
         self.walltime = walltime

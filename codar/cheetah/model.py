@@ -180,6 +180,7 @@ class Campaign(object):
                                   os.path.join(group_output_dir,
                                                'run-%03d' % i),
                                   self.inputs_fullpath,
+                                  group.component_subdirs,
                                   node_layout=node_layout)
                               for i, inst in enumerate(sweep.get_instances())]
             self.runs.extend(group_runs)
@@ -205,6 +206,7 @@ class Campaign(object):
                 max_procs,
                 processes_per_node=group_ppn,
                 nodes=group.nodes,
+                component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
                 node_exclusive=self.machine.node_exclusive,
@@ -342,7 +344,7 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout):
+                 component_subdirs, node_layout):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -350,6 +352,7 @@ class Run(object):
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
         self.node_layout = node_layout
+        self.component_subdirs = component_subdirs
         self.run_components = self._get_run_components()
 
     def _get_run_components(self):
@@ -360,9 +363,11 @@ class Run(object):
             if not exe_path.startswith('/'):
                 exe_path = os.path.join(self.codes_path, exe_path)
             sleep_after = self.codes[target].get('sleep_after', 0)
+            working_dir = os.path.abspath(self.run_path + "/" + target)
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
-                                sleep_after=sleep_after)
+                                sleep_after=sleep_after,
+                                working_dir=working_dir)
             comps.append(comp)
         return comps
 
@@ -463,8 +468,8 @@ class Run(object):
 
 
 class RunComponent(object):
-    def __init__(self, name, exe, args, nprocs, sleep_after=None,
-                 env=None, timeout=None):
+    def __init__(self, name, exe, args, nprocs, working_dir,
+                 sleep_after=None, env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -472,12 +477,14 @@ class RunComponent(object):
         self.sleep_after = sleep_after
         self.env = env or {}
         self.timeout = timeout
+        self.working_dir = working_dir
 
     def as_fob_data(self):
         data = dict(name=self.name,
                     exe=self.exe,
                     args=self.args,
                     nprocs=self.nprocs,
+                    working_dir = self.working_dir,
                     sleep_after=self.sleep_after)
         if self.env:
             data['env'] = self.env
