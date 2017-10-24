@@ -31,6 +31,12 @@ class HeatTransfer(Campaign):
     # is usually the case when using an adios stage code.
     kill_on_partial_failure = True
 
+    # This script will be for every run directory during campaign
+    # creation. This can be used to customize the directory structure
+    # needed for the application - this example simply creates an extra
+    # directory.
+    run_dir_setup_script = "run-dir-setup-mkdir.sh"
+
     # Options to pass to the scheduler (PBS or slurm). These are set per
     # target machine, since likely different options will be needed for
     # each.

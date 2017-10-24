@@ -49,6 +49,14 @@ class Campaign(object):
     run_post_process_script = None
     run_post_process_stop_group_on_failure = False
 
+    # Script to be run for each run directory. The working dir will be
+    # set to the run dir and no arguments will be passed. It will be
+    # run as the last step, so all files created by cheetah, like the
+    # FOB file, will be present. If the value is non-None and does not
+    # begin with '/', the path will be assumed to be relative to the
+    # directory containing the campaign spec.
+    run_dir_setup_script = None
+
     # Schedular options. Not used when using machine 'local', required
     # when using super computers.
     scheduler_options = {}
@@ -109,6 +117,10 @@ class Campaign(object):
         o = self.scheduler_options.get(machine_name, {})
         # TODO: deeper validation with knowledge of scheduler
         self.machine_scheduler_options = self.machine.get_scheduler_options(o)
+
+        if self.run_dir_setup_script is not None:
+            self.run_dir_setup_script = self._experiment_relative_path(
+                                                self.run_dir_setup_script)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -220,7 +232,8 @@ class Campaign(object):
                 machine=self.machine,
                 sosflow=group.sosflow,
                 sosd_path=self.sosd_path,
-                node_layout=node_layout)
+                node_layout=node_layout,
+                run_dir_setup_script=self.run_dir_setup_script)
 
         # TODO: track directories and ids and add to this file
         all_params_json_path = os.path.join(output_dir, "params.json")

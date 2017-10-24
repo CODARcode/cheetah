@@ -12,6 +12,7 @@ import shutil
 import re
 import math
 from collections import OrderedDict
+import subprocess
 
 from codar.cheetah import adios_transform, config, templates
 from codar.cheetah.parameters import ParamAdiosXML
@@ -65,7 +66,8 @@ class Launcher(object):
                                scheduler_options=None,
                                sosflow=False,
                                sosd_path=None,
-                               node_layout=None):
+                               node_layout=None,
+                               run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
@@ -181,10 +183,17 @@ class Launcher(object):
                     runf.write(fob_s)
                     runf.write("\n")
 
+                if run_dir_setup_script is not None:
+                    self._execute_run_dir_setup_script(run.run_path,
+                                                       run_dir_setup_script)
+
                 # append to fob list file in group dir
                 f.write(fob_s)
                 f.write("\n")
 
+    def _execute_run_dir_setup_script(self, run_dir, script_path):
+        """Raises subprocess.CalledProcessError on failure."""
+        subprocess.check_call([script_path], cwd=run_dir)
 
     def read_jobid(self):
         jobid_file_path = os.path.join(self.output_directory,
