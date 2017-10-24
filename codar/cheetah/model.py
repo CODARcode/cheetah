@@ -345,7 +345,7 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 component_subdirs, component_inputs, node_layout):
+                 component_subdirs, node_layout, component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -367,14 +367,14 @@ class Run(object):
             sleep_after = self.codes[target].get('sleep_after', 0)
 
             # Set separate subdirs for individual components if requested
-            working_dir = os.path.abspath(self.run_path)
             if self.component_subdirs:
-                working_dir = os.path.abspath(self.run_path + "/" + target)
+                working_dir = os.path.join(self.run_path, target)
+            else:
+                working_dir = self.run_path
 
             component_inputs = None
             if self.component_inputs:
-                if target in self.component_inputs:
-                    component_inputs = self.component_inputs[target]
+                component_inputs = self.component_inputs.get(target)
 
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
@@ -423,7 +423,8 @@ class Run(object):
 
         # Insert sosd component so it runs at start after 5 seconds
         rc = RunComponent('sosflow', sosd_path, sosd_args,
-                          nprocs=1, sleep_after=5)
+                          nprocs=1, sleep_after=5,
+                          working_dir=self.run_path)
         self.run_components.insert(0, rc)
 
         node_offset = 0
@@ -482,7 +483,7 @@ class Run(object):
 
 class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
-                 component_inputs, sleep_after=None,
+                 component_inputs=None, sleep_after=None,
                  env=None, timeout=None):
         self.name = name
         self.exe = exe

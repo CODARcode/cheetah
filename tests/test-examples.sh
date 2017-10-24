@@ -42,12 +42,12 @@ rm -rf test_output/local-heat-simple/*
 rm -rf test_output/local-heat-rc-subdirs-inputs/*
 ./cheetah.py -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/local-heat-simple-rc-subdirs-inputs
+    -o test_output/local-heat-rc-subdirs-inputs
 
 rm -rf test_output/titan-heat-rc-subdirs-inputs/*
 ./cheetah.py -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/titan-heat-simple-rc-subdirs-inputs
+    -o test_output/titan-heat-rc-subdirs-inputs
 
 # End ------------- per component subdirs and inputs -----------
 
