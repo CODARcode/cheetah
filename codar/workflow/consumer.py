@@ -92,7 +92,7 @@ class PipelineRunner(object):
             if self.max_procs is not None:
                 self.free_procs += run.nprocs
             else:
-                self.free_nodes += run.get_nodes_used(self.ppn)
+                self.free_nodes += run.get_nodes_used()
             self.free_cv.notify()
 
     def pipeline_finished(self, pipeline):
@@ -112,7 +112,7 @@ class PipelineRunner(object):
         if self.max_procs is not None:
             return (self.free_procs >= pipeline.total_procs)
         else:
-            return (self.free_nodes >= pipeline.get_nodes_used(self.ppn))
+            return (self.free_nodes >= pipeline.get_nodes_used())
 
     def run_pipelines(self):
         """Main loop of consumer thread. Does not return until all child
@@ -123,6 +123,7 @@ class PipelineRunner(object):
             pipeline = self.q.get() # NB: this blocks on empty queue
             if pipeline is None:
                 break
+            pipeline.set_ppn(self.ppn)
             with self.free_cv:
                 while not self._pipeline_can_run(pipeline):
                     # allow exiting wait loop if signaled by another
@@ -135,7 +136,7 @@ class PipelineRunner(object):
                     if self.max_procs is not None:
                         self.free_procs -= pipeline.total_procs
                     else:
-                        self.free_nodes -= pipeline.get_nodes_used(self.ppn)
+                        self.free_nodes -= pipeline.get_nodes_used()
 
             with self._state_lock:
                 # check state in case kill was issued while we were
