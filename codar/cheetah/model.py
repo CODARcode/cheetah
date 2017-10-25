@@ -188,7 +188,7 @@ class Campaign(object):
                     node_layout = NodeLayout(node_layout)
                 if group.sosflow:
                     node_layout.add_node({ 'sosflow':
-                                            self.machine.process_per_node })
+                                            self.machine.processes_per_node })
                 # TODO: validate node layout against machine model
 
                 group_runs = [Run(inst, self.codes, self.app_dir,
