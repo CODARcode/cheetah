@@ -235,10 +235,11 @@ class Run(threading.Thread):
         self.logger = logger
         self.log_prefix = log_prefix
 
-    def get_nodes_used(self, ppn):
-        """Get number of nodes needed to run this app with the given number
-        of process per node (ppn)."""
-        return math.ceil(self.nprocs / ppn)
+    def get_nodes_used(self):
+        """Get number of nodes needed to run this app. Requires that the
+        pipeline set_ppn method has been called to set this and tasks_per_node
+        on each run."""
+        return self.nodes
 
 
 class Pipeline(object):
