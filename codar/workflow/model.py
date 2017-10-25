@@ -451,6 +451,8 @@ class Pipeline(object):
             assert len(run_node) == 1
 
             run.tasks_per_node = run_node[run.name]
+            if run.tasks_per_node > run.nprocs:
+                run.tasks_per_node = run.nprocs
             run.nodes = int(math.ceil(run.nprocs / run.tasks_per_node))
             self.total_nodes += run.nodes
 
