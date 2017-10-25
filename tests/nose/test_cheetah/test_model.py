@@ -73,7 +73,7 @@ def test_codes_ordering():
     out_dir = os.path.join(TEST_OUTPUT_DIR,
                            'test_model', 'test_codes_ordering')
     fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
-    shutil.rmtree(out_dir) # clean up any old test output
+    shutil.rmtree(out_dir, ignore_errors=True) # clean up any old test output
     c.make_experiment_run_dir(out_dir)
 
     correct_order = list(c.codes.keys())
