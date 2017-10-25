@@ -66,6 +66,7 @@ class Launcher(object):
                                scheduler_options=None,
                                sosflow=False,
                                sosd_path=None,
+                               sosd_num_aggregators=1,
                                node_layout=None,
                                run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
@@ -107,8 +108,8 @@ class Launcher(object):
                     os.makedirs(rc.working_dir, exist_ok=True)
 
                 if sosflow:
-                    # TODO: make num aggregators configurable
-                    run.insert_sosflow(sosd_path, run.run_path, 1,
+                    run.insert_sosflow(sosd_path, run.run_path,
+                                       sosd_num_aggregators,
                                        machine.processes_per_node)
 
                 if tau_config is not None:

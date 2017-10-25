@@ -69,6 +69,7 @@ class Campaign(object):
     # TODO: make this part of machine config? Or does it make sense to
     # have per-app binaries for sos?
     sosd_path = None
+    sosd_num_aggregators = 1
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing all runs. Must be relative to the
@@ -186,7 +187,8 @@ class Campaign(object):
                 else:
                     node_layout = NodeLayout(node_layout)
                 if group.sosflow:
-                    node_layout.add_node({ 'sosflow': 1 })
+                    node_layout.add_node({ 'sosflow':
+                                            self.machine.process_per_node })
                 # TODO: validate node layout against machine model
 
                 group_runs = [Run(inst, self.codes, self.app_dir,
@@ -233,6 +235,7 @@ class Campaign(object):
                 machine=self.machine,
                 sosflow=group.sosflow,
                 sosd_path=self.sosd_path,
+                sosd_num_aggregators=self.sosd_num_aggregators,
                 node_layout=node_layout,
                 run_dir_setup_script=self.run_dir_setup_script)
 
@@ -437,7 +440,7 @@ class Run(object):
 
         # Insert sosd component so it runs at start after 5 seconds
         rc = RunComponent('sosflow', sosd_path, sosd_args,
-                          nprocs=1, sleep_after=5,
+                          nprocs=num_aggregators, sleep_after=5,
                           working_dir=self.run_path)
         self.run_components.insert(0, rc)
 
