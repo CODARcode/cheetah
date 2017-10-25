@@ -16,7 +16,7 @@ import shlex
 import inspect
 from collections import OrderedDict
 
-from codar.cheetah import machines, parameters, helpers, config, templates
+from codar.cheetah import machines, parameters, config, templates
 
 
 RESERVED_CODE_NAMES = set(['post-process'])

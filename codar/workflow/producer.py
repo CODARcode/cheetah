@@ -1,7 +1,7 @@
 """Classes for producing pipelines."""
 
 import json
-from codar.workflow.model import Run, Pipeline
+from codar.workflow.model import Pipeline
 
 
 class JSONFilePipelineReader(object):
