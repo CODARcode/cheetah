@@ -149,15 +149,15 @@ class Instance(object):
                 target_pv_list.append(derived_pv)
 
             for pv in target_pv_list:
-                # Custom handling for command line param types: start
-                # building up the command.
+                # Add a command for any code that has at least one param
+                # of any type, even if no command line args or opts.
+                if target not in self._code_commands:
+                    self._code_commands[target] = CodeCommand(target)
+
+                # Custom handling for command line param types
                 if pv.is_type(ParamCmdLineArg):
-                    if target not in self._code_commands:
-                        self._code_commands[target] = CodeCommand(target)
                     self._code_commands[target].add_arg(pv.position, pv.value)
                 elif pv.is_type(ParamCmdLineOption):
-                    if target not in self._code_commands:
-                        self._code_commands[target] = CodeCommand(target)
                     self._code_commands[target].add_option(pv.option, pv.value)
                 if pv.name in target_p:
                     raise ValueError('parameter name conflict: "%s"' % pv.name)
