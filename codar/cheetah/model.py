@@ -416,6 +416,18 @@ class Run(object):
     def get_total_nprocs(self):
         return sum(rc.nprocs for rc in self.run_components)
 
+    def get_total_nodes(self):
+        """Get the total number of nodes that will be required by the Run.
+        Node-sharing not supported yet.
+        This should not include the nodes required by sosflow."""
+        num_nodes = 0
+        for rc in self.run_components:
+            code_node = self.node_layout.get_node_containing_code(rc.name)
+            code_procs_per_node = code_node[rc.name]
+            num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
+
+        return num_nodes
+
     def get_app_param_dict(self):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
@@ -425,8 +437,12 @@ class Run(object):
         """Insert a new component at start of list to launch sosflow daemon.
         Should be called only once."""
         assert self.run_components[0].name != 'sosflow'
+
+        # sos_args must be calculated before adding sosflow as a RunComponent,
+        # as get_total_nodes() needs to return only application nodes and not
+        # any nodes required by sosflow.
         sos_args = [
-            '-l', str(self.get_total_nprocs()),
+            '-l', str(self.get_total_nodes()),
             '-a', str(num_aggregators),
             '-w', shlex.quote(run_path)
         ]
