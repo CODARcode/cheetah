@@ -11,7 +11,7 @@ import shlex
 import shutil
 import subprocess
 
-from codar.cheetah import adios_transform, config, templates
+from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML
 from codar.cheetah.helpers import parse_timedelta_seconds
 
@@ -123,12 +123,27 @@ class Launcher(object):
                             shutil.copy(file_path, rc.working_dir+"/.")
 
                 # ADIOS XML param support
-                adios_transform_params = \
+                adios_xml_params = \
                     run.instance.get_parameter_values_by_type(ParamAdiosXML)
-                for pv in adios_transform_params:
+                for pv in adios_xml_params:
                     xml_filepath = os.path.join(run.run_path, pv.xml_filename)
-                    adios_transform.adios_xml_transform(xml_filepath,
-                                        pv.group_name, pv.var_name, pv.value)
+                    if pv.param_type == "adios_transform":
+                        adios_params.adios_xml_transform(
+                            xml_filepath,pv.group_name, pv.var_name, pv.value)
+                    elif pv.param_type == "adios_transport":
+                        # value could be "MPI_AGGREGATE:num_aggregators=64;num_osts"
+                        # extract the method name and the method options
+                        method_name = pv.value
+                        method_opts = ""
+                        if ":" in pv.value:
+                            value_tokens = pv.value.split(":", 1)
+                            method_name = value_tokens[0]
+                            method_opts = value_tokens[1]
+
+                        adios_params.adios_xml_transport(
+                            xml_filepath, pv.group_name, method_name, method_opts)
+                    else:
+                        raise "Unrecognized adios param"
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,

@@ -6,6 +6,7 @@ is an ADIOS specific term.
 
 import xml.etree.cElementTree as ET
 
+
 def adios_xml_transform(xml_filepath, group_name, var_name, value):
     """
     Edit the ADIOS XML file to enable transform (compression/reduction) for a
@@ -28,6 +29,15 @@ def adios_xml_transform(xml_filepath, group_name, var_name, value):
     tag.set('transform', value)
     tree.write(xml_filepath)
 
+
+def adios_xml_transport(xml_filepath, group_name, method_name, method_opts):
+    tree = ET.parse(xml_filepath)
+
+    elem = tree.find('method[@group="' + group_name + '"]')
+    elem.set('method', method_name)
+    elem.text = method_opts
+
+    tree.write(xml_filepath)
 
 #if __name__ == "__main__":
  #   adios_xml_transform("heat:T", "sz", "/Users/kpu/vshare/scratch/heat_transfer.xml")
