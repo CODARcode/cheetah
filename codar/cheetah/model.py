@@ -463,30 +463,38 @@ class Run(object):
         # any nodes required by sosflow.
 
         num_listeners = self._get_total_sosflow_component_nodes()
-        # return if no components are setup to use sosflow
+        # return if no components are setup to use sosflow. That is,
+        # sosflow=False in `codes` for all components
         if num_listeners == 0:
             return
 
-        sos_args = [
-            '-l', str(num_listeners),
-            '-a', str(num_aggregators),
-            '-w', shlex.quote(run_path)
-        ]
-        # TODO: this will break if there are spaces in run_path
-        sos_cmd = ' '.join([sosd_path] + sos_args)
-        sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
-        sosd_args = sos_args + [
-            '-k', '0',
-            '-r', 'aggregator',
-        ]
+        # From Kevin Huck, U of Oregon
+        max_listeners_per_aggregator = 128
+        num_aggregators = math.ceil(num_listeners/max_listeners_per_aggregator)
 
-        # Insert sosd component so it runs at start after 5 seconds
-        rc = RunComponent('sosflow', sosd_path, sosd_args,
-                          nprocs=num_aggregators, sleep_after=5,
-                          working_dir=self.run_path)
-        self.run_components.insert(0, rc)
+        # Add sos aggregators to be run
+        listener_node_offset = 0
+        for i in range(num_aggregators):
+            sos_args = [
+                '-l', str(num_listeners),
+                '-a', str(num_aggregators),
+                '-w', shlex.quote(run_path)
+            ]
+            # TODO: this will break if there are spaces in run_path
+            sos_cmd = ' '.join([sosd_path] + sos_args)
+            sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
+            sosd_args = sos_args + [
+                '-k', str(i),
+                '-r', 'aggregator',
+            ]
 
-        node_offset = 0
+            # Insert sosd component so it runs at start after 5 seconds
+            rc = RunComponent('sosflow', sosd_path, sosd_args,
+                              nprocs=1, sleep_after=5,
+                              working_dir=self.run_path)
+            self.run_components.insert(i, rc)
+
+            listener_node_offset += 1
 
         # add env vars to each run, including sosflow daemon
         # NOTE: not sure how many if any are required for sosd, but
@@ -534,14 +542,14 @@ class Run(object):
             # Tell SOS what 'rank' it's listeners should start with
             # the aggregator was 'rank' 0, so this node's listener will be 1
             # This offset is the node count where this fob component starts
-            rc.env['SOS_LISTENER_RANK_OFFSET'] = str(node_offset)
+            rc.env['SOS_LISTENER_RANK_OFFSET'] = str(listener_node_offset)
 
             # TODO: this assumes node exclusive. To support node sharing
             # with custom layouts, will need to know layout here and
             # calculate actual node usage. This potentially duplicates
             # functionality needed in workflow, should eventual converge
             # so they are using the same model.
-            node_offset += code_nodes
+            listener_node_offset += code_nodes
 
 
 class RunComponent(object):
