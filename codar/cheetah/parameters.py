@@ -317,18 +317,24 @@ class ParamAdiosXML(Param):
 
     Format:
         adios_transform:<xml_filename>:<group_name>:<var_name>
+        adios_transport:<xml_filename>:<group_name>
 
     Note that the filename is assumed to be relative to the app directory
     specified as a Cheetah command line argument.
     """
-    def __init__(self, target, name, values):
+    def __init__(self, target, name, adios_xml_tags, values):
         Param.__init__(self, target, name, values)
-        parts = name.split(":")
-        if len(parts) != 4 or parts[0] != "adios_transform":
+        parts = adios_xml_tags.split(":")
+        if len(parts) < 3:
             raise ValueError("bad format for ParamAdiosXML name")
+        # param_type = adios_transform or adios_transport
+        self.param_type = parts[0]
         self.xml_filename = parts[1]
         self.group_name = parts[2]
-        self.var_name = parts[3]
+
+        # if param_type is transform
+        if len(parts) == 4:
+            self.var_name = parts[3]
 
 
 class ParamCmdLineOption(Param):

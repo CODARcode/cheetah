@@ -114,6 +114,10 @@ class HeatTransfer(Campaign):
         p.ParamCmdLineArg("heat", "ysize", 5, [50]),
         p.ParamCmdLineArg("heat", "steps", 6, [6]),
         p.ParamCmdLineArg("heat", "iterations", 7, [5]),
+        p.ParamAdiosXML("heat", "transport", "adios_transport:heat_transfer.xml:heat",
+                        ["MPI_AGGREGATE:num_aggregators=4;num_osts=44",
+                         "POSIX",
+                         "FLEXPATH"]),
         ]),
       ]),
     ]
