@@ -18,8 +18,8 @@ class HeatTransfer(Campaign):
     # This applications consists of two codes, with nicknames "heat" and
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
-    codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
-             ('heat', dict(exe="heat_transfer_adios2", sleep_after=0))]
+    codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5, sosflow=True)),
+             ('heat', dict(exe="heat_transfer_adios2", sleep_after=0, sosflow=True))]
 
     # The application is designed to run on two machines.
     # (These are magic strings known to Cheetah.)

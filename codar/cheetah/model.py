@@ -397,11 +397,16 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
 
+            sosflow=False
+            if "sosflow" in self.codes[target]:
+                sosflow = self.codes[target].get('sosflow')
+
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
                                 working_dir=working_dir,
-                                component_inputs=component_inputs)
+                                component_inputs=component_inputs,
+                                sosflow=sosflow)
             comps.append(comp)
         return comps
 
@@ -437,6 +442,21 @@ class Run(object):
 
         return num_nodes
 
+    def _get_total_sosflow_component_nodes(self):
+        """Get the total number of nodes that will be required by the components
+        that will use sosflow.
+        This will be less than or equal to the total number of nodes in the Run.
+        Node-sharing not supported yet.
+        This should not include the nodes required by sosflow."""
+        num_nodes = 0
+        for rc in self.run_components:
+            if rc.sosflow:
+                code_node = self.node_layout.get_node_containing_code(rc.name)
+                code_procs_per_node = code_node[rc.name]
+                num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
+
+        return num_nodes
+
     def get_app_param_dict(self):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
@@ -450,8 +470,14 @@ class Run(object):
         # sos_args must be calculated before adding sosflow as a RunComponent,
         # as get_total_nodes() needs to return only application nodes and not
         # any nodes required by sosflow.
+
+        num_listeners = self._get_total_sosflow_component_nodes()
+        # return if no components are setup to use sosflow
+        if num_listeners == 0:
+            return
+
         sos_args = [
-            '-l', str(self.get_total_nodes()),
+            '-l', str(num_listeners),
             '-a', str(num_aggregators),
             '-w', shlex.quote(run_path)
         ]
@@ -476,6 +502,10 @@ class Run(object):
         # should not hurt to have them, and simplifies the offset
         # calculation
         for rc in self.run_components:
+            # ignore component if not setup to use sosflow
+            if not rc.sosflow:
+                continue
+
             # TODO: is this actually used directly?
             rc.env['sos_cmd'] = sos_cmd
             rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
@@ -526,7 +556,7 @@ class Run(object):
 class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
-                 env=None, timeout=None):
+                 sosflow=False, env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -536,6 +566,7 @@ class RunComponent(object):
         self.timeout = timeout
         self.working_dir = working_dir
         self.component_inputs = component_inputs
+        self.sosflow = sosflow
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -543,7 +574,8 @@ class RunComponent(object):
                     args=self.args,
                     nprocs=self.nprocs,
                     working_dir=self.working_dir,
-                    sleep_after=self.sleep_after)
+                    sleep_after=self.sleep_after,
+                    sosflow=self.sosflow)
         if self.env:
             data['env'] = self.env
         if self.timeout:
