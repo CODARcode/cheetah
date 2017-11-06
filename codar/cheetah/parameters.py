@@ -17,7 +17,7 @@ class SweepGroup(object):
     """
     def __init__(self, name, nodes, parameter_groups, component_subdirs=False,
                  component_inputs=None, walltime=3600, max_procs=None,
-                 per_run_timeout=None, sosflow=False):
+                 per_run_timeout=None, sosflow=False, sosflow_analysis=False):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
@@ -27,6 +27,7 @@ class SweepGroup(object):
         # TODO: allow override in Sweeps?
         self.per_run_timeout = per_run_timeout
         self.sosflow = sosflow
+        self.sosflow_analysis = sosflow_analysis
         self.component_inputs = component_inputs
 
 
