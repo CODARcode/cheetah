@@ -35,6 +35,18 @@ class HeatTransfer(Campaign):
     # is usually the case when using an adios stage code.
     kill_on_partial_failure = True
 
+    # A setup script that will be run after the campaign is created.
+    # This is a good way to do run some setup tasks that are not
+    # natively supported by Cheetah.
+    run_dir_setup_script = None
+
+    # Path to the sos daemon and the sos analysis script.
+    # If path is None, then Cheetah looks for the sos daemon and the
+    # analysis script in the application dir pointed to when Cheetah
+    # is run to create the campaign.
+    sosd_path = None
+    sos_analysis_path = None
+
     # Options to pass to the scheduler (PBS or slurm). These are set per
     # target machine, since likely different options will be needed for
     # each.
@@ -75,6 +87,7 @@ class HeatTransfer(Campaign):
                                 # for this experiment will allow two runs
                                 # at a time, since 28/14=2.
                   sosflow=True,
+                  sosflow_analysis=True,
 
       # Within a SweepGroup, each parameter_group specifies arguments for
       # each of the parameters required for each code. Number of runs is the
