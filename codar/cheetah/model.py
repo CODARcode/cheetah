@@ -56,6 +56,7 @@ class Campaign(object):
     # FOB file, will be present. If the value is non-None and does not
     # begin with '/', the path will be assumed to be relative to the
     # directory containing the campaign spec.
+    # @TODO: This must be per sweep group
     run_dir_setup_script = None
 
     # Schedular options. Not used when using machine 'local', required
