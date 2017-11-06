@@ -55,14 +55,14 @@ class Launcher(object):
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, nodes,
                                component_subdirs, walltime, node_exclusive,
-                               timeout, machine, tau_config=None,
+                               timeout, machine,
+                               sosd_path=None,
+                               sos_analysis_path=None,
+                               tau_config=None,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
                                scheduler_options=None,
-                               sosflow=False,
-                               sosd_path=None,
-                               sosd_num_aggregators=1,
                                node_layout=None,
                                run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
@@ -103,10 +103,9 @@ class Launcher(object):
                 for rc in run.run_components:
                     os.makedirs(rc.working_dir, exist_ok=True)
 
-                if sosflow:
-                    run.insert_sosflow(sosd_path, run.run_path,
-                                       sosd_num_aggregators,
-                                       machine.processes_per_node)
+                if run.sosflow:
+                    run.insert_sosflow(sosd_path, sos_analysis_path,
+                                       run.run_path, machine.processes_per_node)
 
                 if tau_config is not None:
                     shutil.copy(tau_config, run.run_path)

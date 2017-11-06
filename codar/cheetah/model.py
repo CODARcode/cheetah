@@ -69,6 +69,7 @@ class Campaign(object):
     # TODO: make this part of machine config? Or does it make sense to
     # have per-app binaries for sos?
     sosd_path = None
+    sos_analysis_path = None
     sosd_num_aggregators = 1
 
     # Optional. If set, passed single argument which is the absolute
@@ -113,6 +114,8 @@ class Campaign(object):
 
         if self.sosd_path is None:
             self.sosd_path = os.path.join(self.app_dir, 'sosd')
+        if self.sos_analysis_path is None:
+            self.sos_analysis_path = os.path.join(self.app_dir, 'sos_wrapper.sh')
         elif not self.sosd_path.startswith('/'):
             self.tau_config = os.path.join(self.app_dir, self.sosd_path)
 
@@ -199,6 +202,8 @@ class Campaign(object):
                                   self.inputs_fullpath,
                                   node_layout,
                                   group.component_subdirs,
+                                  group.sosflow,
+                                  group.sosflow_analysis,
                                   group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
                 group_runs.extend(sweep_runs)
@@ -231,15 +236,14 @@ class Campaign(object):
                 timeout=group.per_run_timeout,
                 node_exclusive=self.machine.node_exclusive,
                 tau_config=self.tau_config,
+                machine=self.machine,
+                sosd_path=self.sosd_path,
+                sos_analysis_path=self.sos_analysis_path,
                 kill_on_partial_failure=self.kill_on_partial_failure,
                 run_post_process_script=self.run_post_process_script,
                 run_post_process_stop_on_failure=
                     self.run_post_process_stop_group_on_failure,
                 scheduler_options=self.machine_scheduler_options,
-                machine=self.machine,
-                sosflow=group.sosflow,
-                sosd_path=self.sosd_path,
-                sosd_num_aggregators=self.sosd_num_aggregators,
                 node_layout=node_layout,
                 run_dir_setup_script=self.run_dir_setup_script)
 
@@ -366,7 +370,8 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, component_subdirs, component_inputs=None):
+                 node_layout, component_subdirs, sosflow, sosflow_analyis,
+                 component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -375,6 +380,8 @@ class Run(object):
         self.inputs = inputs
         self.node_layout = node_layout
         self.component_subdirs = component_subdirs
+        self.sosflow = sosflow
+        self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
         self.run_components = self._get_run_components()
 
@@ -462,7 +469,7 @@ class Run(object):
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
 
-    def insert_sosflow(self, sosd_path, run_path, num_aggregators, ppn):
+    def insert_sosflow(self, sosd_path, sos_analysis_path, run_path, ppn):
         """Insert a new component at start of list to launch sosflow daemon.
         Should be called only once."""
         assert self.run_components[0].name != 'sosflow'
@@ -478,27 +485,43 @@ class Run(object):
             return
 
         # From Kevin Huck, U of Oregon
-        max_listeners_per_aggregator = 128
+        max_listeners_per_aggregator = 4
         num_aggregators = math.ceil(num_listeners/max_listeners_per_aggregator)
 
         # Add sos aggregators to be run
+        #   common aggregator parameters
+        sos_args = [
+            '-l', str(num_listeners),
+            '-a', str(num_aggregators),
+            '-w', shlex.quote(run_path)
+        ]
+        # TODO: this will break if there are spaces in run_path
+        sos_cmd = ' '.join([sosd_path] + sos_args)
+        sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
+
+        #   now add each aggregator, starting with the analysis aggregator
         listener_node_offset = 0
-        for i in range(num_aggregators):
-            sos_args = [
-                '-l', str(num_listeners),
-                '-a', str(num_aggregators),
-                '-w', shlex.quote(run_path)
+        if self.sosflow_analysis:
+            sosd_args = sos_args + [
+                '-k', '0',
+                '-r', 'aggregator',
             ]
-            # TODO: this will break if there are spaces in run_path
-            sos_cmd = ' '.join([sosd_path] + sos_args)
-            sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
+            rc = RunComponent('sosflow_analysis', sos_analysis_path, sosd_args,
+                              nprocs=1, sleep_after=5,
+                              working_dir=self.run_path)
+            self.run_components.insert(0, rc)
+            listener_node_offset += 1
+
+        start_index = listener_node_offset
+        for i in range(start_index,num_aggregators):
             sosd_args = sos_args + [
                 '-k', str(i),
                 '-r', 'aggregator',
             ]
 
             # Insert sosd component so it runs at start after 5 seconds
-            rc = RunComponent('sosflow', sosd_path, sosd_args,
+            rc = RunComponent('sosflow_aggregator_' + str(i),
+                              sosd_path, sosd_args,
                               nprocs=1, sleep_after=5,
                               working_dir=self.run_path)
             self.run_components.insert(i, rc)
