@@ -81,6 +81,13 @@ cori=Machine('cori', launchers.Launcher, "slurm", "srun",
                                     license="SCRATCH,project"))
 
 
+theta=Machine('theta', launchers.Launcher, "cobalt", "aprun",
+              processes_per_node=64, node_exclusive=True,
+              scheduler_options=dict(project="",
+                                     queue="debug-flat-quad"))
+
+
+
 def get_by_name(name):
     assert name == name.lower()
     try:
