@@ -16,7 +16,7 @@ class PiExperiment(Campaign):
     # Document which machines the campaign is designed to run on. An
     # error will be raised if a different machine is specified on the
     # cheetah command line.
-    supported_machines = ['local', 'cori', 'titan']
+    supported_machines = ['local', 'cori', 'titan', 'theta']
 
     # Per machine scheduler options. Keys are the machine name, values
     # are dicts of name value pairs for the options for that machine.
@@ -30,6 +30,11 @@ class PiExperiment(Campaign):
         },
         "titan": {
             "queue": "debug",
+            "project": "csc242",
+        },
+        "theta": {
+            "queue": "debug-flat-quad",
+            "project": "CSC249ADCD01",
         }
     }
 
