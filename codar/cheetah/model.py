@@ -486,7 +486,7 @@ class Run(object):
             return
 
         # From Kevin Huck, U of Oregon
-        max_listeners_per_aggregator = 4
+        max_listeners_per_aggregator = 64
         num_aggregators = math.ceil(num_listeners/max_listeners_per_aggregator)
 
         # Add sos aggregators to be run
