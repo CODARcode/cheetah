@@ -23,7 +23,8 @@ start=$(date +%s)
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
  --status-file=codar.workflow.status.json \
- --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
+ --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL \
+ >codar.workflow.stdout 2>codar.workflow.stderr
 
 end=$(date +%s)
 echo $(($end - $start)) > codar.cheetah.walltime.txt
