@@ -15,7 +15,7 @@ def test_workflow(*args, **kw):
 
 
 def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
-                 timeout, kill_on_partial_failure):
+                 timeout, kill_on_partial_failure, extra_env=None):
     if kill_on_partial_failure:
         test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test-randfail.sh')
     else:
@@ -36,12 +36,15 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
             # dynamicly construct a pipeline
             runs_data = []
             for j in range(ncodes):
+                env=dict(CODAR_WORKFLOW_PIPE=str(i),
+                         CODAR_WORKFLOW_CODE=str(j))
+                if extra_env:
+                    env.update(extra_env)
                 run_data = dict(name='code%02d' % (j+1),
                                 exe=test_script,
                                 args=['test spaces', str(i), str(j),
                                       'test \' quote'],
-                                env=dict(CODAR_WORKFLOW_PIPE=str(i),
-                                         CODAR_WORKFLOW_CODE=str(j)),
+                                env=env,
                                 timeout=timeout)
                 runs_data.append(run_data)
             pipeline_data = dict(id=str(i), runs=runs_data,

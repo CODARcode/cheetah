@@ -71,6 +71,8 @@ class Run(threading.Thread):
         self._killed = False  # distinguish between natural done and killed
         self._timed_out = False # or timeout
 
+        self._exception = False # or python exception in run method
+
         self.log_prefix = log_prefix or name
         self.logger = logger
         self.runner = None
@@ -101,9 +103,18 @@ class Run(threading.Thread):
         return self._killed
 
     @property
+    def exception(self):
+        """True if there was a python exception in the run method. When this
+        is the case, the state of the underlying process is unknown - it may
+        have been started or not."""
+        return self._exception
+
+    @property
     def succeeded(self):
         """True if the run is done, finished normally, and had 0 return value.
         Raises ValueError if the run is not complete."""
+        if self._exception:
+            return False
         if self._end_time is None:
             raise ValueError("succeeded state not available until run is done")
         return (not self._killed and not self._timed_out
@@ -119,6 +130,28 @@ class Run(threading.Thread):
         self.callbacks.remove(fn)
 
     def run(self):
+        try:
+            self._run()
+        except:
+            # Treat this as a special type of failure, in case it's
+            # something specific to this run or pipeline. If it affects
+            # all pipelines, then they should all eventually fail.
+            # We could force a workflow kill in this case, but this less
+            # drastic approach may provide extra information and won't
+            # take much longer.
+            self._exception = True # Note: state lock not required
+            if self.logger is not None:
+                self.logger.exception('exception in Run thread')
+            # attempt to execute callbacks, so more threads could be run
+            try:
+                for callback in self.callbacks:
+                    callback(self)
+            except:
+                if self.logger is not None:
+                    self.logger.exception(
+                       'exception in Run callbacks after Run thread exception')
+
+    def _run(self):
         if self.runner is not None:
             args = self.runner.wrap(self)
         else:
@@ -218,7 +251,7 @@ class Run(threading.Thread):
 
     def get_returncode(self):
         if self._p is None:
-            raise ValueError('not running')
+            return None
         return self._p.returncode
 
     def get_pid(self):
@@ -345,7 +378,7 @@ class Pipeline(object):
             if not self._active_runs:
                 self.run_post_process_script()
                 run_done_callbacks = True
-            elif self.kill_on_partial_failure and run.get_returncode() != 0:
+            elif self.kill_on_partial_failure and not run.succeeded:
                 if self.logger is not None:
                     self.logger.warn('%s run %s failed, killing remaining',
                                      self.log_prefix, run.name)
@@ -468,17 +501,17 @@ class Pipeline(object):
             # done
             return_codes = dict((r.name, r.get_returncode())
                                 for r in self.runs)
+            # Collapse reason into single value, giving priority to
+            # exception and timeout.
+            # TODO: It might be more informative to
+            # report all states, i.e. make reason a list.
             reason = status.REASON_SUCCEEDED
-            for r in self.runs:
-                # timeout reason takes priority over generic failure, it
-                # means that it may succeed if re-run with a more
-                # generous timeout or if it happens to run faster (in
-                # case of non-deterministic runs).
-                if r.timed_out:
-                    reason = status.REASON_TIMEOUT
-                    break
-                if r.get_returncode() != 0:
-                    reason = status.REASON_FAILED
+            if any(r.exception for r in self.runs):
+                reason = status.REASON_EXCEPTION
+            elif any(r.timeout for r in self.runs):
+                reason = status.REASON_TIMEOUT
+            elif any((r.get_returncode() != 0) for r in self.runs):
+                reason = status.REASON_FAILED
             return status.PipelineState(self.id, status.DONE,
                                         reason, return_codes)
 
