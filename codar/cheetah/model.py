@@ -191,9 +191,6 @@ class Campaign(object):
                                         self.codes.keys())
                 else:
                     node_layout = NodeLayout(node_layout)
-                if group.sosflow:
-                    node_layout.add_node({ 'sosflow':
-                                            self.machine.processes_per_node })
                 # TODO: validate node layout against machine model
 
                 sweep_runs = [Run(inst, self.codes, self.app_dir,
@@ -511,6 +508,14 @@ class Run(object):
                               nprocs=1, sleep_after=5,
                               working_dir=self.run_path)
             self.run_components.insert(0, rc)
+
+            # Try to add the sos analysis code to nodelayout.
+            # Since nodelayout is common to a sweep, check to see if it already exists
+            try:
+                self.node_layout.get_node_containing_code("sosflow_analysis")
+            except:
+                self.node_layout.add_node({'sosflow_analysis': 1})
+
             listener_node_offset += 1
 
         start_index = listener_node_offset
@@ -521,11 +526,18 @@ class Run(object):
             ]
 
             # Insert sosd component so it runs at start after 5 seconds
-            rc = RunComponent('sosflow_aggregator_' + str(i),
+            rc_name = 'sosflow_aggregator_' + str(i)
+            rc = RunComponent(rc_name,
                               sosd_path, sosd_args,
                               nprocs=1, sleep_after=5,
                               working_dir=self.run_path)
             self.run_components.insert(i, rc)
+            # Try to add the sos analysis code to nodelayout.
+            # Since nodelayout is common to a sweep, check to see if it already exists
+            try:
+                self.node_layout.get_node_containing_code(rc_name)
+            except:
+                self.node_layout.add_node({rc_name: 1})
 
             listener_node_offset += 1
 
