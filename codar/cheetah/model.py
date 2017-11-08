@@ -566,7 +566,7 @@ class Run(object):
             # How do you get this information?
             # TODO: This will change when we have the ability to set a
             # different number of procs per node
-            rc.env['SOS_APP_RANKS_PER_NODE'] = str(code_nodes)
+            rc.env['SOS_APP_RANKS_PER_NODE'] = str(code_procs_per_node)
 
             # Tell SOS what 'rank' it's listeners should start with
             # the aggregator was 'rank' 0, so this node's listener will be 1
