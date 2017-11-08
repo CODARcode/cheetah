@@ -4,6 +4,7 @@ import json
 
 from nose.tools import assert_equal
 
+from codar.cheetah import exc
 from codar.cheetah.model import Campaign, NodeLayout
 from codar.cheetah.parameters import SweepGroup, Sweep, ParamCmdLineArg
 
@@ -86,6 +87,32 @@ def test_codes_ordering():
     for fob in fobs:
         fob_order = [run['name'] for run in fob['runs']]
         assert_equal(fob_order, correct_order)
+
+
+def test_error_campaign_undefined_code():
+    class TestUndefinedCodeCampaign(TestCampaign):
+        codes = [('test', dict(exe='test'))]
+        sweeps = [
+            SweepGroup(name='test_group', nodes=1, parameter_groups=[
+              Sweep([
+                ParamCmdLineArg('test', 'arg', 1, ['a', 'b']),
+                ParamCmdLineArg('code_dne', 'arg', 1, ['11', 'arg2'])
+              ])
+            ])
+        ]
+
+    try:
+        c = TestUndefinedCodeCampaign('titan', '/test')
+        out_dir = os.path.join(TEST_OUTPUT_DIR,
+                           'test_model', 'test_error_campaign_undefined_code')
+        fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+        shutil.rmtree(out_dir, ignore_errors=True)
+        c.make_experiment_run_dir(out_dir)
+    except exc.CheetahException as e:
+        assert 'undefined code' in str(e), str(e)
+        assert 'code_dne' in str(e), str(e)
+    else:
+        assert False, 'error not raised on param using unknown code'
 
 
 def test_node_layout_repeated_code():

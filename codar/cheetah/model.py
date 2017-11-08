@@ -16,7 +16,7 @@ import shlex
 import inspect
 from collections import OrderedDict
 
-from codar.cheetah import machines, parameters, config, templates
+from codar.cheetah import machines, parameters, config, templates, exc
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -408,6 +408,11 @@ class Run(object):
         """Wrapper around instance.get_codes_argv which uses correct order
         from self.codes OrderedDict."""
         codes_argv = self.instance.get_codes_argv()
+        undefined_codes = set(codes_argv.keys()) - set(self.codes.keys())
+        if undefined_codes:
+            raise exc.CampaignParseError(
+                'Parameter references undefined codes(s): %s'
+                % ','.join(undefined_codes))
         # Note that a given Run may not use all codes, e.g. for base
         # case app runs that don't use adios stage_write or dataspaces.
         return OrderedDict((k, codes_argv[k]) for k in self.codes.keys()
