@@ -499,44 +499,37 @@ class Run(object):
 
         #   now add each aggregator, starting with the analysis aggregator
         listener_node_offset = 0
-        if self.sosflow_analysis:
-            sosd_args = sos_args + [
-                '-k', '0',
-                '-r', 'aggregator',
-            ]
-            rc = RunComponent('sosflow_analysis', sos_analysis_path, sosd_args,
-                              nprocs=1, sleep_after=5,
-                              working_dir=self.run_path)
-            self.run_components.insert(0, rc)
-
-            # Try to add the sos analysis code to nodelayout.
-            # Since nodelayout is common to a sweep, check to see if it already exists
-            try:
-                self.node_layout.get_node_containing_code("sosflow_analysis")
-            except:
-                self.node_layout.add_node({'sosflow_analysis': 1})
-
-            listener_node_offset += 1
-
-        start_index = listener_node_offset
-        for i in range(start_index,num_aggregators):
+        for i in range(num_aggregators):
             sosd_args = sos_args + [
                 '-k', str(i),
                 '-r', 'aggregator',
             ]
 
-            # Insert sosd component so it runs at start after 5 seconds
             rc_name = 'sosflow_aggregator_' + str(i)
+            rc_exe_path = sosd_path
+
+            # Overwrite if sosflow analysis is true and i==0.
+            # sosflow analysis must be the first rc to be run.
+            if i == 0 and self.sosflow_analysis:
+                rc_name = "sosflow_analysis"
+                rc_exe_path = sos_analysis_path
+
             rc = RunComponent(rc_name,
-                              sosd_path, sosd_args,
+                              rc_exe_path, sosd_args,
                               nprocs=1, sleep_after=5,
                               working_dir=self.run_path)
+            rc.env['sos_cmd'] = sos_cmd
+            rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
+            rc.env['SOS_CMD_PORT'] = '22500'
+            rc.env['SOS_EVPATH_MEETUP'] = run_path
+            rc.env['TAU_SOS'] = '1'
             self.run_components.insert(i, rc)
+
             # Try to add the sos analysis code to nodelayout.
             # Since nodelayout is common to a sweep, check to see if it already exists
             try:
                 self.node_layout.get_node_containing_code(rc_name)
-            except:
+            except KeyError:
                 self.node_layout.add_node({rc_name: 1})
 
             listener_node_offset += 1
