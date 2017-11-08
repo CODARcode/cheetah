@@ -90,8 +90,15 @@ class PipelineRunner(object):
         """Monitor thread(s) should call this as runs complete."""
         with self.free_cv:
             if self.max_procs is not None:
+                self.logger.debug(
+                    "finished run, free procs %d -> %d",
+                    self.free_procs, self.free_procs + run.nprocs)
                 self.free_procs += run.nprocs
             else:
+                self.logger.debug(
+                    "finished run, free nodes %d -> %d",
+                    self.free_nodes,
+                    self.free_nodes + pipeline.get_nodes_used())
                 self.free_nodes += run.get_nodes_used()
             self.free_cv.notify()
 
@@ -134,8 +141,16 @@ class PipelineRunner(object):
 
                 if self._process_pipelines:
                     if self.max_procs is not None:
+                        self.logger.debug(
+                            "starting pipeline %s, free procs %d -> %d",
+                            pipeline.id, self.free_procs,
+                            self.free_procs - pipeline.total_procs)
                         self.free_procs -= pipeline.total_procs
                     else:
+                        self.logger.debug(
+                            "starting pipeline %s, free nodes %d -> %d",
+                            pipeline.id, self.free_nodes,
+                            self.free_nodes - pipeline.get_nodes_used())
                         self.free_nodes -= pipeline.get_nodes_used()
 
             with self._state_lock:
