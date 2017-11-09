@@ -16,9 +16,8 @@ consumer = None
 
 def parse_args():
     parser = argparse.ArgumentParser(description='HPC Worflow script')
-    parser.add_argument('--max-procs', type=int)
-    parser.add_argument('--max-nodes', type=int)
-    parser.add_argument('--processes-per-node', type=int)
+    parser.add_argument('--max-nodes', type=int, required=True)
+    parser.add_argument('--processes-per-node', type=int, required=True)
     parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun',
                                              'none'],
                         required=True)
@@ -31,11 +30,6 @@ def parse_args():
     parser.add_argument('--status-file')
 
     args = parser.parse_args()
-
-    if not (bool(args.max_procs) ^ bool(args.max_nodes)):
-        parser.error("specify one of --max-procs and --max-nodes")
-    if args.max_nodes and not args.processes_per_node:
-        parser.error("option --max-nodes requires --processes-per-node")
 
     return args
 
@@ -63,7 +57,6 @@ def main():
         logger = None
 
     consumer = PipelineRunner(runner=runner, logger=logger,
-                              max_procs=args.max_procs,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node,
                               status_file=args.status_file)

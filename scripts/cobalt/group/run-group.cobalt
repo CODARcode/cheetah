@@ -9,17 +9,12 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
     source "$CODAR_CHEETAH_MACHINE_CONFIG"
 fi
 
-if [ -n "$CODAR_CHEETAH_GROUP_NODE_EXCLUSIVE" ]; then
-    max_args="--max-nodes=$CODAR_CHEETAH_GROUP_NODES --processes-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE"
-else
-    max_args="--max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS"
-fi
-
 start=$(date +%s)
 
 # Main application run
 "$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
- $max_args \
+ --max-nodes=$CODAR_CHEETAH_GROUP_NODES \
+ --processes-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
  --status-file=codar.workflow.status.json \

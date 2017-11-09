@@ -508,7 +508,7 @@ class Pipeline(object):
             reason = status.REASON_SUCCEEDED
             if any(r.exception for r in self.runs):
                 reason = status.REASON_EXCEPTION
-            elif any(r.timeout for r in self.runs):
+            elif any(r.timed_out for r in self.runs):
                 reason = status.REASON_TIMEOUT
             elif any((r.get_returncode() != 0) for r in self.runs):
                 reason = status.REASON_FAILED

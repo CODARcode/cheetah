@@ -1,45 +1,63 @@
 """Classes for 'consuming' pipelines - running groups of MPI tasks based on a
 specified total process limit."""
 
-import queue
 import threading
 
 from codar.workflow import status
+from codar.workflow.scheduler import JobList
 
 
 class PipelineRunner(object):
-    """Runner that assumes a homogonous set of nodes, and can be node limited
-    or process limited."""
+    """Runner that assumes a homogonous set of nodes. Now only support only
+    node based limiting (although process limiting can be emulated by setting
+    process_per_node=1 and max_nodes=max_procs).
 
-    def __init__(self, runner, max_procs=None, max_nodes=None,
-                 logger=None, processes_per_node=None, status_file=None):
-        if not (bool(max_procs) ^ bool(max_nodes)):
-            raise ValueError("specify one of max_procs and max_nodes")
-        if max_nodes and processes_per_node is None:
-            raise ValueError("max_nodes requires processes_per_node")
-        self.max_procs = max_procs
+    Threading model: assumes there could be multiple producer threads calling
+    add_pipeline, e.g. if using a dynamic job submission model based on
+    results of previous jobs. Pipelines and each Run in a pipeline are all
+    executed in separate threads, so their notification callbacks execute in
+    separate threads, and their threads must be joined before exiting. The
+    stop and kill_all methods could be called from any of the producer,
+    Pipeline or Run threads."""
+
+    def __init__(self, runner, max_nodes, processes_per_node,
+                 logger=None, status_file=None):
         self.max_nodes = max_nodes
         self.ppn = processes_per_node
         self.runner = runner
-        self.q = queue.Queue()
-        self.pipelines = []
-        self.free_procs = max_procs
-        self.free_nodes = max_nodes
-        self.free_cv = threading.Condition()
         self.logger = logger
-        self._pipeline_ids = set()
-        self._running_pipelines = set()
-        self._state_lock = threading.Lock()
-        self._process_pipelines = True
-        self._allow_new_pipelines = True
-        self._killed = False
+
         if status_file is not None:
             self._status = status.WorkflowStatus(status_file)
         else:
             self._status = None
 
+        self.job_list_cv = threading.Condition()
+        costfn = lambda pipe_or_run: pipe_or_run.get_nodes_used()
+        self.job_list = JobList(costfn)
+
+        self.free_cv = threading.Condition()
+        self.free_nodes = max_nodes
+
+        self.pipelines_lock = threading.Lock()
+        self.pipelines = []
+        self._pipeline_ids = set()
+
+        self._running_pipelines = set()
+        self._process_pipelines = True
+        self._allow_new_pipelines = True
+        self._killed = False
+
     def add_pipeline(self, p):
-        with self._state_lock:
+        p.set_ppn(self.ppn)
+        if p.get_nodes_used() > self.max_nodes:
+            if self.logger:
+                self.logger.error(
+                         "pipeline '%s' requires %d nodes > max %d, skipping",
+                         p.id, p.get_nodes_used(), self.max_nodes)
+            return
+
+        with self.pipelines_lock:
             if not self._allow_new_pipelines:
                 raise ValueError(
                     "new pipelines are not allowed after stop or kill")
@@ -48,18 +66,19 @@ class PipelineRunner(object):
             self._pipeline_ids.add(p.id)
             if self._status is not None:
                 self._status.set_state(p.get_state())
-            self.q.put(p)
+
+        with self.job_list_cv:
+            self.job_list.add_job(p)
+            self.job_list_cv.notify()
 
     def stop(self):
         """Signal to stop when all pipelines are finished. Don't allow adding
         new pipelines."""
-        with self._state_lock:
-            # NB: Queue is thread save, but we don't want to allow a
-            # pipeline to be added at the same time stop is being
-            # executed, which would allow a non-None pipeline to be
-            # appended after the None without raising an error.
-            self._allow_new_pipelines = False
-            self.q.put(None)
+        self._allow_new_pipelines = False
+
+        # signal main thread to wake up and check state
+        with self.job_list_cv:
+            self.job_list_cv.notify()
 
     def kill_all(self):
         """Kill all running processes spawned by this consumer and don't
@@ -68,17 +87,18 @@ class PipelineRunner(object):
         if self.logger is not None:
             self.logger.warn("killing all pipelines and exiting consumer")
 
-        with self._state_lock:
+        with self.pipelines_lock:
             self._killed = True
             self._allow_new_pipelines = False
             self._process_pipelines = False
             still_running = list(self._running_pipelines)
-            self.q.put(None) # unblock queue get in run thread
 
+        # signal both cvs to stop waiting in main thread
         with self.free_cv:
-            # signal pipeline run thread to stop waiting. It checks for
-            # stage change after waking up.
             self.free_cv.notify()
+
+        with self.job_list_cv:
+            self.job_list_cv.notify()
 
         for pipe in still_running:
             pipe.force_kill_all()
@@ -89,22 +109,15 @@ class PipelineRunner(object):
     def run_finished(self, run):
         """Monitor thread(s) should call this as runs complete."""
         with self.free_cv:
-            if self.max_procs is not None:
-                self.logger.debug(
-                    "finished run, free procs %d -> %d",
-                    self.free_procs, self.free_procs + run.nprocs)
-                self.free_procs += run.nprocs
-            else:
-                self.logger.debug(
-                    "finished run, free nodes %d -> %d",
-                    self.free_nodes,
-                    self.free_nodes + run.get_nodes_used())
-                self.free_nodes += run.get_nodes_used()
+            self.logger.debug(
+                "finished run, free nodes %d -> %d",
+                self.free_nodes, self.free_nodes + run.get_nodes_used())
+            self.free_nodes += run.get_nodes_used()
             self.free_cv.notify()
 
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
-        with self._state_lock:
+        with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)
             if self._status is not None:
                 self._status.set_state(pipeline.get_state())
@@ -114,51 +127,44 @@ class PipelineRunner(object):
             self.logger.error("fatal error in pipeline '%s'" % pipeline.id)
         self.kill_all()
 
-    def _pipeline_can_run(self, pipeline):
-        # NOTE: requires free_cv lock
-        if self.max_procs is not None:
-            return (self.free_procs >= pipeline.total_procs)
-        else:
-            return (self.free_nodes >= pipeline.get_nodes_used())
-
     def run_pipelines(self):
         """Main loop of consumer thread. Does not return until all child
         threads are complete."""
-        # TODO: should client be responsible for setting this in the
-        # JSON input data?
         while True:
-            pipeline = self.q.get() # NB: this blocks on empty queue
-            if pipeline is None:
-                break
-            pipeline.set_ppn(self.ppn)
+            # wait until a job is available or end has been signaled
+            no_more_pipelines = False
+            with self.job_list_cv:
+                while len(self.job_list) == 0:
+                    if not self._allow_new_pipelines:
+                        no_more_pipelines = True
+                        break
+                    self.job_list_cv.wait()
+
+            if no_more_pipelines:
+                self._join_running_pipelines()
+                return
+
+            # wait until nodes are available or quit has been signaled
             with self.free_cv:
-                while not self._pipeline_can_run(pipeline):
-                    # allow exiting wait loop if signaled by another
-                    # thread
+                pipeline = self.job_list.pop_job(self.free_nodes)
+                while pipeline is None:
                     if not self._process_pipelines:
                         break
                     self.free_cv.wait()
+                    pipeline = self.job_list.pop_job(self.free_nodes)
 
                 if self._process_pipelines:
-                    if self.max_procs is not None:
-                        self.logger.debug(
-                            "starting pipeline %s, free procs %d -> %d",
-                            pipeline.id, self.free_procs,
-                            self.free_procs - pipeline.total_procs)
-                        self.free_procs -= pipeline.total_procs
-                    else:
-                        self.logger.debug(
-                            "starting pipeline %s, free nodes %d -> %d",
-                            pipeline.id, self.free_nodes,
-                            self.free_nodes - pipeline.get_nodes_used())
-                        self.free_nodes -= pipeline.get_nodes_used()
+                    self.logger.debug(
+                        "starting pipeline %s, free nodes %d -> %d",
+                        pipeline.id, self.free_nodes,
+                        self.free_nodes - pipeline.get_nodes_used())
+                    self.free_nodes -= pipeline.get_nodes_used()
 
-            with self._state_lock:
-                # check state in case kill was issued while we were
-                # waiting
-                if not self._process_pipelines:
-                    break
+            if not self._process_pipelines:
+                self._join_running_pipelines()
+                return
 
+            with self.pipelines_lock:
                 if self.logger is not None:
                     pipeline.set_loggers(self.logger)
                 pipeline.start(self, self.runner)
@@ -166,10 +172,17 @@ class PipelineRunner(object):
                 if self._status is not None:
                     self._status.set_state(pipeline.get_state())
 
-        # Wait for any pipelines that are still running to complete. Use
-        # a copy since the monitor threads may be removing pipelines as
-        # they complete (and joining an already complete pipeline is
-        # harmless).
+        self._join_running_pipelines()
+
+    def _join_running_pipelines(self):
+        """Wait for any pipelines that are still running to complete. Use
+        a copy since the monitor threads may be removing pipelines as
+        they complete (and joining an already complete pipeline is
+        harmless).
+
+        This must be called without any locks held, since the Pipeline and
+        Run threads may need to acquire them in the callback functions set
+        by the consumer."""
         still_running = list(self._running_pipelines)
         for pipeline in still_running:
             pipeline.join_all()
