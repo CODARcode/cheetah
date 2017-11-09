@@ -503,6 +503,7 @@ class Run(object):
             if i == 0 and self.sosflow_analysis:
                 rc_name = "sosflow_analysis"
                 rc_exe_path = sos_analysis_path
+                sosd_args = [sosd_path + " "] + sosd_args
 
             rc = RunComponent(rc_name,
                               rc_exe_path, sosd_args,
