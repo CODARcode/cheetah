@@ -398,9 +398,7 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
 
-            sosflow=False
-            if "sosflow" in self.codes[target]:
-                sosflow = self.codes[target].get('sosflow')
+            sosflow = self.codes[target].get('sosflow', False)
 
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
@@ -500,7 +498,8 @@ class Run(object):
             rc_exe_path = sosd_path
 
             # Overwrite if sosflow analysis is true and i==0.
-            # sosflow analysis must be the first rc to be run.
+            # The analysis aggregator must be the first aggregator.
+            # It internally calls sosd, plus does some work to generate vtk data.
             if i == 0 and self.sosflow_analysis:
                 rc_name = "sosflow_analysis"
                 rc_exe_path = sos_analysis_path
