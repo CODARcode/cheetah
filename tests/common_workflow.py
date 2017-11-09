@@ -54,7 +54,8 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
             f.write('\n')
 
     if max_procs is not None:
-        max_args = ['--max-procs=%d' % max_procs,
+        # simulate max procs mode, which is no longer supported directly
+        max_args = ['--max-nodes=%d' % max_procs,
                     '--processes-per-node=1']
     else:
         max_args = ['--max-nodes=%d' % max_nodes,

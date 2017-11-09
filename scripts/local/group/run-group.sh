@@ -9,7 +9,8 @@ start=$(date +%s)
 
 # Main application run
 "$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
- --max-procs=$CODAR_CHEETAH_GROUP_MAX_PROCS \
+ --max-nodes=$CODAR_CHEETAH_GROUP_MAX_PROCS \
+ --processes-per-node=1 \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
  --status-file=codar.workflow.status.json \
