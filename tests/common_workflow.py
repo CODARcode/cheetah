@@ -7,6 +7,7 @@ CHEETAH_DIR = os.path.abspath(os.path.join(
                         os.path.dirname(__file__), '..'))
 OUT_DIR = os.path.join(CHEETAH_DIR, 'test_output', 'workflow')
 STATUS_FILE = os.path.join(OUT_DIR, 'status.json')
+LOG_FILE = os.path.join(OUT_DIR, 'run.log')
 
 def test_workflow(*args, **kw):
     p = run_workflow(*args, **kw)
@@ -15,7 +16,8 @@ def test_workflow(*args, **kw):
 
 
 def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
-                 timeout, kill_on_partial_failure, extra_env=None):
+                 timeout, kill_on_partial_failure, extra_env=None,
+                 codes_nprocs=None):
     if kill_on_partial_failure:
         test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test-randfail.sh')
     else:
@@ -26,6 +28,9 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
 
     # recreate
     os.makedirs(OUT_DIR)
+
+    if codes_nprocs is None:
+        codes_nprocs = [1] * ncodes
 
     # generate pipelines file and save
     pipelines_file_path = os.path.join(OUT_DIR, 'pipelines.json')
@@ -45,7 +50,8 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                                 args=['test spaces', str(i), str(j),
                                       'test \' quote'],
                                 env=env,
-                                timeout=timeout)
+                                timeout=timeout,
+                                nprocs=codes_nprocs[j])
                 runs_data.append(run_data)
             pipeline_data = dict(id=str(i), runs=runs_data,
                 working_dir=work_dir,
@@ -64,7 +70,7 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
     p = Popen([CHEETAH_DIR + '/workflow.py', '--runner=none',
                '--producer-input-file=%s' % pipelines_file_path,
                '--status-file=%s' % STATUS_FILE,
-               '--log-file=%s' % os.path.join(OUT_DIR, 'run.log'),
+               '--log-file=%s' % LOG_FILE,
                '--log-level=DEBUG'] + max_args)
     return p
 

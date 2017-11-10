@@ -17,6 +17,7 @@ REASON_TIMEOUT = 'timeout'
 REASON_FAILED = 'failed'
 REASON_SUCCEEDED = 'succeeded'
 REASON_EXCEPTION = 'exception'
+REASON_NOFIT = 'nofit'
 
 
 class WorkflowStatus(object):
