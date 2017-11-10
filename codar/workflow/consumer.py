@@ -49,14 +49,6 @@ class PipelineRunner(object):
         self._killed = False
 
     def add_pipeline(self, p):
-        p.set_ppn(self.ppn)
-        if p.get_nodes_used() > self.max_nodes:
-            if self.logger:
-                self.logger.error(
-                         "pipeline '%s' requires %d nodes > max %d, skipping",
-                         p.id, p.get_nodes_used(), self.max_nodes)
-            return
-
         with self.pipelines_lock:
             if not self._allow_new_pipelines:
                 raise ValueError(
@@ -64,7 +56,18 @@ class PipelineRunner(object):
             if p.id in self._pipeline_ids:
                 raise ValueError("duplicate pipeline id: %s" % p.id)
             self._pipeline_ids.add(p.id)
-            if self._status is not None:
+            p.set_ppn(self.ppn)
+            if p.get_nodes_used() > self.max_nodes:
+                if self.logger:
+                    self.logger.error(
+                         "pipeline '%s' requires %d nodes > max %d, skipping",
+                         p.id, p.get_nodes_used(), self.max_nodes)
+                if self._status is not None:
+                    state = p.get_state()
+                    state.reason = status.REASON_NOFIT
+                    self._status.set_state(state)
+                return
+            elif self._status is not None:
                 self._status.set_state(p.get_state())
 
         with self.job_list_cv:
