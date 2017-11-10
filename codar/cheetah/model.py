@@ -172,6 +172,7 @@ class Campaign(object):
             launcher = self.machine.get_launcher_instance(group_output_dir,
                                                           len(self.codes))
             group_runs = []
+            group_run_offset = 0
             for sweep in group.parameter_groups:
                 # node layout is map of machine names to layout for each
                 # machine. If unspecified, or certain machine is
@@ -191,14 +192,17 @@ class Campaign(object):
                                             self.machine.processes_per_node })
                 # TODO: validate node layout against machine model
 
-                group_runs = [Run(inst, self.codes, self.app_dir,
-                                  os.path.join(group_output_dir,
-                                               'run-%03d' % i),
+                sweep_runs = [Run(inst, self.codes, self.app_dir,
+                                  os.path.join(
+                                      group_output_dir,
+                                      'run-%03d' % (group_run_offset + i)),
                                   self.inputs_fullpath,
                                   node_layout,
                                   group.component_subdirs,
                                   group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
+                group_runs.extend(sweep_runs)
+                group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
             if group.max_procs is None:
                 max_procs = max([r.get_total_nprocs() for r in group_runs])
