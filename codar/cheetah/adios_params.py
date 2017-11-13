@@ -27,7 +27,7 @@ def adios_xml_transform(xml_filepath, group_name, var_name, value):
     tag = tree.find('adios-group[@name="%s"]/global-bounds/var[@name="%s"]'
                     % (group_name, var_name))
     tag.set('transform', value)
-    tree.write(xml_filepath)
+    tree.write(xml_filepath, xml_declaration=True)
 
 
 def adios_xml_transport(xml_filepath, group_name, method_name, method_opts):
@@ -36,8 +36,7 @@ def adios_xml_transport(xml_filepath, group_name, method_name, method_opts):
     elem = tree.find('method[@group="' + group_name + '"]')
     elem.set('method', method_name)
     elem.text = method_opts
-
-    tree.write(xml_filepath)
+    tree.write(xml_filepath, xml_declaration=True)
 
 #if __name__ == "__main__":
  #   adios_xml_transform("heat:T", "sz", "/Users/kpu/vshare/scratch/heat_transfer.xml")
