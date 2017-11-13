@@ -98,7 +98,7 @@ class PipelineRunner(object):
                 self.logger.debug(
                     "finished run, free nodes %d -> %d",
                     self.free_nodes,
-                    self.free_nodes + pipeline.get_nodes_used())
+                    self.free_nodes + run.get_nodes_used())
                 self.free_nodes += run.get_nodes_used()
             self.free_cv.notify()
 
