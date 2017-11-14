@@ -419,7 +419,7 @@ class Pipeline(object):
         try:
             outf = open(stdout_path, 'w')
             errf = open(stderr_path, 'w')
-            rval = subprocess.call(args, stdout=outf, stderr=errf)
+            rval = subprocess.call(args, stdout=outf, stderr=errf, cwd=self.working_dir)
         except subprocess.SubprocessError as e:
             if self.logger is not None:
                 self.logger.warn(
