@@ -111,14 +111,15 @@ class Launcher(object):
 
                 # Copy the global input files common to all components
                 for input_rpath in run.inputs:
-                    shutil.copy2(input_rpath, run.run_path+"/.")
+                    shutil.copy2(input_rpath, run.run_path)
 
                 # Copy input files requested by each component
                 for rc in run.run_components:
                     if rc.component_inputs is not None:
                         for input_file in rc.component_inputs:
-                            file_path = os.path.abspath(run.codes_path+"/"+input_file)
-                            shutil.copy(file_path, rc.working_dir+"/.")
+                            file_path = os.path.abspath(os.path.join(
+                                                run.codes_path, input_file))
+                            shutil.copy(file_path, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
@@ -129,7 +130,8 @@ class Launcher(object):
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
                     elif pv.param_type == "adios_transport":
-                        # value could be "MPI_AGGREGATE:num_aggregators=64;num_osts"
+                        # value could be
+                        # "MPI_AGGREGATE:num_aggregators=64;num_osts"
                         # extract the method name and the method options
                         method_name = pv.value
                         method_opts = ""
