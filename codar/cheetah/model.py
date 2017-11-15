@@ -191,6 +191,7 @@ class Campaign(object):
                                         self.codes.keys())
                 else:
                     node_layout = NodeLayout(node_layout)
+
                 # TODO: validate node layout against machine model
 
                 sweep_runs = [Run(inst, self.codes, self.app_dir,
@@ -242,7 +243,6 @@ class Campaign(object):
                 run_post_process_stop_on_failure=
                     self.run_post_process_stop_group_on_failure,
                 scheduler_options=self.machine_scheduler_options,
-                node_layout=node_layout,
                 run_dir_setup_script=self.run_dir_setup_script)
 
         # TODO: track directories and ids and add to this file
@@ -351,6 +351,9 @@ class NodeLayout(object):
         suitable for JSON serialization."""
         return list(self.layout_list)
 
+    def copy(self):
+        return NodeLayout(self.as_data_list())
+
     @classmethod
     def default_no_share_layout(cls, ppn, code_names):
         """Create a layout object for the specified codes and ppn, where each
@@ -376,7 +379,9 @@ class Run(object):
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
-        self.node_layout = node_layout
+        # Note: the layout will be modified if sosflow is set, so it's
+        # important to use a copy.
+        self.node_layout = node_layout.copy()
         self.component_subdirs = component_subdirs
         self.sosflow = sosflow
         self.sosflow_analysis = sosflow_analyis
@@ -491,7 +496,6 @@ class Run(object):
             '-a', str(num_aggregators),
             '-w', shlex.quote(run_path)
         ]
-        # TODO: this will break if there are spaces in run_path
         sos_cmd = ' '.join([sosd_path] + sos_args)
         sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
 
@@ -513,6 +517,8 @@ class Run(object):
                 rc_exe_path = sos_analysis_path
                 sosd_args = [sosd_path] + sosd_args
 
+            self.node_layout.add_node({rc_name: ppn})
+
             rc = RunComponent(rc_name,
                               rc_exe_path, sosd_args,
                               nprocs=1, sleep_after=5,
@@ -523,13 +529,6 @@ class Run(object):
             rc.env['SOS_EVPATH_MEETUP'] = run_path
             rc.env['TAU_SOS'] = '1'
             self.run_components.insert(i, rc)
-
-            # Try to add the sos analysis code to nodelayout.
-            # Since nodelayout is common to a sweep, check to see if it already exists
-            try:
-                self.node_layout.get_node_containing_code(rc_name)
-            except KeyError:
-                self.node_layout.add_node({rc_name: 1})
 
             listener_node_offset += 1
 
