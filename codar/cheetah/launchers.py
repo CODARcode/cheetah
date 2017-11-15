@@ -63,7 +63,6 @@ class Launcher(object):
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
                                scheduler_options=None,
-                               node_layout=None,
                                run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
@@ -186,7 +185,7 @@ class Launcher(object):
                            post_process_stop_on_failure=
                                 run_post_process_stop_on_failure,
                            post_process_args=[run_fob_path],
-                           node_layout=node_layout.as_data_list())
+                           node_layout=run.node_layout.as_data_list())
                 fob_s = json.dumps(fob)
 
                 # write to file run dir
