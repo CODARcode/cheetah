@@ -5,7 +5,6 @@ to make room for future runs. Before deleting the files, the script saves the
 directory contents.
 """
 
-import sys
 import json
 import os
 import shutil
@@ -21,6 +20,10 @@ def save_list_and_remove_staged(fob_path, output_dir_name):
 
     seen = set()
 
+    # If the group has component subdirs set, then each code component
+    # within the workflow run will have a different working directroy,
+    # so we need to check the fob file and make sure we find output
+    # files in all working directories.
     default_working_dir = fob["working_dir"]
 
     for run in fob["runs"]:
@@ -40,10 +43,9 @@ def save_list_and_remove_staged(fob_path, output_dir_name):
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: %s fob_file_path" % sys.argv[0])
-        sys.exit(1)
-    save_list_and_remove_staged(sys.argv[1], OUTPUT_DIR_NAME)
+    # Note: working directory will be the run directory, containing both
+    # codar.cheetah.fob.json and codar.cheetah.run-params.json
+    save_list_and_remove_staged('codar.cheetah.fob.json', OUTPUT_DIR_NAME)
 
 
 if __name__ == "__main__":

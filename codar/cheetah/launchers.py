@@ -177,20 +177,19 @@ class Launcher(object):
 
                     fob_runs.append(rc.as_fob_data())
 
-                run_fob_path = os.path.join(run.run_path,
-                                            "codar.cheetah.fob.json")
-
                 fob = dict(id=run.run_id, runs=fob_runs,
                            working_dir=run.run_path,
                            kill_on_partial_failure=kill_on_partial_failure,
                            post_process_script=run_post_process_script,
                            post_process_stop_on_failure=
                                 run_post_process_stop_on_failure,
-                           post_process_args=[run_fob_path],
+                           post_process_args=[params_path_json],
                            node_layout=node_layout.as_data_list())
                 fob_s = json.dumps(fob)
 
                 # write to file run dir
+                run_fob_path = os.path.join(run.run_path,
+                                            "codar.cheetah.fob.json")
                 with open(run_fob_path, "w") as runf:
                     runf.write(fob_s)
                     runf.write("\n")
