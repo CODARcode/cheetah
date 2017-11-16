@@ -50,6 +50,15 @@ class Campaign(object):
     run_post_process_script = None
     run_post_process_stop_group_on_failure = False
 
+    # Optional. Designed to set up application specific environment
+    # variables and load environment modules. Must be a dictionary with
+    # machine name keys and values pointing at bash scripts. The
+    # appropriate machine script will be sourced before running the workflow
+    # script, and all the codes in the application will inherit that
+    # environment. Can be an absolute path, or a path relative to the
+    # directory containg the campaign definition.
+    app_config_scripts = None
+
     # Script to be run for each run directory. The working dir will be
     # set to the run dir and no arguments will be passed. It will be
     # run as the last step, so all files created by cheetah, like the
@@ -116,7 +125,8 @@ class Campaign(object):
         if self.sosd_path is None:
             self.sosd_path = os.path.join(self.app_dir, 'sosd')
         if self.sos_analysis_path is None:
-            self.sos_analysis_path = os.path.join(self.app_dir, 'sos_wrapper.sh')
+            self.sos_analysis_path = os.path.join(self.app_dir,
+                                                  'sos_wrapper.sh')
         elif not self.sosd_path.startswith('/'):
             self.tau_config = os.path.join(self.app_dir, self.sosd_path)
 
@@ -127,6 +137,15 @@ class Campaign(object):
         if self.run_dir_setup_script is not None:
             self.run_dir_setup_script = self._experiment_relative_path(
                                                 self.run_dir_setup_script)
+
+        if self.app_config_scripts is not None:
+            assert isinstance(self.app_config_scripts, dict)
+            script = self.app_config_scripts.get(machine_name)
+            if script is not None:
+                self.machine_app_config_script = \
+                    self._experiment_relative_path(script)
+        else:
+            self.machine_app_config_script = None
 
     def _get_machine(self, machine_name):
         machine = None
@@ -159,6 +178,7 @@ class Campaign(object):
         campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
             experiment_dir=output_dir,
             machine_config=config.machine_submit_env_path(self.machine.name),
+            app_config=self.machine_app_config_script or "",
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
             workflow_debug_level="DEBUG"
