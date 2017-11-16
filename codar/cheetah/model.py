@@ -517,7 +517,7 @@ class Run(object):
                 rc_exe_path = sos_analysis_path
                 sosd_args = [sosd_path] + sosd_args
 
-            self.node_layout.add_node({rc_name: ppn})
+            self.node_layout.add_node({rc_name: 1})
 
             rc = RunComponent(rc_name,
                               rc_exe_path, sosd_args,
