@@ -244,6 +244,9 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env.update(self.env)
+        if self.logger is not None:
+            self.logger.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
+                              env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err)
 
