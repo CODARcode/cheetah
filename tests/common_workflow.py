@@ -17,11 +17,15 @@ def test_workflow(*args, **kw):
 
 def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                  timeout, kill_on_partial_failure, extra_env=None,
-                 codes_nprocs=None):
-    if kill_on_partial_failure:
-        test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test-randfail.sh')
-    else:
-        test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test.sh')
+                 codes_nprocs=None, test_script=None, sleep_after=None):
+    if test_script is None:
+        if kill_on_partial_failure:
+            test_script = os.path.join(CHEETAH_DIR, 'scripts',
+                                       'test-randfail.sh')
+        else:
+            test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test.sh')
+    elif not test_script.startswith('/'):
+        test_script = os.path.join(CHEETAH_DIR, 'scripts', test_script)
 
     # clean up after old runs, ignore if doesn't exist
     shutil.rmtree(OUT_DIR, ignore_errors=True)
@@ -31,6 +35,8 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
 
     if codes_nprocs is None:
         codes_nprocs = [1] * ncodes
+    if sleep_after is None:
+        sleep_after = [0] * ncodes
 
     # generate pipelines file and save
     pipelines_file_path = os.path.join(OUT_DIR, 'pipelines.json')
@@ -51,7 +57,8 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                                       'test \' quote'],
                                 env=env,
                                 timeout=timeout,
-                                nprocs=codes_nprocs[j])
+                                nprocs=codes_nprocs[j],
+                                sleep_after=sleep_after[j])
                 runs_data.append(run_data)
             pipeline_data = dict(id=str(i), runs=runs_data,
                 working_dir=work_dir,
