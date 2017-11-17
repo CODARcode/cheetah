@@ -124,11 +124,15 @@ class Campaign(object):
 
         if self.sosd_path is None:
             self.sosd_path = os.path.join(self.app_dir, 'sosd')
+        elif not self.sosd_path.startswith('/'):
+            self.sosd_path = os.path.join(self.app_dir, self.sosd_path)
+
         if self.sos_analysis_path is None:
             self.sos_analysis_path = os.path.join(self.app_dir,
                                                   'sos_wrapper.sh')
-        elif not self.sosd_path.startswith('/'):
-            self.tau_config = os.path.join(self.app_dir, self.sosd_path)
+        elif not self.sos_analysis_path.startswith('/'):
+            self.sos_analysis_path = os.path.join(self.app_dir,
+                                                  self.sos_analysis_path)
 
         o = self.scheduler_options.get(machine_name, {})
         # TODO: deeper validation with knowledge of scheduler
