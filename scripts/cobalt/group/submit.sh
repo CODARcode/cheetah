@@ -8,10 +8,6 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
     source "$CODAR_CHEETAH_MACHINE_CONFIG"
 fi
 
-if [ -n "$CODAR_CHEETAH_APP_CONFIG" ]; then
-    source "$CODAR_CHEETAH_APP_CONFIG"
-fi
-
 # Cobalt qsub supports both HH:MM:SS and minutes, use the former for
 # consistency with PBS.
 secs=$CODAR_CHEETAH_GROUP_WALLTIME

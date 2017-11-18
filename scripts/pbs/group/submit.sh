@@ -8,10 +8,6 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
     source "$CODAR_CHEETAH_MACHINE_CONFIG"
 fi
 
-if [ -n "$CODAR_CHEETAH_APP_CONFIG" ]; then
-    source "$CODAR_CHEETAH_APP_CONFIG"
-fi
-
 # convert walltime from seconds to HH:MM:SS format needed by PBS
 
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
