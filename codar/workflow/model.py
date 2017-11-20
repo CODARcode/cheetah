@@ -204,6 +204,11 @@ class Run(threading.Thread):
         killed, it will mark the state as killed so it can be re-run on
         workflow restart. Thread safe."""
         with self._state_lock:
+            if self._killed:
+                # avoid double kill - there is a delay between this
+                # being called and end_time being set, and kill after
+                # partial failure can result in multiple async calls
+                return
             if self._end_time is not None:
                 # already finished naturally
                 return
