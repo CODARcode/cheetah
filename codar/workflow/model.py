@@ -18,6 +18,7 @@ import os
 import shutil
 import math
 import threading
+import signal
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
@@ -175,7 +176,7 @@ class Run(threading.Thread):
             if self.logger is not None:
                 self.logger.warn('%s killing (timeout %d)', self.log_prefix,
                                  self.timeout)
-            self._p.kill()
+            os.killpg(self._p.pid, signal.SIGKILL)
             self._p.wait()
             with self._state_lock:
                 self._end_time = time.time()
@@ -217,7 +218,7 @@ class Run(threading.Thread):
         if self._p is not None:
             if self.logger is not None:
                 self.logger.warn('%s kill requested', self.log_prefix)
-            self._p.kill()
+            os.killpg(self._p.pid, signal.SIGKILL)
 
     @classmethod
     def from_data(cls, data):
@@ -253,7 +254,8 @@ class Run(threading.Thread):
             self.logger.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
                               env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                   stdout=out, stderr=err)
+                                   stdout=out, stderr=err,
+                                   start_new_session=True)
 
     def _save_returncode(self, rcode):
         assert rcode is not None
