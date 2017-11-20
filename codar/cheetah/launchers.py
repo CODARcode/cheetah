@@ -55,15 +55,14 @@ class Launcher(object):
     def create_group_directory(self, campaign_name, group_name, runs,
                                max_nprocs, processes_per_node, nodes,
                                component_subdirs, walltime, node_exclusive,
-                               timeout, machine, tau_config=None,
+                               timeout, machine,
+                               sosd_path=None,
+                               sos_analysis_path=None,
+                               tau_config=None,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
                                scheduler_options=None,
-                               sosflow=False,
-                               sosd_path=None,
-                               sosd_num_aggregators=1,
-                               node_layout=None,
                                run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration"""
@@ -103,24 +102,24 @@ class Launcher(object):
                 for rc in run.run_components:
                     os.makedirs(rc.working_dir, exist_ok=True)
 
-                if sosflow:
-                    run.insert_sosflow(sosd_path, run.run_path,
-                                       sosd_num_aggregators,
-                                       machine.processes_per_node)
+                if run.sosflow:
+                    run.insert_sosflow(sosd_path, sos_analysis_path,
+                                       run.run_path, machine.processes_per_node)
 
                 if tau_config is not None:
                     shutil.copy(tau_config, run.run_path)
 
                 # Copy the global input files common to all components
                 for input_rpath in run.inputs:
-                    shutil.copy2(input_rpath, run.run_path+"/.")
+                    shutil.copy2(input_rpath, run.run_path)
 
                 # Copy input files requested by each component
                 for rc in run.run_components:
                     if rc.component_inputs is not None:
                         for input_file in rc.component_inputs:
-                            file_path = os.path.abspath(run.codes_path+"/"+input_file)
-                            shutil.copy(file_path, rc.working_dir+"/.")
+                            file_path = os.path.abspath(os.path.join(
+                                                run.codes_path, input_file))
+                            shutil.copy(file_path, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
@@ -131,7 +130,8 @@ class Launcher(object):
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
                     elif pv.param_type == "adios_transport":
-                        # value could be "MPI_AGGREGATE:num_aggregators=64;num_osts"
+                        # value could be
+                        # "MPI_AGGREGATE:num_aggregators=64;num_osts"
                         # extract the method name and the method options
                         method_name = pv.value
                         method_opts = ""
@@ -184,7 +184,7 @@ class Launcher(object):
                            post_process_stop_on_failure=
                                 run_post_process_stop_on_failure,
                            post_process_args=[params_path_json],
-                           node_layout=node_layout.as_data_list())
+                           node_layout=run.node_layout.as_data_list())
                 fob_s = json.dumps(fob)
 
                 # write to file run dir

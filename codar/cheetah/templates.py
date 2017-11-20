@@ -9,6 +9,7 @@ instead of being templates.
 CAMPAIGN_ENV_TEMPLATE = """
 export CODAR_CHEETAH_EXPERIMENT_DIR="{experiment_dir}"
 export CODAR_CHEETAH_MACHINE_CONFIG="{machine_config}"
+export CODAR_CHEETAH_APP_CONFIG="{app_config}"
 export CODAR_WORKFLOW_SCRIPT="{workflow_script_path}"
 export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"

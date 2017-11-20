@@ -50,12 +50,22 @@ class Campaign(object):
     run_post_process_script = None
     run_post_process_stop_group_on_failure = False
 
+    # Optional. Designed to set up application specific environment
+    # variables and load environment modules. Must be a dictionary with
+    # machine name keys and values pointing at bash scripts. The
+    # appropriate machine script will be sourced before running the workflow
+    # script, and all the codes in the application will inherit that
+    # environment. Can be an absolute path, or a path relative to the
+    # directory containg the campaign definition.
+    app_config_scripts = None
+
     # Script to be run for each run directory. The working dir will be
     # set to the run dir and no arguments will be passed. It will be
     # run as the last step, so all files created by cheetah, like the
     # FOB file, will be present. If the value is non-None and does not
     # begin with '/', the path will be assumed to be relative to the
     # directory containing the campaign spec.
+    # @TODO: This must be per sweep group
     run_dir_setup_script = None
 
     # Schedular options. Not used when using machine 'local', required
@@ -69,6 +79,7 @@ class Campaign(object):
     # TODO: make this part of machine config? Or does it make sense to
     # have per-app binaries for sos?
     sosd_path = None
+    sos_analysis_path = None
     sosd_num_aggregators = 1
 
     # Optional. If set, passed single argument which is the absolute
@@ -114,7 +125,14 @@ class Campaign(object):
         if self.sosd_path is None:
             self.sosd_path = os.path.join(self.app_dir, 'sosd')
         elif not self.sosd_path.startswith('/'):
-            self.tau_config = os.path.join(self.app_dir, self.sosd_path)
+            self.sosd_path = os.path.join(self.app_dir, self.sosd_path)
+
+        if self.sos_analysis_path is None:
+            self.sos_analysis_path = os.path.join(self.app_dir,
+                                                  'sos_wrapper.sh')
+        elif not self.sos_analysis_path.startswith('/'):
+            self.sos_analysis_path = os.path.join(self.app_dir,
+                                                  self.sos_analysis_path)
 
         o = self.scheduler_options.get(machine_name, {})
         # TODO: deeper validation with knowledge of scheduler
@@ -123,6 +141,15 @@ class Campaign(object):
         if self.run_dir_setup_script is not None:
             self.run_dir_setup_script = self._experiment_relative_path(
                                                 self.run_dir_setup_script)
+
+        if self.app_config_scripts is not None:
+            assert isinstance(self.app_config_scripts, dict)
+            script = self.app_config_scripts.get(machine_name)
+            if script is not None:
+                self.machine_app_config_script = \
+                    self._experiment_relative_path(script)
+        else:
+            self.machine_app_config_script = None
 
     def _get_machine(self, machine_name):
         machine = None
@@ -155,6 +182,7 @@ class Campaign(object):
         campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
             experiment_dir=output_dir,
             machine_config=config.machine_submit_env_path(self.machine.name),
+            app_config=self.machine_app_config_script or "",
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
             workflow_debug_level="DEBUG"
@@ -187,9 +215,7 @@ class Campaign(object):
                                         self.codes.keys())
                 else:
                     node_layout = NodeLayout(node_layout)
-                if group.sosflow:
-                    node_layout.add_node({ 'sosflow':
-                                            self.machine.processes_per_node })
+
                 # TODO: validate node layout against machine model
 
                 sweep_runs = [Run(inst, self.codes, self.app_dir,
@@ -199,6 +225,8 @@ class Campaign(object):
                                   self.inputs_fullpath,
                                   node_layout,
                                   group.component_subdirs,
+                                  group.sosflow,
+                                  group.sosflow_analysis,
                                   group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
                 group_runs.extend(sweep_runs)
@@ -231,16 +259,14 @@ class Campaign(object):
                 timeout=group.per_run_timeout,
                 node_exclusive=self.machine.node_exclusive,
                 tau_config=self.tau_config,
+                machine=self.machine,
+                sosd_path=self.sosd_path,
+                sos_analysis_path=self.sos_analysis_path,
                 kill_on_partial_failure=self.kill_on_partial_failure,
                 run_post_process_script=self.run_post_process_script,
                 run_post_process_stop_on_failure=
                     self.run_post_process_stop_group_on_failure,
                 scheduler_options=self.machine_scheduler_options,
-                machine=self.machine,
-                sosflow=group.sosflow,
-                sosd_path=self.sosd_path,
-                sosd_num_aggregators=self.sosd_num_aggregators,
-                node_layout=node_layout,
                 run_dir_setup_script=self.run_dir_setup_script)
 
         # TODO: track directories and ids and add to this file
@@ -349,6 +375,9 @@ class NodeLayout(object):
         suitable for JSON serialization."""
         return list(self.layout_list)
 
+    def copy(self):
+        return NodeLayout(self.as_data_list())
+
     @classmethod
     def default_no_share_layout(cls, ppn, code_names):
         """Create a layout object for the specified codes and ppn, where each
@@ -366,15 +395,20 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, component_subdirs, component_inputs=None):
+                 node_layout, component_subdirs, sosflow, sosflow_analyis,
+                 component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
-        self.node_layout = node_layout
+        # Note: the layout will be modified if sosflow is set, so it's
+        # important to use a copy.
+        self.node_layout = node_layout.copy()
         self.component_subdirs = component_subdirs
+        self.sosflow = sosflow
+        self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
         self.run_components = self._get_run_components()
 
@@ -397,11 +431,14 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
 
+            sosflow = self.codes[target].get('sosflow', False)
+
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
                                 working_dir=working_dir,
-                                component_inputs=component_inputs)
+                                component_inputs=component_inputs,
+                                sosflow=sosflow)
             comps.append(comp)
         return comps
 
@@ -437,12 +474,27 @@ class Run(object):
 
         return num_nodes
 
+    def _get_total_sosflow_component_nodes(self):
+        """Get the total number of nodes that will be required by the components
+        that will use sosflow.
+        This will be less than or equal to the total number of nodes in the Run.
+        Node-sharing not supported yet.
+        This should not include the nodes required by sosflow."""
+        num_nodes = 0
+        for rc in self.run_components:
+            if rc.sosflow:
+                code_node = self.node_layout.get_node_containing_code(rc.name)
+                code_procs_per_node = code_node[rc.name]
+                num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
+
+        return num_nodes
+
     def get_app_param_dict(self):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
 
-    def insert_sosflow(self, sosd_path, run_path, num_aggregators, ppn):
+    def insert_sosflow(self, sosd_path, sos_analysis_path, run_path, ppn):
         """Insert a new component at start of list to launch sosflow daemon.
         Should be called only once."""
         assert self.run_components[0].name != 'sosflow'
@@ -450,32 +502,69 @@ class Run(object):
         # sos_args must be calculated before adding sosflow as a RunComponent,
         # as get_total_nodes() needs to return only application nodes and not
         # any nodes required by sosflow.
+
+        num_listeners = self._get_total_sosflow_component_nodes()
+        # return if no components are setup to use sosflow. That is,
+        # sosflow=False in `codes` for all components
+        if num_listeners == 0:
+            return
+
+        # From Kevin Huck, U of Oregon
+        max_listeners_per_aggregator = 64
+        num_aggregators = math.ceil(num_listeners/max_listeners_per_aggregator)
+
+        # Add sos aggregators to be run
+        #   common aggregator parameters
         sos_args = [
-            '-l', str(self.get_total_nodes()),
+            '-l', str(num_listeners),
             '-a', str(num_aggregators),
             '-w', shlex.quote(run_path)
         ]
-        # TODO: this will break if there are spaces in run_path
         sos_cmd = ' '.join([sosd_path] + sos_args)
         sos_fork_cmd = sos_cmd + ' -k @LISTENER_RANK@ -r listener'
-        sosd_args = sos_args + [
-            '-k', '0',
-            '-r', 'aggregator',
-        ]
 
-        # Insert sosd component so it runs at start after 5 seconds
-        rc = RunComponent('sosflow', sosd_path, sosd_args,
-                          nprocs=num_aggregators, sleep_after=5,
-                          working_dir=self.run_path)
-        self.run_components.insert(0, rc)
+        #   now add each aggregator, starting with the analysis aggregator
+        listener_node_offset = 0
+        for i in range(num_aggregators):
+            sosd_args = sos_args + [
+                '-k', str(i),
+                '-r', 'aggregator',
+            ]
 
-        node_offset = 0
+            rc_name = 'sosflow_aggregator_' + str(i)
+            rc_exe_path = sosd_path
+
+            # If sos analysis is enabled, the first aggregator should be
+            # the sos analysis script instead of a plain sosd aggregator.
+            if i == 0 and self.sosflow_analysis:
+                rc_name = "sosflow_analysis"
+                rc_exe_path = sos_analysis_path
+                sosd_args = [sosd_path] + sosd_args
+
+            self.node_layout.add_node({rc_name: 1})
+
+            rc = RunComponent(rc_name,
+                              rc_exe_path, sosd_args,
+                              nprocs=1, sleep_after=5,
+                              working_dir=self.run_path)
+            rc.env['sos_cmd'] = sos_cmd
+            rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
+            rc.env['SOS_CMD_PORT'] = '22500'
+            rc.env['SOS_EVPATH_MEETUP'] = run_path
+            rc.env['TAU_SOS'] = '1'
+            self.run_components.insert(i, rc)
+
+            listener_node_offset += 1
 
         # add env vars to each run, including sosflow daemon
         # NOTE: not sure how many if any are required for sosd, but
         # should not hurt to have them, and simplifies the offset
         # calculation
         for rc in self.run_components:
+            # ignore component if not setup to use sosflow
+            if not rc.sosflow:
+                continue
+
             # TODO: is this actually used directly?
             rc.env['sos_cmd'] = sos_cmd
             rc.env['SOS_FORK_COMMAND'] = sos_fork_cmd
@@ -508,25 +597,25 @@ class Run(object):
             # How do you get this information?
             # TODO: This will change when we have the ability to set a
             # different number of procs per node
-            rc.env['SOS_APP_RANKS_PER_NODE'] = str(code_nodes)
+            rc.env['SOS_APP_RANKS_PER_NODE'] = str(code_procs_per_node)
 
             # Tell SOS what 'rank' it's listeners should start with
             # the aggregator was 'rank' 0, so this node's listener will be 1
             # This offset is the node count where this fob component starts
-            rc.env['SOS_LISTENER_RANK_OFFSET'] = str(node_offset)
+            rc.env['SOS_LISTENER_RANK_OFFSET'] = str(listener_node_offset)
 
             # TODO: this assumes node exclusive. To support node sharing
             # with custom layouts, will need to know layout here and
             # calculate actual node usage. This potentially duplicates
             # functionality needed in workflow, should eventual converge
             # so they are using the same model.
-            node_offset += code_nodes
+            listener_node_offset += code_nodes
 
 
 class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
-                 env=None, timeout=None):
+                 sosflow=False, env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -536,6 +625,7 @@ class RunComponent(object):
         self.timeout = timeout
         self.working_dir = working_dir
         self.component_inputs = component_inputs
+        self.sosflow = sosflow
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -543,7 +633,8 @@ class RunComponent(object):
                     args=self.args,
                     nprocs=self.nprocs,
                     working_dir=self.working_dir,
-                    sleep_after=self.sleep_after)
+                    sleep_after=self.sleep_after,
+                    sosflow=self.sosflow)
         if self.env:
             data['env'] = self.env
         if self.timeout:

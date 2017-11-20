@@ -144,8 +144,7 @@ class Run(threading.Thread):
                 self.logger.exception('exception in Run thread')
             # attempt to execute callbacks, so more threads could be run
             try:
-                for callback in self.callbacks:
-                    callback(self)
+                self._run_callbacks()
             except:
                 if self.logger is not None:
                     self.logger.exception(
@@ -157,7 +156,16 @@ class Run(threading.Thread):
         else:
             args = [self.exe] + self.args
         self._start_time = time.time()
-        self._popen(args)
+        with self._state_lock:
+            if self._killed:
+                self.logger.info('%s not starting, killed before start',
+                                 self.log_prefix)
+                self._end_time = time.time()
+            else:
+                self._popen(args)
+        if self._p is None:
+            self._run_callbacks()
+            return
         if self.logger is not None:
             self.logger.info('%s start %d %r', self.log_prefix, self._p.pid,
                              args)
@@ -184,6 +192,9 @@ class Run(threading.Thread):
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
+        self._run_callbacks()
+
+    def _run_callbacks(self):
         for callback in self.callbacks:
             callback(self)
 
@@ -192,18 +203,16 @@ class Run(threading.Thread):
         returns. If the run is already done, does nothing. If the process is
         killed, it will mark the state as killed so it can be re-run on
         workflow restart. Thread safe."""
-        if self._p is None:
-            raise ValueError('not running')
-
         with self._state_lock:
             if self._end_time is not None:
                 # already finished naturally
                 return
             self._killed = True
 
-        if self.logger is not None:
-            self.logger.warn('%s kill requested', self.log_prefix)
-        self._p.kill()
+        if self._p is not None:
+            if self.logger is not None:
+                self.logger.warn('%s kill requested', self.log_prefix)
+            self._p.kill()
 
     @classmethod
     def from_data(cls, data):
@@ -235,6 +244,9 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env.update(self.env)
+        if self.logger is not None:
+            self.logger.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
+                              env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err)
 
