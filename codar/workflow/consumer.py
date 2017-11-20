@@ -2,6 +2,7 @@
 specified total process limit."""
 
 import threading
+import subprocess
 
 from codar.workflow import status
 from codar.workflow.scheduler import JobList
@@ -109,6 +110,19 @@ class PipelineRunner(object):
         # pipelines, so we don't need to do that here. Callers that want
         # to block can call join on the consumer thread.
 
+    def _log_running(self, keyword):
+        self.logger.debug('thread count: %d', threading.active_count())
+        try:
+            output = subprocess.check_output(['pgrep', '-a', keyword])
+        except subprocess.CalledProcessError as e:
+            if not e.output and e.returncode == 1:
+                # no match
+                self.logger.debug('pgrep no match for "%s"', keyword)
+            else:
+                self.logger.exception('pgrep failed')
+        else:
+            self.logger.debug('pgrep output: %r', output)
+
     def run_finished(self, run):
         """Monitor thread(s) should call this as runs complete."""
         with self.free_cv:
@@ -166,6 +180,8 @@ class PipelineRunner(object):
             if not self._process_pipelines:
                 self._join_running_pipelines()
                 return
+
+            self._log_running('aprun')
 
             with self.pipelines_lock:
                 if self.logger is not None:
