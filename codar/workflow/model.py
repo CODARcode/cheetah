@@ -186,21 +186,19 @@ class Run(threading.Thread):
             self._term_kill()
             self._p.wait()
             with self._state_lock:
-                self._end_time = time.time()
                 if self._p.returncode != 0:
                     # check return code in case it completes while handling
                     # the exception before kill.
                     self._timed_out = True
-        else:
-            with self._state_lock:
-                self._end_time = time.time()
 
-        self._save_returncode(self._p.returncode)
-        self._save_walltime(self._end_time - self._start_time)
         self._pgroup_wait()
+        with self._state_lock:
+            self._end_time = time.time()
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
+        self._save_walltime(self._end_time - self._start_time)
+        self._save_returncode(self._p.returncode)
         self._run_callbacks()
 
     def _run_callbacks(self):
