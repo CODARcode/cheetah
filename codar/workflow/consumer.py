@@ -181,7 +181,7 @@ class PipelineRunner(object):
                 self._join_running_pipelines()
                 return
 
-            self._log_running('aprun')
+            self._log_running('test')
 
             with self.pipelines_lock:
                 if self.logger is not None:

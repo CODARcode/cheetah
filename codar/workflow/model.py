@@ -67,6 +67,7 @@ class Run(threading.Thread):
                                        walltime_path)
         self.sleep_after = sleep_after
         self._p = None
+        self._pgid = None
         self._open_files = []
 
         self._start_time = None
@@ -174,8 +175,8 @@ class Run(threading.Thread):
             self._run_callbacks()
             return
         if self.logger is not None:
-            self.logger.info('%s start %d %r', self.log_prefix, self._p.pid,
-                             args)
+            self.logger.info('%s start pid=%d pgid=%d args=%r',
+                             self.log_prefix, self._p.pid, self._pgid, args)
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
@@ -196,10 +197,10 @@ class Run(threading.Thread):
 
         self._save_returncode(self._p.returncode)
         self._save_walltime(self._end_time - self._start_time)
+        self._pgroup_wait()
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
-        self._pgroup_wait()
         self._run_callbacks()
 
     def _run_callbacks(self):
@@ -232,12 +233,11 @@ class Run(threading.Thread):
         """Issue signals to entire process group. First give processes a
         chance to exit cleanly with CONT+TERM, then attempt to KILL after
         a delay."""
-        pgid = os.getpgid(self._p.pid)
-        os.killpg(pgid, signal.SIGCONT)
-        os.killpg(pgid, signal.SIGTERM)
+        os.killpg(self._pgid, signal.SIGCONT)
+        os.killpg(self._pgid, signal.SIGTERM)
         time.sleep(KILL_WAIT)
         try:
-            os.killpg(pgid, signal.SIGKILL)
+            os.killpg(self._pgid, signal.SIGKILL)
         except ProcessLookupError:
             # this happens if all processes in the pgroup have already
             # exited and the group no longer exists, which is what should
@@ -251,16 +251,11 @@ class Run(threading.Thread):
         back off and the group still exists, SIGKILL is sent to the group.
         If WAIT_DELAY_GIVE_UP is reached, an error is logged and the function
         will return. Inspired by proctrack_pgid plugin from slurm."""
-        try:
-            pgid = os.getpgid(self._p.pid)
-        except ProcessLookupError:
-            # pgroup already complete
-            return
         delay = 1
         signum = 0 # 0 is the null signal, does error checking only
         while True:
             try:
-                os.killpg(pgid, signum)
+                os.killpg(self._pgid, signum)
             except ProcessLookupError:
                 # pgroup no longer exists, we are done waiting
                 break
@@ -269,6 +264,10 @@ class Run(threading.Thread):
             delay *= 2
             if delay > WAIT_DELAY_KILL:
                 signum = signal.SIGKILL
+                if self.logger is not None:
+                    self.logger.warn(
+                        '%s pgroup still exists, sending KILL, next delay=%d',
+                        self.log_prefix, delay)
             if delay > WAIT_DELAY_GIVE_UP:
                 if self.logger is not None:
                     self.logger.error('%s pgroup did not exit',
@@ -311,6 +310,7 @@ class Run(threading.Thread):
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
                                    start_new_session=True)
+        self._pgid = os.getpgid(self._p.pid)
 
     def _save_returncode(self, rcode):
         assert rcode is not None
