@@ -176,7 +176,7 @@ class Run(threading.Thread):
             if self.logger is not None:
                 self.logger.warn('%s killing (timeout %d)', self.log_prefix,
                                  self.timeout)
-            os.killpg(self._p.pid, signal.SIGKILL)
+            os.killpg(os.getpgid(self._p.pid), signal.SIGTERM)
             self._p.wait()
             with self._state_lock:
                 self._end_time = time.time()
@@ -218,7 +218,7 @@ class Run(threading.Thread):
         if self._p is not None:
             if self.logger is not None:
                 self.logger.warn('%s kill requested', self.log_prefix)
-            os.killpg(self._p.pid, signal.SIGKILL)
+            os.killpg(os.getpgid(self._p.pid), signal.SIGTERM)
 
     @classmethod
     def from_data(cls, data):
