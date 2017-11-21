@@ -251,7 +251,11 @@ class Run(threading.Thread):
         back off and the group still exists, SIGKILL is sent to the group.
         If WAIT_DELAY_GIVE_UP is reached, an error is logged and the function
         will return. Inspired by proctrack_pgid plugin from slurm."""
-        pgid = os.getpgid(self._p.pid)
+        try:
+            pgid = os.getpgid(self._p.pid)
+        except ProcessLookupError:
+            # pgroup already complete
+            return
         delay = 1
         signum = 0 # 0 is the null signal, does error checking only
         while True:
@@ -260,6 +264,7 @@ class Run(threading.Thread):
             except ProcessLookupError:
                 # pgroup no longer exists, we are done waiting
                 break
+            # else pgroup still exists
             time.sleep(delay)
             delay *= 2
             if delay > WAIT_DELAY_KILL:
