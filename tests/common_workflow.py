@@ -17,7 +17,8 @@ def test_workflow(*args, **kw):
 
 def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                  timeout, kill_on_partial_failure, extra_env=None,
-                 codes_nprocs=None, test_script=None, sleep_after=None):
+                 codes_nprocs=None, test_script=None, sleep_after=None,
+                 test_script_args=None):
     if test_script is None:
         if kill_on_partial_failure:
             test_script = os.path.join(CHEETAH_DIR, 'scripts',
@@ -26,6 +27,9 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
             test_script = os.path.join(CHEETAH_DIR, 'scripts', 'test.sh')
     elif not test_script.startswith('/'):
         test_script = os.path.join(CHEETAH_DIR, 'scripts', test_script)
+
+    if test_script_args is None:
+        test_script_args = []
 
     # clean up after old runs, ignore if doesn't exist
     shutil.rmtree(OUT_DIR, ignore_errors=True)
@@ -51,10 +55,11 @@ def run_workflow(nruns, ncodes, max_procs, max_nodes, processes_per_node,
                          CODAR_WORKFLOW_CODE=str(j))
                 if extra_env:
                     env.update(extra_env)
+                args = test_script_args + ['test spaces', str(i), str(j),
+                                           'test \' quote']
                 run_data = dict(name='code%02d' % (j+1),
                                 exe=test_script,
-                                args=['test spaces', str(i), str(j),
-                                      'test \' quote'],
+                                args=args,
                                 env=env,
                                 timeout=timeout,
                                 nprocs=codes_nprocs[j],
