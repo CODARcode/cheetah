@@ -139,6 +139,9 @@ See [heat transfer example sosflow](examples/heat_transfer_sosflow.py). Note
 that sosflow is enabled per code and per group - both must be set for a code
 in a run within a group to use sosflow.
 
+Output files from sosflow will be stored in the run directories (see
+description below). Typically this will be `sosd.0000N.db` files.
+
 ## Campaign Specification
 
 The campaign is specified as a python class that extends
