@@ -63,35 +63,115 @@ cd ~/codar/campaigns/heat
 ./run-all.sh
 ```
 
-For results, see `group-001/run-00*`. To debug failures, look at
-`group-001/codar.cheetah.submit-output.txt` first, then at the stdout
+For results, see `GROUP_NAME/run-NNN`. To debug failures, look at
+`GROUP_NAME/codar.cheetah.submit-output.txt` first, then at the stdout
 and stderr files in each of the run directories.
+
+## Campaign Directory
+
+Within the output directory, cheetah creates a subdirectory for each group
+in the specification. Group directories contain the following files:
+
+- submit.sh: script that submits the group to the scheduler (or runs in
+  the background for local machine). The campaign `run-all.sh` script simply
+  calls this script in every group subdirectory.
+- status.sh: script that prints information about the status of a group that
+  has been submitted. Output depends on the scheduler.
+- cancel.sh: script to cancel the job, after submit has been called.
+- codar.cheetah.jobid.txt: after the group is submitted, this will contain
+  the job id (or PID for local machine), with the format SCHEDULER:ID, where
+  SCHEDULER is one of PBS, COBALT, SLURM, or PID.
+- codar.cheetah.walltime.txt: when the job is finished, this will contain a
+  single line with the total walltime for the group in seconds.
+- codar.FOBrun.log: log file for the workflow script (also called the FOB
+  runner). First place to look for debugging. Exists only after the group is
+  running.
+- codar.workflow.status.json: File describing the state of each run within the
+  group. See `status_summary.py` in the project root for an example script that
+  generates a summary from this file. Exists only after the group is running.
+- fobs.json: list of application runs within the group. Each line is a JSON
+  document. Useful for verifying that cheetah has generated the correct
+  commands for each code.
+
+The group directory also contains subdirectories of the format `run-NNN` for
+each application run in the group. The run directory contains the following
+files:
+
+- codar.cheetah.fob.json: The FOB, or functional object bundle, describing
+  what commands are executed as part of this run. Identical the corresponding
+  line in the group fobs.json. This may be useful for certain types of
+  post processing scripts, but the run-params file described next is usually
+  more useful.
+- codar.cheetah.run-params.json: abstract description of all parameters in this
+  run. Format is a dictionary of dictionaries, where top level keys are the
+  code names, and each sub-dict describes the parameters for that code. Useful
+  for post processing scripts.
+- codar.cheetah.run-params.txt: list of commands that were run. Does not do
+  quoting and does not include non command line parameters, but can be useful
+  for quick manual verification.
+
+For each code, the run directory will also contain the following files and
+directories, with "CODE" used as a placeholder for the actual code name:
+
+- codar.workflow.return.CODE: contains a single line with the return value of
+  the code, once it is complete. If the code was never run successful, this
+  file won't exist.
+- codar.workflow.stdout.CODE: standard out for the code. Exists after the code
+  is started.
+- codar.workflow.stderr.CODE: standard error for the code.
+- codar.workflow.walltime.CODE: walltime of the code in seconds, available
+  if the code can be run and after it completes.
+- codar.cheetah.tau-CODE: directory of tau output for the code. Will be empty
+  if the code is not tau enabled.
+- tau.conf: Tau configuration file. Ignored unless the application is tau
+  enabled. A campaign can specify a file with the `tau_config` variable,
+  otherwise a default file will be used.
+
+Each code within the run will be executed with the working dir set to the run
+directory, unless the `component_subdirs` option is set to True for the group.
+In that case, the working dir  for each code will be a subdirectory of the run
+directory with name equal to the code name.
+
+## SOSFlow Support
+
+Cheetah can automatically configure sosflow daemons to run with an application.
+See [heat transfer example sosflow](examples/heat_transfer_sosflow.py). Note
+that sosflow is enabled per code and per group - both must be set for a code
+in a run within a group to use sosflow.
 
 ## Campaign Specification
 
 The campaign is specified as a python class that extends
 `codar.cheetah.Campaign`. To define your own campaign, it is recommended to
 start with the
-[heat transfer example campaign](examples/heat_transfer_small.py).
+[heat transfer example](examples/heat_transfer_simple.py).
 
 Note that this is an early release and the campaign definition is not
 stable yet. Here is a quick overview of the current structure and
-supported parameter types:
+supported parameter types. For a complete list, see the examples and the
+[campaign class definition](codar/cheetah/model.py).
 
 - name - a descriptive name for the campaign
-- codes - dictionary of different codes that make up the application,
-  where keys are logical names and values are paths to the executable
-  relative to the application root directory. Many simple applications will
-  have only one code.
+- codes - a list of pairs describing the codes that make up the application.
+  When running the application, codes will be executed in this order.
+  The first value in the pair is the code name. The second value is a
+  dictionary describing properties of the code. The 'exe' key is required,
+  is assumed to be relative to the app directory specified on the cheetah
+  command line if it's not an absolute path. The optional `sleep\_after` key
+  can be used to delay execution of the next code. The `sosflow` boolean
+  option is used to enable SOSFlow tracking for the code, for groups with
+  `sosflow` set.
 - supported\_machines - list of machines that the campaign is designed
   to run on. Currently only 'local' and 'titan' are supported.
 - inputs - list of files relative to the application root directory to
   copy to the working directory for each application run. If the file is
   an adios config file, ParamAdiosXML can be used to modify it's
   contents as part of the parameter sweep.
-- project - for running on titan, set the project allocation to use.
-  Ignored when using local machine.
-- queue - for running on titan, set the PBS queue to use.
+- scheduler\_options - dictionary containing options for each machine. Top
+  level keys are machine names, values are dictionaries containing scheduler
+  options for that machine. `project` and `queue` are supported by all
+  machines and schedulers, except for local machine (which has no scheduler).
+  `cori` also supports `constraint` and `license`.
 - sweeps - list of SweepGroup objects, defining instances of the
   application to run and what parameters to use.
 - SweepGroup - each sweep group specifies the number of nodes (ignored
