@@ -18,6 +18,7 @@ import os
 import shutil
 import math
 import threading
+import signal
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
@@ -27,6 +28,10 @@ STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
 RETURN_NAME = 'codar.workflow.return'
 WALLTIME_NAME = 'codar.workflow.walltime'
+
+KILL_WAIT = 30
+WAIT_DELAY_KILL = 30
+WAIT_DELAY_GIVE_UP = 120
 
 
 def _get_path(default_dir, default_name, specified_name):
@@ -62,6 +67,7 @@ class Run(threading.Thread):
                                        walltime_path)
         self.sleep_after = sleep_after
         self._p = None
+        self._pgid = None
         self._open_files = []
 
         self._start_time = None
@@ -77,6 +83,8 @@ class Run(threading.Thread):
         self.logger = logger
         self.runner = None
         self.callbacks = set()
+
+        self._kill_thread = None
 
         # calculated by Pipeline based on node layout
         self.nodes = None
@@ -167,31 +175,30 @@ class Run(threading.Thread):
             self._run_callbacks()
             return
         if self.logger is not None:
-            self.logger.info('%s start %d %r', self.log_prefix, self._p.pid,
-                             args)
+            self.logger.info('%s start pid=%d pgid=%d args=%r',
+                             self.log_prefix, self._p.pid, self._pgid, args)
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
             if self.logger is not None:
                 self.logger.warn('%s killing (timeout %d)', self.log_prefix,
                                  self.timeout)
-            self._p.kill()
+            self._term_kill()
             self._p.wait()
             with self._state_lock:
-                self._end_time = time.time()
                 if self._p.returncode != 0:
                     # check return code in case it completes while handling
                     # the exception before kill.
                     self._timed_out = True
-        else:
-            with self._state_lock:
-                self._end_time = time.time()
 
-        self._save_returncode(self._p.returncode)
-        self._save_walltime(self._end_time - self._start_time)
+        self._pgroup_wait()
+        with self._state_lock:
+            self._end_time = time.time()
         if self.logger is not None:
             self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
                              self._p.returncode)
+        self._save_walltime(self._end_time - self._start_time)
+        self._save_returncode(self._p.returncode)
         self._run_callbacks()
 
     def _run_callbacks(self):
@@ -204,6 +211,11 @@ class Run(threading.Thread):
         killed, it will mark the state as killed so it can be re-run on
         workflow restart. Thread safe."""
         with self._state_lock:
+            if self._killed:
+                # avoid double kill - there is a delay between this
+                # being called and end_time being set, and kill after
+                # partial failure can result in multiple async calls
+                return
             if self._end_time is not None:
                 # already finished naturally
                 return
@@ -212,7 +224,53 @@ class Run(threading.Thread):
         if self._p is not None:
             if self.logger is not None:
                 self.logger.warn('%s kill requested', self.log_prefix)
-            self._p.kill()
+            self._kill_thread = threading.Thread(target=self._term_kill)
+            self._kill_thread.start()
+
+    def _term_kill(self):
+        """Issue signals to entire process group. First give processes a
+        chance to exit cleanly with CONT+TERM, then attempt to KILL after
+        a delay."""
+        os.killpg(self._pgid, signal.SIGCONT)
+        os.killpg(self._pgid, signal.SIGTERM)
+        time.sleep(KILL_WAIT)
+        try:
+            os.killpg(self._pgid, signal.SIGKILL)
+        except ProcessLookupError:
+            # this happens if all processes in the pgroup have already
+            # exited and the group no longer exists, which is what should
+            # happen in most cases
+            pass
+
+    def _pgroup_wait(self):
+        """Wait until the process group lead by this run no longer exists.
+        Assumes that it should already be exiting normally (e.g. the parent
+        has already exited). If WAIT_DELAY_KILL is reached in expontential
+        back off and the group still exists, SIGKILL is sent to the group.
+        If WAIT_DELAY_GIVE_UP is reached, an error is logged and the function
+        will return. Inspired by proctrack_pgid plugin from slurm."""
+        delay = 1
+        signum = 0 # 0 is the null signal, does error checking only
+        while True:
+            try:
+                os.killpg(self._pgid, signum)
+            except ProcessLookupError:
+                # pgroup no longer exists, we are done waiting
+                break
+            # else pgroup still exists
+            time.sleep(delay)
+            delay *= 2
+            if delay > WAIT_DELAY_KILL:
+                signum = signal.SIGKILL
+                if self.logger is not None:
+                    self.logger.warn(
+                        '%s pgroup still exists, sending KILL, next delay=%d',
+                        self.log_prefix, delay)
+            if delay > WAIT_DELAY_GIVE_UP:
+                if self.logger is not None:
+                    self.logger.error('%s pgroup did not exit',
+                                      self.log_prefix)
+                break
 
     @classmethod
     def from_data(cls, data):
@@ -248,7 +306,9 @@ class Run(threading.Thread):
             self.logger.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
                               env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                   stdout=out, stderr=err)
+                                   stdout=out, stderr=err,
+                                   preexec_fn=os.setpgrp)
+        self._pgid = os.getpgid(self._p.pid)
 
     def _save_returncode(self, rcode):
         assert rcode is not None
@@ -275,6 +335,11 @@ class Run(threading.Thread):
         for f in self._open_files:
             f.close()
         self._open_files = []
+
+    def join(self):
+        threading.Thread.join(self)
+        if self._kill_thread is not None:
+            self._kill_thread.join()
 
     def set_logger(self, logger, log_prefix):
         self.logger = logger
