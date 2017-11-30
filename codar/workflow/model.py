@@ -307,7 +307,7 @@ class Run(threading.Thread):
                               env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
-                                   start_new_session=True)
+                                   preexec_fn=os.setpgrp)
         self._pgid = os.getpgid(self._p.pid)
 
     def _save_returncode(self, rcode):
