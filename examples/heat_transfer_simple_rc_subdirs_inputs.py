@@ -130,7 +130,8 @@ class HeatTransfer(Campaign):
         # Parameters that are derived from other explicit parameters can be
         # specified as a function taking a dict of the other parameters
         # as input and returning the value.
-        p.ParamRunner("heat", "nprocs", lambda pm: pm["xprocs"] * pm["yprocs"]),
+        p.ParamRunner("heat", "nprocs",
+                      lambda d: d["heat"]["xprocs"] * d["heat"]["yprocs"]),
         p.ParamCmdLineArg("heat", "output", 1, ["heat"]),
         p.ParamCmdLineArg("heat", "xprocs", 2, [4]),
         p.ParamCmdLineArg("heat", "yprocs", 3, [3]),

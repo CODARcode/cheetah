@@ -138,13 +138,24 @@ class Instance(object):
         return self._code_commands
 
     def _calculate_values(self):
+        # Do in two steps, to support derived params across codes / run
+        # components. First step builds a two level dict with top level
+        # keys being target/code name, next level being simple param
+        # values for that target.
+        simple_value_map = {} # passed to fn for derived params
         for target, target_pv_list in self._simple_pv_list.items():
-            target_p = self._parameter_values[target]
-
             # NB: not attempting to support deriving values from other
             # derived values.
-            simple_value_map = dict((pv.name, pv.value)
-                                    for pv in target_pv_list)
+            simple_value_map[target] = dict((pv.name, pv.value)
+                                            for pv in target_pv_list)
+
+        targets = (set(self._simple_pv_list.keys())
+                 | set(self._derived_pv_list.keys()))
+        for target in targets:
+            target_p = self._parameter_values[target]
+
+            target_pv_list = self._simple_pv_list[target]
+
             for derived_pv in self._derived_pv_list[target]:
                 derived_pv.value = derived_pv.value(simple_value_map)
                 target_pv_list.append(derived_pv)
