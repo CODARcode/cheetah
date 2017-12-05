@@ -1,7 +1,7 @@
 #
 # This example illustrates the format of a Cheetah configuration file
 #
-from codar.cheetah import Campaign
+from codar.cheetah import Campaign, Code
 from codar.cheetah import parameters as p
 
 class HeatTransfer(Campaign):
@@ -14,8 +14,24 @@ class HeatTransfer(Campaign):
     # This applications consists of two codes, with nicknames "heat" and
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
-    codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
-             ('heat', dict(exe="heat_transfer_adios2", sleep_after=0))]
+    codes = [
+        Code(name='stage',
+             exe='stage_write/stage_write',
+             sleep_after=5,
+             command_line_args=["input", "output", "rmethod", "ropt",
+                                "wmethod", "wopt", "variables",
+                                "transform", "decomp"]),
+        Code(name='heat',
+             exe="heat_transfer_adios2",
+             sleep_after=0,
+             command_line_args=["output", "xprocs", "yprocs", "xsize",
+                                "ysize", "steps", "iterations"],
+             command_line_options=[...],
+             other_parameters=[
+                 p.ParamAdiosXML("transport",
+                                 "adios_transport:heat_transfer.xml:heat")
+             ])
+    ]
 
     # The application is designed to run on two machines.
     # (These are magic strings known to Cheetah.)
@@ -76,48 +92,39 @@ class HeatTransfer(Campaign):
       # (ParamCmdLineOption), ADIOS XML config file (ParamAdiosXML)
 
       parameter_groups=
-      [p.Sweep([
+      [p.Sweep(
 
         # First, the parameters for the STAGE program
 
         # ParamRunner passes an argument to launch_multi_swift
         # nprocs: Number of processors (aka process) to use
-        p.ParamRunner("stage", "nprocs", [2]),
+        {
+            "stage": {
+                "nprocs": [2],
+                "input": ["heat.bp"],
+                "output": ["staged.bp"],
+                "rmethod": ["FLEXPATH"],
+                "ropt": [""],
+                "wmethod": ["MPI"],
+                "wopt": [""],
+                "variables": ["T,dT"],
+                "transform": ["none", "zfp:accuracy=.001", "sz:accuracy=.001"],
+                "decomp": [2],
+            },
 
-        # ParamCmdLineArg passes a positional argument to the application
-        # Arguments are:
-          # 1) Code name (e.g., "stage"),
-          # 2) Logical name for parameter, used in output;
-          # 3) positional argument number;
-          # 4) options
-        p.ParamCmdLineArg("stage", "input", 1, ["heat.bp"]),
-        p.ParamCmdLineArg("stage", "output", 2, ["staged.bp"]),
-        p.ParamCmdLineArg("stage", "rmethod", 3, ["FLEXPATH"]),
-        p.ParamCmdLineArg("stage", "ropt", 4, [""]),
-        p.ParamCmdLineArg("stage", "wmethod", 5, ["MPI"]),
-        p.ParamCmdLineArg("stage", "wopt", 6, [""]),
-        p.ParamCmdLineArg("stage", "variables", 7, ["T,dT"]),
-        p.ParamCmdLineArg("stage", "transform", 8,
-                          ["none", "zfp:accuracy=.001", "sz:accuracy=.001"]),
-        p.ParamCmdLineArg("stage", "decomp", 9, [2]),
-
-        # Second, the parameters for the HEAT program
-
-        # Parameters that are derived from other explicit parameters can be
-        # specified as a function taking a dict of the other parameters
-        # as input and returning the value.
-        p.ParamRunner("heat", "nprocs", lambda pm: pm["xprocs"] * pm["yprocs"]),
-        p.ParamCmdLineArg("heat", "output", 1, ["heat"]),
-        p.ParamCmdLineArg("heat", "xprocs", 2, [4]),
-        p.ParamCmdLineArg("heat", "yprocs", 3, [3]),
-        p.ParamCmdLineArg("heat", "xsize", 4, [40]),
-        p.ParamCmdLineArg("heat", "ysize", 5, [50]),
-        p.ParamCmdLineArg("heat", "steps", 6, [6]),
-        p.ParamCmdLineArg("heat", "iterations", 7, [5]),
-        p.ParamAdiosXML("heat", "transport", "adios_transport:heat_transfer.xml:heat",
-                        ["MPI_AGGREGATE:num_aggregators=4;num_osts=44",
-                         "POSIX",
-                         "FLEXPATH"]),
-        ]),
+            "heat": {
+                "nprocs": lambda pm: pm["xprocs"] * pm["yprocs"],
+                "output": ["heat"],
+                "xprocs": [4],
+                "yprocs": [3],
+                "xsize": [40],
+                "ysize": [50],
+                "steps": [6],
+                "iterations": [5],
+                "transport": ["MPI_AGGREGATE:num_aggregators=4;num_osts=44",
+                              "POSIX",
+                              "FLEXPATH"],
+            }
+        }),
       ]),
     ]
