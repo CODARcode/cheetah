@@ -3,6 +3,7 @@
 set -e
 
 cd $(dirname $0)/../
+CHEETAH_DIR=$(pwd)
 mkdir -p test_output
 
 if [ $# -gt 0 ]; then
@@ -24,6 +25,11 @@ for machine in local titan cori theta; do
     ./cheetah.py -e examples/PiExperiment.py -m $machine \
         -a "$CODAR_APPDIR/Example-pi/" \
         -o test_output/$machine-pi
+
+    rm -rf test_output/$machine-param_test/*
+    ./cheetah.py -e examples/param_test.py -m $machine \
+        -a "$CHEETAH_DIR/examples/param_test/" \
+        -o test_output/$machine-param_test
 done
 
 rm -rf test_output/local-heat-simple/*

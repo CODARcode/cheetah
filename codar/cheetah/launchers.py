@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 from codar.cheetah import adios_params, config, templates
-from codar.cheetah.parameters import ParamAdiosXML
+from codar.cheetah.parameters import ParamAdiosXML, ParamConfig
 from codar.cheetah.helpers import parse_timedelta_seconds
 
 
@@ -144,6 +144,24 @@ class Launcher(object):
                             xml_filepath, pv.group_name, method_name, method_opts)
                     else:
                         raise "Unrecognized adios param"
+
+                # Generic config file support. Note: slurps entire
+                # config file into memory, requires adding file to
+                # campaign 'inputs' option.
+                config_params = \
+                    run.instance.get_parameter_values_by_type(ParamConfig)
+                for pv in config_params:
+                    config_filepath = os.path.join(run.run_path,
+                                                   pv.config_filename)
+                    lines = []
+                    # read and modify lines
+                    with open(config_filepath) as config_f:
+                        for line in config_f:
+                            line = line.replace(pv.match_string, pv.value)
+                            lines.append(line)
+                    # rewrite file with modified lines
+                    with open(config_filepath, 'w') as config_f:
+                        config_f.write("\n".join(lines))
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,

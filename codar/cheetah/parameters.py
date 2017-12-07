@@ -349,6 +349,19 @@ class ParamAdiosXML(Param):
             self.var_name = parts[3]
 
 
+class ParamConfig(Param):
+    """
+    Class to represent a simple literal string replace in a config file.
+
+    Note that the filename must be added to the inputs list as well, to be
+    copied to each run directory.
+    """
+    def __init__(self, target, name, config_filename, match_string, values):
+        Param.__init__(self, target, name, values)
+        self.config_filename = config_filename
+        self.match_string = match_string
+
+
 class ParamCmdLineOption(Param):
     """Specification for parameters that are based as a labeled command line
     option. The option must contain the prefix, e.g. '--output-file' not
