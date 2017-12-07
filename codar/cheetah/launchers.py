@@ -157,7 +157,10 @@ class Launcher(object):
                     # read and modify lines
                     with open(config_filepath) as config_f:
                         for line in config_f:
-                            line = line.replace(pv.match_string, pv.value)
+                            if '=' in line:
+                                k,v = line.strip().split("=")
+                                if k == pv.match_string:
+                                    line = k+"="+str(pv.value)
                             lines.append(line)
                     # rewrite file with modified lines
                     with open(config_filepath, 'w') as config_f:
