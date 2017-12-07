@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 from codar.cheetah import adios_params, config, templates
-from codar.cheetah.parameters import ParamAdiosXML, ParamConfig
+from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 
 
@@ -161,7 +161,30 @@ class Launcher(object):
                             lines.append(line)
                     # rewrite file with modified lines
                     with open(config_filepath, 'w') as config_f:
-                        config_f.write("\n".join(lines))
+                        config_f.write("".join(lines))
+
+                # Key value config file support. Note: slurps entire
+                # config file into memory, requires adding file to
+                # campaign 'inputs' option.
+                kv_params = \
+                    run.instance.get_parameter_values_by_type(ParamKeyValue)
+                for pv in kv_params:
+                    kv_filepath = os.path.join(run.run_path, pv.config_filename)
+                    lines = []
+                    # read and modify lines
+                    with open(kv_filepath) as kv_f:
+                        for line in kv_f:
+                            parts = line.split('=', 1)
+                            if len(parts) == 2:
+                                k = parts[0].strip()
+                                if k == pv.key_name:
+                                    # assume all k=v type formats will
+                                    # support no spaces around equals
+                                    line = k + '=' + str(pv.value) + '\n'
+                            lines.append(line)
+                    # rewrite file with modified lines
+                    with open(kv_filepath, 'w') as kv_f:
+                        kv_f.write("".join(lines))
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,

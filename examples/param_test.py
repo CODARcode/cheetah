@@ -22,7 +22,7 @@ class param_test(Campaign):
 
     # Files to be copied from app dir to run directories, e.g. for use
     # with ParamConfig and ParamAdiosXML.
-    inputs = ["print1.conf"]
+    inputs = ["print1.conf", "print2.ini"]
 
     # Document which machines the campaign is designed to run on. An
     # error will be raised if a different machine is specified on the
@@ -63,7 +63,9 @@ class param_test(Campaign):
 
         p.ParamCmdLineArg("print2", "arg1", 1, ["1lav"]),
         p.ParamCmdLineArg("print2", "arg2", 2, [2]),
-        p.ParamCmdLineOption("print2", "opt1", "--opt1", [-100, 13])
+        p.ParamCmdLineOption("print2", "opt1", "--opt1", [-100]),
+        p.ParamKeyValue("print2", "kvconfig", "print2.ini", "mykey",
+                        ["cv1", "cv2"]),
         ]),
       ]),
     ]
