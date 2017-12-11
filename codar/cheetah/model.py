@@ -17,6 +17,7 @@ import inspect
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, config, templates, exc
+from codar.cheetah.helpers import relative_or_absolute_path_list
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -34,8 +35,7 @@ class Campaign(object):
     codes = []
     supported_machines = []
     sweeps = []
-    inputs = []
-    inputs_fullpath = []
+    inputs = [] # copied to top level run directory
 
     # If set and there are multiple codes making up the application,
     # kill all remaining codes if one code fails.
@@ -102,8 +102,10 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
-        for input_rpath in self.inputs:
-            self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
+
+        # allow inputs to be either aboslute paths or relative to
+        # app_dir
+        self.inputs = relative_or_absolute_path_list(self.app_dir, self.inputs)
 
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
@@ -222,7 +224,7 @@ class Campaign(object):
                                   os.path.join(
                                       group_output_dir,
                                       'run-%03d' % (group_run_offset + i)),
-                                  self.inputs_fullpath,
+                                  self.inputs,
                                   node_layout,
                                   group.component_subdirs,
                                   group.sosflow,
@@ -430,6 +432,9 @@ class Run(object):
             component_inputs = None
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
+            if component_inputs:
+                component_inputs = relative_or_absolute_path_list(
+                                        self.codes_path, component_inputs)
 
             sosflow = self.codes[target].get('sosflow', False)
 

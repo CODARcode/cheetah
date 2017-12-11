@@ -68,3 +68,14 @@ def parse_timedelta_seconds(v):
 
     raise ValueError(
         "Invalid duration (must be timedelta, int, or 'HH:MM:SS'): %r" % v)
+
+
+def relative_or_absolute_path(prefix, path):
+    """If path is an absolute path, return as is, otherwise pre-pend prefix."""
+    if path.startswith("/"):
+        return path
+    return os.path.join(prefix, path)
+
+
+def relative_or_absolute_path_list(prefix, path_list):
+    return [relative_or_absolute_path(prefix, path) for path in path_list]
