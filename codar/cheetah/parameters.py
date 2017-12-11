@@ -362,6 +362,25 @@ class ParamConfig(Param):
         self.match_string = match_string
 
 
+class ParamKeyValue(Param):
+    """
+    Class to represent replacement of the value in a config file with
+    'k = v' formatted lines. This should work with various formats, including
+    fortran namelist and INI, by ignoring lines that don't match the
+    simple k = v pattern. It has the advantage of being flexible, but the
+    disadvantage of not understanding sections or other more complicated
+    structure in config files. Also does not do any quoting - if required,
+    the spec writer should include literal quotes around the values.
+
+    Note that the filename must be added to the inputs list as well, to be
+    copied to each run directory.
+    """
+    def __init__(self, target, name, config_filename, key_name, values):
+        Param.__init__(self, target, name, values)
+        self.config_filename = config_filename
+        self.key_name = key_name
+
+
 class ParamCmdLineOption(Param):
     """Specification for parameters that are based as a labeled command line
     option. The option must contain the prefix, e.g. '--output-file' not
