@@ -189,6 +189,7 @@ class Launcher(object):
                     os.makedirs(tau_profile_dir)
 
                     rc.env["PROFILEDIR"] = tau_profile_dir
+                    rc.env["TRACEDIR"] = tau_profile_dir
 
                     if timeout is not None:
                         rc.timeout = parse_timedelta_seconds(timeout)
