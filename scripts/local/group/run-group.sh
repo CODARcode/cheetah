@@ -5,6 +5,10 @@
 
 cd "$(dirname $0)"
 
+if [ -n "$CODAR_CHEETAH_UMASK" ]; then
+    umask "$CODAR_CHEETAH_UMASK"
+fi
+
 start=$(date +%s)
 
 # Main application run
