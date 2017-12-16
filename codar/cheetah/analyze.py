@@ -66,7 +66,12 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
 
     # Open status return files for all RCs to verify they exited cleanly
     for rc in rc_names:
-        with(open(run_dir + "/" + "codar.workflow.return." + rc)) as f:
+        return_code_file = run_dir + "/" + "codar.workflow.return." + rc
+        if not Path(return_code_file).is_file():
+            print("WARN: Could not find file " + return_code_file +
+                  ". Skipping run directory.")
+            return
+        with open(return_code_file) as f:
             line = f.readline()
             ret_code = int(line.strip())
             if ret_code != 0:
@@ -104,8 +109,10 @@ def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
     """
 
     # Check if group was run by checking if status file exists
-    status_file = Path(sweep_group + "/codar.workflow.status.json")
-    if not status_file.is_file():
+    status_file = sweep_group + "/codar.workflow.status.json"
+    if not Path(status_file).is_file():
+        print("WARN: Could not find file " + status_file + 
+              ". Skipping sweep group")
         return
 
     # Read status file
@@ -124,7 +131,7 @@ def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
         for rc, rc_return_code in rc_return_codes.items():
             if rc_return_code != 0:
                 break
-        successful_runs.append(sweep_group + "/" + run_dir)
+        successful_runs.append(str(sweep_group) + "/" + run_dir)
 
     # Parse runs that have succeeded
     for run_dir in successful_runs:
