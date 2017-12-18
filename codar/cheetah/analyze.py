@@ -11,6 +11,7 @@ from pathlib import Path
 import json
 from glob import glob
 import csv
+import sos_flow_analysis
 
 
 def __serialize_params_nested_dict(nested_run_params_dict):
@@ -44,6 +45,8 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
     Parse run directory of a sweep group
     """
 
+    print("Parsing " + run_dir)
+
     # Re-verify that all run components have exited cleanly by
     # checking their codar.workflow.return.[rc_name] file.
     # This includes internally spawned RCs such as sos_flow.
@@ -51,6 +54,7 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
     # codar.cheetah.fobs.json file.
 
     # Open fob json file
+    fob_dict = {}
     fob_json_filename = run_dir + "/" + "codar.cheetah.fob.json"
     try:
         with open(fob_json_filename, 'r') as f:
@@ -59,10 +63,22 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
         print("ERROR: Could not read file " + fob_json_filename)
         return
 
+    # sos_flow sees exes in the perf data that it collects. Form a mapping of 
+    # rc_exe:rc_name so that we can get the rc_name from the exe from sos data.
+    rc_name_exe = {}
+
     # Get rc names
     rc_names = []
     for rc in fob_dict['runs']:
         rc_names.append(rc['name'])
+        
+        # sos_flow sees an rc exe as
+        # '/var/opt/cray/alps/spool/16406362/xgc-es+tau', whereas cheetah sees
+        # '/lustre/atlas/proj-shared/csc143/kmehta/xgc/xgc-es+tau'. That is,
+        # the exe paths are different.
+        # So, just get the rc_exe name and not the path as the key.
+        # e.g. "xgc-es+tau":"xgc" 
+        rc_name_exe[rc['exe'].split("/")[-1]] = rc['name']
 
     # Open status return files for all RCs to verify they exited cleanly
     for rc in rc_names:
@@ -76,7 +92,7 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
             ret_code = int(line.strip())
             if ret_code != 0:
                 print("WARN: Run component " + rc +
-                      " in " + run_dir + " has not exited cleanly. "
+                      " in " + run_dir + " did not exit cleanly. "
                       "Skipping run directory.")
                 return
 
@@ -94,13 +110,30 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
 
     # Serialize nested dict and add to list of parsed run dicts
     serialized_run_params = __serialize_params_nested_dict(run_params_dict)
-    parsed_runs.append(serialized_run_params)
 
     # Add any new params discovered in this run dir to unique keys
     for key in serialized_run_params:
         unique_keys.add(key)
 
     # Run sosflow analysis on the run_dir now.
+    sos_perf_results = sos_flow_analysis.sos_flow_analysis(run_dir)
+
+    # keys in sos_perf_results are full exe paths. Get the rc name from
+    # the exe path
+    for rc_exe in sos_perf_results:
+        rc_name = rc_name_exe[rc_exe]
+        serialized_run_params[rc_name + "__time"] = sos_perf_results[rc_exe]["time"]
+        serialized_run_params[rc_name + "__adios_time"] = sos_perf_results[rc_exe]["adios_time"]
+        serialized_run_params[rc_name + "__adios_data"] = sos_perf_results[rc_exe]["adios_data"]
+
+        unique_keys.add(rc_name + "__time")
+        unique_keys.add(rc_name + "__adios_time")
+        unique_keys.add(rc_name + "__adios_data")
+    
+    serialized_run_params["run_dir"] = run_dir
+    # print(serialized_run_params)
+    # Add the performance results to list of parsed runs
+    parsed_runs.append(serialized_run_params)
 
 
 def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
@@ -151,6 +184,9 @@ def analyze():
     
     # Unique application parameters that can be used as headers for csv output
     unique_keys = set()
+
+    # Add run_dir as a key that will store the path to a run dir
+    unique_keys.add("run_dir")
     
     # This should only be run in the campaign top-level directory.
     # Verify that current dir is the campaign endpoint
