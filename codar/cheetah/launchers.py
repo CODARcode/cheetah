@@ -8,12 +8,12 @@ the correct scheduler and runner when passed appropriate options.
 import os
 import json
 import shlex
-import shutil
 import subprocess
 
 from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
+from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -73,7 +73,7 @@ class Launcher(object):
                              % self.scheduler_name)
         if scheduler_options is None:
             scheduler_options = {}
-        shutil.copytree(script_dir, self.output_directory)
+        copytree_to_dir(script_dir, self.output_directory)
         env_path = os.path.join(self.output_directory, 'group-env.sh')
         group_env = templates.GROUP_ENV_TEMPLATE.format(
             walltime=parse_timedelta_seconds(walltime),
@@ -107,11 +107,11 @@ class Launcher(object):
                                        run.run_path, machine.processes_per_node)
 
                 if tau_config is not None:
-                    shutil.copy(tau_config, run.run_path)
+                    copy_to_dir(tau_config, run.run_path)
 
                 # Copy the global input files common to all components
                 for input_rpath in run.inputs:
-                    shutil.copy2(input_rpath, run.run_path)
+                    copy_to_dir(input_rpath, run.run_path)
 
                 # Copy input files requested by each component
                 for rc in run.run_components:
@@ -119,7 +119,7 @@ class Launcher(object):
                         for input_file in rc.component_inputs:
                             file_path = os.path.abspath(os.path.join(
                                                 run.codes_path, input_file))
-                            shutil.copy(file_path, rc.working_dir)
+                            copy_to_dir(file_path, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
