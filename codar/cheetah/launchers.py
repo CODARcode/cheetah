@@ -114,18 +114,20 @@ class Launcher(object):
                     copy_to_dir(input_rpath, run.run_path)
 
                 # Copy input files requested by each component
+                # save working dirs for later use
+                working_dirs = {} # map component name to path
                 for rc in run.run_components:
+                    working_dirs[rc.name] = rc.working_dir
                     if rc.component_inputs is not None:
                         for input_file in rc.component_inputs:
-                            file_path = os.path.abspath(os.path.join(
-                                                run.codes_path, input_file))
-                            copy_to_dir(file_path, rc.working_dir)
+                            copy_to_dir(input_file, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
                     run.instance.get_parameter_values_by_type(ParamAdiosXML)
                 for pv in adios_xml_params:
-                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    working_dir = working_dirs[pv.target]
+                    xml_filepath = os.path.join(working_dir, pv.xml_filename)
                     if pv.param_type == "adios_transform":
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
@@ -151,7 +153,8 @@ class Launcher(object):
                 config_params = \
                     run.instance.get_parameter_values_by_type(ParamConfig)
                 for pv in config_params:
-                    config_filepath = os.path.join(run.run_path,
+                    working_dir = working_dirs[pv.target]
+                    config_filepath = os.path.join(working_dir,
                                                    pv.config_filename)
                     lines = []
                     # read and modify lines
@@ -169,7 +172,8 @@ class Launcher(object):
                 kv_params = \
                     run.instance.get_parameter_values_by_type(ParamKeyValue)
                 for pv in kv_params:
-                    kv_filepath = os.path.join(run.run_path, pv.config_filename)
+                    working_dir = working_dirs[pv.target]
+                    kv_filepath = os.path.join(working_dir, pv.config_filename)
                     lines = []
                     # read and modify lines
                     with open(kv_filepath) as kv_f:
