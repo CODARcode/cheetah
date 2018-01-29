@@ -3,6 +3,7 @@ import datetime
 import numbers
 import shutil
 import stat
+import glob
 
 
 def make_executable(path):
@@ -74,8 +75,13 @@ def parse_timedelta_seconds(v):
 def copy_to_dir(source_file, dest_dir, follow_symlinks=True):
     """Wrapper around copyfile with directory destination and more
     control over permissions."""
-    dest_file = os.path.join(dest_dir, os.path.basename(source_file))
-    copy_to_path(source_file, dest_file, follow_symlinks)
+
+    # source_file could contain a wildcard. e.g. '*.in' 
+    # glob to fetch individual files
+    source_files = glob.glob(source_file)
+    for file in source_files:
+        dest_file = os.path.join(dest_dir, os.path.basename(file))
+        copy_to_path(file, dest_file, follow_symlinks)
 
 
 def copy_to_path(source_file, dest_file, follow_symlinks=True):
