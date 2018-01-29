@@ -7,6 +7,7 @@ All parameters specified in the spec file must be used as column headers in
 an output csv file.
 """
 
+import re
 from pathlib import Path
 import json
 from glob import glob
@@ -124,11 +125,24 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
         rc_name = rc_name_exe[rc_exe]
         serialized_run_params[rc_name + "__time"] = sos_perf_results[rc_exe]["time"]
         serialized_run_params[rc_name + "__adios_time"] = sos_perf_results[rc_exe]["adios_time"]
-        serialized_run_params[rc_name + "__adios_data"] = sos_perf_results[rc_exe]["adios_data"]
+        #serialized_run_params[rc_name + "__adios_data"] = sos_perf_results[rc_exe]["adios_data"]
 
         unique_keys.add(rc_name + "__time")
         unique_keys.add(rc_name + "__adios_time")
-        unique_keys.add(rc_name + "__adios_data")
+        #unique_keys.add(rc_name + "__adios_data")
+
+    # Get the output of du instead of reading sos data for output data size
+    # This is hacky. I am assuming that this file contains output of du.
+    dir_size = -1
+    post_process_file = run_dir + "/codar.workflow.stdout.post-process"
+    if Path(post_process_file).is_file():
+        f = open(post_process_file, "r")
+        lines = f.readlines()
+        lastline = lines[-1]
+        dir_size = int(re.search(r'\d+', lastline).group())
+    
+    serialized_run_params["dir_size"] = dir_size
+    unique_keys.add("dir_size")
     
     serialized_run_params["run_dir"] = run_dir
     # print(serialized_run_params)
@@ -171,7 +185,7 @@ def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
         __parse_run_dir(run_dir, parsed_runs, unique_keys)
 
 
-def analyze():
+def analyze(out_file_name="./campaign_results.csv"):
     """
     This is a post-run function.
     It walks the campaign tree and retrieves performance information
@@ -205,7 +219,9 @@ def analyze():
         __parse_sweep_group("./" + sweep_group, parsed_runs, unique_keys)
 
     # Write the parsed results to csv
-    with open('campaign_results.csv', 'w') as f:
+    print("Done collecting performance information. Writing csv file.")
+    with open(out_file_name, 'a') as f:
+    #with open('campaign_results.csv', 'w') as f:
         dict_writer = csv.DictWriter(f, sorted(unique_keys))
         dict_writer.writeheader()
         dict_writer.writerows(parsed_runs)
