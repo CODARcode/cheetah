@@ -8,6 +8,7 @@ an output csv file.
 """
 
 import re
+import os
 from pathlib import Path
 import json
 from glob import glob
@@ -112,6 +113,13 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
     # Serialize nested dict and add to list of parsed run dicts
     serialized_run_params = __serialize_params_nested_dict(run_params_dict)
 
+    # Append the node layout info from codar.cheetah.fob.json
+    for rc_layout_d in (fob_dict.get('node_layout') or []):
+        rc_name_layout = list(rc_layout_d.items())[0]
+        if 'sosflow_aggregator' not in rc_name_layout[0]:
+            serialized_run_params['node_layout_' + rc_name_layout[0]] \
+                = rc_name_layout[1]
+    
     # Add any new params discovered in this run dir to unique keys
     for key in serialized_run_params:
         unique_keys.add(key)
@@ -185,6 +193,10 @@ def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
         __parse_run_dir(run_dir, parsed_runs, unique_keys)
 
 
+def get_immediate_subdirs(dir_path):
+    return [name for name in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, name))]
+
+
 def analyze(out_file_name="./campaign_results.csv"):
     """
     This is a post-run function.
@@ -201,22 +213,25 @@ def analyze(out_file_name="./campaign_results.csv"):
 
     # Add run_dir as a key that will store the path to a run dir
     unique_keys.add("run_dir")
+
+    subdirs = get_immediate_subdirs("./")
     
-    # This should only be run in the campaign top-level directory.
-    # Verify that current dir is the campaign endpoint
-    # by checking for the presence of the campaign-env.sh file.
-    campaign_env_file = Path("./campaign-env.sh")
-    assert (campaign_env_file.is_file()),\
-        "Current directory does not seem to be a campaign endpoint"
+    for subdir in subdirs:
+        print("Parsing campaign " + subdir)
+        # This should only be run in the campaign top-level directory.
+        # Verify that current dir is the campaign endpoint
+        # by checking for the presence of the campaign-env.sh file.
+        assert (os.path.isfile(os.path.join(subdir,"campaign-env.sh"))),\
+            "Current directory does not seem to be a campaign endpoint"
 
-    # Walk through sweep groups
-    sweep_groups = glob('*/')
-    if not sweep_groups:
-        print("No sweep groups found")
-        return
+        # Walk through sweep groups
+        sweep_groups = get_immediate_subdirs("./" + subdir)
+        if not sweep_groups:
+            print("No sweep groups found")
+            return
 
-    for sweep_group in sweep_groups:
-        __parse_sweep_group("./" + sweep_group, parsed_runs, unique_keys)
+        for sweep_group in sweep_groups:
+            __parse_sweep_group("./" + subdir + "/" + sweep_group, parsed_runs, unique_keys)
 
     # Write the parsed results to csv
     print("Done collecting performance information. Writing csv file.")
