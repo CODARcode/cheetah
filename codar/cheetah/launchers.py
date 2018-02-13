@@ -248,6 +248,38 @@ class Launcher(object):
                 f.write(fob_s)
                 f.write("\n")
 
+                # Get the size of the run dir. This should be the last step
+                # in the creation of the run dir.
+                self.get_pre_submit_dir_size(run)
+
+    def get_pre_submit_dir_size(self, run):
+        """
+        Get and write the size of the run directory prior to running the
+        campaign. This will be needed to calculate the size of the data
+        output by the experiment.
+        Write byte count to file .codar.cheetah.pre_submit_dir_size.out
+        :param run: Object of type Run
+        """
+
+        # Closure for recursiveness
+        def get_dir_size(path):
+            dir_size = 0
+            for entry in os.scandir(path):
+                if entry.is_file():
+                    dir_size += entry.stat(follow_symlinks=False).st_size
+                elif entry.is_dir():
+                    dir_size += get_dir_size(entry.path)
+            return dir_size
+
+        run_dir_size = get_dir_size(run.run_path)
+        # add length of the file that will be written below
+        run_dir_size += len(str(run_dir_size))
+
+        # write dir size to a file in the run dir
+        f_out = os.path.join(run.run_path, run._pre_submit_dir_size_fname)
+        with open(f_out, 'w') as f:
+            f.write(str(run_dir_size))
+
     def _execute_run_dir_setup_script(self, run_dir, script_path):
         """Raises subprocess.CalledProcessError on failure."""
         subprocess.check_call([script_path], cwd=run_dir)
