@@ -14,6 +14,8 @@ import json
 import math
 import shlex
 import inspect
+import getpass
+from pathlib import Path
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, config, templates, exc
@@ -91,6 +93,9 @@ class Campaign(object):
     # script now, and it could be passed as an arg to the workflow
     # script.
     post_process_script = None
+
+    # A file that identifies a directory as a multi-user campaign
+    _id_file = ".campaign"
 
     def __init__(self, machine_name, app_dir):
         # check that subclasses set configuration
@@ -176,7 +181,17 @@ class Campaign(object):
             if ((umask_int & stat.S_IXUSR) or (umask_int & stat.S_IRUSR)):
                 raise ValueError('bad umask, user r-x must be allowed')
             os.umask(umask_int)
-        output_dir = os.path.abspath(output_dir)
+
+        # Create the top level campaign directory
+        _output_dir = os.path.abspath(output_dir)
+        os.makedirs(_output_dir, exist_ok=True)
+
+        # Write campaign id file at the top-level campaign directory
+        id_fpath = os.path.join(_output_dir, self._id_file)
+        Path(id_fpath).touch()
+
+        # Create a directory for the user and set it as the campaign location
+        output_dir = os.path.join(_output_dir, getpass.getuser())
         run_all_script = os.path.join(config.CHEETAH_PATH_SCRIPTS,
                                       self.machine.scheduler_name,
                                       'run-all.sh')
