@@ -38,6 +38,12 @@ class PiExperiment(Campaign):
         }
     }
 
+    # Optionally set umask for campaign directory and all processes spawned by
+    # the workflow script when the campaign is run. Note that user rx
+    # must be allowed at a minimum.
+    # If set must be a string suitable for passing to the umask command.
+    umask = '027'
+
     run_post_process_script = 'pi-post-run-compare-digits.py'
 
     # set this and uncomment the exit(1) in the script to test

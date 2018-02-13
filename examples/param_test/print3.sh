@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo PRINT2
-
 echo NARGS=$#
 
 for i in $(seq 1 $#); do
@@ -9,5 +7,5 @@ for i in $(seq 1 $#); do
     shift
 done
 
-echo "print2.ini:"
-cat print2.ini
+echo "print3.xml"
+cat print3.xml

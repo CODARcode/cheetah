@@ -9,14 +9,15 @@ supercomputers (machines) are specified in other modules with the corresponding
 name.
 """
 import os
+import stat
 import json
 import math
-import shutil
 import shlex
 import inspect
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, config, templates, exc
+from codar.cheetah.helpers import copy_to_dir, relative_or_absolute_path_list
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -34,8 +35,8 @@ class Campaign(object):
     codes = []
     supported_machines = []
     sweeps = []
-    inputs = []
-    inputs_fullpath = []
+    inputs = [] # copied to top level run directory
+    umask = None
 
     # If set and there are multiple codes making up the application,
     # kill all remaining codes if one code fails.
@@ -102,8 +103,10 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
-        for input_rpath in self.inputs:
-            self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
+
+        # allow inputs to be either aboslute paths or relative to
+        # app_dir
+        self.inputs = relative_or_absolute_path_list(self.app_dir, self.inputs)
 
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
@@ -167,6 +170,12 @@ class Campaign(object):
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
         run."""
+
+        if self.umask:
+            umask_int = int(self.umask, 8)
+            if ((umask_int & stat.S_IXUSR) or (umask_int & stat.S_IRUSR)):
+                raise ValueError('bad umask, user r-x must be allowed')
+            os.umask(umask_int)
         output_dir = os.path.abspath(output_dir)
         run_all_script = os.path.join(config.CHEETAH_PATH_SCRIPTS,
                                       self.machine.scheduler_name,
@@ -177,7 +186,7 @@ class Campaign(object):
         self._assert_unique_group_names(output_dir)
 
         # Create run script and campaign environment info file
-        shutil.copy2(run_all_script, output_dir)
+        copy_to_dir(run_all_script, output_dir)
 
         campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
             experiment_dir=output_dir,
@@ -185,7 +194,8 @@ class Campaign(object):
             app_config=self.machine_app_config_script or "",
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
-            workflow_debug_level="DEBUG"
+            workflow_debug_level="DEBUG",
+            umask=(self.umask or "")
         )
         campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
         with open(campaign_env_path, 'w') as f:
@@ -222,7 +232,7 @@ class Campaign(object):
                                   os.path.join(
                                       group_output_dir,
                                       'run-%03d' % (group_run_offset + i)),
-                                  self.inputs_fullpath,
+                                  self.inputs,
                                   node_layout,
                                   group.component_subdirs,
                                   group.sosflow,
@@ -430,6 +440,9 @@ class Run(object):
             component_inputs = None
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
+            if component_inputs:
+                component_inputs = relative_or_absolute_path_list(
+                                        self.codes_path, component_inputs)
 
             sosflow = self.codes[target].get('sosflow', False)
 

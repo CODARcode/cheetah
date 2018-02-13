@@ -8,12 +8,12 @@ the correct scheduler and runner when passed appropriate options.
 import os
 import json
 import shlex
-import shutil
 import subprocess
 
 from codar.cheetah import adios_params, config, templates
-from codar.cheetah.parameters import ParamAdiosXML, ParamConfig
+from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
+from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -73,7 +73,7 @@ class Launcher(object):
                              % self.scheduler_name)
         if scheduler_options is None:
             scheduler_options = {}
-        shutil.copytree(script_dir, self.output_directory)
+        copytree_to_dir(script_dir, self.output_directory)
         env_path = os.path.join(self.output_directory, 'group-env.sh')
         group_env = templates.GROUP_ENV_TEMPLATE.format(
             walltime=parse_timedelta_seconds(walltime),
@@ -107,25 +107,27 @@ class Launcher(object):
                                        run.run_path, machine.processes_per_node)
 
                 if tau_config is not None:
-                    shutil.copy(tau_config, run.run_path)
+                    copy_to_dir(tau_config, run.run_path)
 
                 # Copy the global input files common to all components
                 for input_rpath in run.inputs:
-                    shutil.copy2(input_rpath, run.run_path)
+                    copy_to_dir(input_rpath, run.run_path)
 
                 # Copy input files requested by each component
+                # save working dirs for later use
+                working_dirs = {} # map component name to path
                 for rc in run.run_components:
+                    working_dirs[rc.name] = rc.working_dir
                     if rc.component_inputs is not None:
                         for input_file in rc.component_inputs:
-                            file_path = os.path.abspath(os.path.join(
-                                                run.codes_path, input_file))
-                            shutil.copy(file_path, rc.working_dir)
+                            copy_to_dir(input_file, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
                     run.instance.get_parameter_values_by_type(ParamAdiosXML)
                 for pv in adios_xml_params:
-                    xml_filepath = os.path.join(run.run_path, pv.xml_filename)
+                    working_dir = working_dirs[pv.target]
+                    xml_filepath = os.path.join(working_dir, pv.xml_filename)
                     if pv.param_type == "adios_transform":
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
@@ -151,7 +153,8 @@ class Launcher(object):
                 config_params = \
                     run.instance.get_parameter_values_by_type(ParamConfig)
                 for pv in config_params:
-                    config_filepath = os.path.join(run.run_path,
+                    working_dir = working_dirs[pv.target]
+                    config_filepath = os.path.join(working_dir,
                                                    pv.config_filename)
                     lines = []
                     # read and modify lines
@@ -161,7 +164,31 @@ class Launcher(object):
                             lines.append(line)
                     # rewrite file with modified lines
                     with open(config_filepath, 'w') as config_f:
-                        config_f.write("\n".join(lines))
+                        config_f.write("".join(lines))
+
+                # Key value config file support. Note: slurps entire
+                # config file into memory, requires adding file to
+                # campaign 'inputs' option.
+                kv_params = \
+                    run.instance.get_parameter_values_by_type(ParamKeyValue)
+                for pv in kv_params:
+                    working_dir = working_dirs[pv.target]
+                    kv_filepath = os.path.join(working_dir, pv.config_filename)
+                    lines = []
+                    # read and modify lines
+                    with open(kv_filepath) as kv_f:
+                        for line in kv_f:
+                            parts = line.split('=', 1)
+                            if len(parts) == 2:
+                                k = parts[0].strip()
+                                if k == pv.key_name:
+                                    # assume all k=v type formats will
+                                    # support no spaces around equals
+                                    line = k + '=' + str(pv.value) + '\n'
+                            lines.append(line)
+                    # rewrite file with modified lines
+                    with open(kv_filepath, 'w') as kv_f:
+                        kv_f.write("".join(lines))
 
                 # save code commands as text
                 params_path_txt = os.path.join(run.run_path,

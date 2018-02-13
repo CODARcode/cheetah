@@ -13,6 +13,7 @@ export CODAR_CHEETAH_APP_CONFIG="{app_config}"
 export CODAR_WORKFLOW_SCRIPT="{workflow_script_path}"
 export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"
+export CODAR_CHEETAH_UMASK="{umask}"
 """
 
 

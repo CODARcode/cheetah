@@ -13,6 +13,10 @@ if [ -n "$CODAR_CHEETAH_APP_CONFIG" ]; then
     source "$CODAR_CHEETAH_APP_CONFIG"
 fi
 
+if [ -n "$CODAR_CHEETAH_UMASK" ]; then
+    umask "$CODAR_CHEETAH_UMASK"
+fi
+
 start=$(date +%s)
 
 # Main application run
