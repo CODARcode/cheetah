@@ -13,7 +13,7 @@ import subprocess
 from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
-from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
+from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -250,9 +250,9 @@ class Launcher(object):
 
                 # Get the size of the run dir. This should be the last step
                 # in the creation of the run dir.
-                self.get_pre_submit_dir_size(run)
+                self._get_pre_submit_dir_size(run)
 
-    def get_pre_submit_dir_size(self, run):
+    def _get_pre_submit_dir_size(self, run):
         """
         Get and write the size of the run directory prior to running the
         campaign. This will be needed to calculate the size of the data
@@ -261,17 +261,7 @@ class Launcher(object):
         :param run: Object of type Run
         """
 
-        # Closure for recursiveness
-        def get_dir_size(path):
-            dir_size = 0
-            for entry in os.scandir(path):
-                if entry.is_file():
-                    dir_size += entry.stat(follow_symlinks=False).st_size
-                elif entry.is_dir():
-                    dir_size += get_dir_size(entry.path)
-            return dir_size
-
-        run_dir_size = get_dir_size(run.run_path)
+        run_dir_size = dir_size(run.run_path)
         # add length of the file that will be written below
         run_dir_size += len(str(run_dir_size))
 
