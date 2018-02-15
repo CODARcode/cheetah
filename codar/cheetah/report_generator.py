@@ -11,9 +11,8 @@ import re
 import os
 from pathlib import Path
 import json
-from glob import glob
 import csv
-import sos_flow_analysis
+from codar.cheetah import sos_flow_analysis
 
 
 def __serialize_params_nested_dict(nested_run_params_dict):
@@ -197,18 +196,23 @@ def get_immediate_subdirs(dir_path):
     return [name for name in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, name))]
 
 
-def analyze(out_file_name="./campaign_results.csv"):
+def generate_report(out_file_name="./campaign_results.csv"):
     """
     This is a post-run function.
     It walks the campaign tree and retrieves performance information
     about all completed runs.
     """
+
+    # Ensure this is a campaign by checking for the presence of the
+    # .campaign file
+    assert (os.path.isfile("./.campaign")), "Current directory is not a " \
+                                            "top-level campaign"
     
     # A list of dicts. Each dict contains metadata and performance information
     # about the run.
     parsed_runs = []
     
-    # Unique application parameters that can be used as headers for csv output
+    # Unique application parameters that will be used as headers for csv output
     unique_keys = set()
 
     # Add run_dir as a key that will store the path to a run dir
@@ -218,11 +222,11 @@ def analyze(out_file_name="./campaign_results.csv"):
     
     for subdir in subdirs:
         print("Parsing campaign " + subdir)
-        # This should only be run in the campaign top-level directory.
-        # Verify that current dir is the campaign endpoint
-        # by checking for the presence of the campaign-env.sh file.
+
+        # Verify that current dir is a user-level campaign endpoint by
+        # checking for the presence of the campaign-env.sh file.
         assert (os.path.isfile(os.path.join(subdir,"campaign-env.sh"))),\
-            "Current directory does not seem to be a campaign endpoint"
+            "Current directory is not a user-level campaign"
 
         # Walk through sweep groups
         sweep_groups = get_immediate_subdirs("./" + subdir)
@@ -236,11 +240,7 @@ def analyze(out_file_name="./campaign_results.csv"):
     # Write the parsed results to csv
     print("Done collecting performance information. Writing csv file.")
     with open(out_file_name, 'a') as f:
-    #with open('campaign_results.csv', 'w') as f:
         dict_writer = csv.DictWriter(f, sorted(unique_keys))
         dict_writer.writeheader()
         dict_writer.writerows(parsed_runs)
 
-
-if __name__ == "__main__":
-    analyze()
