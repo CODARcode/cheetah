@@ -102,7 +102,7 @@ class Launcher(object):
                 for rc in run.run_components:
                     os.makedirs(rc.working_dir, exist_ok=True)
 
-                if run.sosflow:
+                if run.sosflow_profiling:
                     run.insert_sosflow(sosd_path, sos_analysis_path,
                                        run.run_path, machine.processes_per_node)
 
