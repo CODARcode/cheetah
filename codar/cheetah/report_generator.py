@@ -1,6 +1,7 @@
 """
-Functions to analyze an already completed campaign.
-Parses all run directories in all sweep groups to aggregate information.
+Generate performance report from a completed campaign.
+This module parses all run directories in all sweep groups to aggregate
+information.
 Runs sosflow analysis to collect data.
 
 All parameters specified in the spec file must be used as column headers in
@@ -13,6 +14,7 @@ from pathlib import Path
 import json
 import csv
 from codar.cheetah import sos_flow_analysis
+from codar.cheetah.helpers import get_immediate_subdirs
 
 
 def __serialize_params_nested_dict(nested_run_params_dict):
@@ -130,9 +132,12 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
     # the exe path
     for rc_exe in sos_perf_results:
         rc_name = rc_name_exe[rc_exe]
-        serialized_run_params[rc_name + "__time"] = sos_perf_results[rc_exe]["time"]
-        serialized_run_params[rc_name + "__adios_time"] = sos_perf_results[rc_exe]["adios_time"]
-        #serialized_run_params[rc_name + "__adios_data"] = sos_perf_results[rc_exe]["adios_data"]
+        serialized_run_params[rc_name + "__time"] = \
+            sos_perf_results[rc_exe]["time"]
+        serialized_run_params[rc_name + "__adios_time"] = \
+            sos_perf_results[rc_exe]["adios_time"]
+        #serialized_run_params[rc_name + "__adios_data"] = \
+        # sos_perf_results[rc_exe]["adios_data"]
 
         unique_keys.add(rc_name + "__time")
         unique_keys.add(rc_name + "__adios_time")
@@ -192,10 +197,6 @@ def __parse_sweep_group(sweep_group, parsed_runs, unique_keys):
         __parse_run_dir(run_dir, parsed_runs, unique_keys)
 
 
-def get_immediate_subdirs(dir_path):
-    return [name for name in os.listdir(dir_path) if os.path.isdir(os.path.join(dir_path, name))]
-
-
 def generate_report(out_file_name="./campaign_results.csv"):
     """
     This is a post-run function.
@@ -235,7 +236,8 @@ def generate_report(out_file_name="./campaign_results.csv"):
             return
 
         for sweep_group in sweep_groups:
-            __parse_sweep_group("./" + subdir + "/" + sweep_group, parsed_runs, unique_keys)
+            __parse_sweep_group("./" + subdir + "/" + sweep_group, parsed_runs,
+                                unique_keys)
 
     # Write the parsed results to csv
     print("Done collecting performance information. Writing csv file.")

@@ -127,3 +127,13 @@ def relative_or_absolute_path(prefix, path):
 
 def relative_or_absolute_path_list(prefix, path_list):
     return [relative_or_absolute_path(prefix, path) for path in path_list]
+
+
+def get_immediate_subdirs(dir_path):
+    """
+    Get a list of top-level subdirectories.
+    :param dir_path: Directory path to search
+    :return: list of subdirectory names
+    """
+    return [name for name in os.listdir(dir_path) if
+            os.path.isdir(os.path.join(dir_path, name))]
