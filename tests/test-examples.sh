@@ -23,20 +23,20 @@ fi
 for machine in local titan cori theta; do
     echo $machine-pi
     rm -rf test_output/$machine-pi/*
-    ./cheetah.py -e examples/PiExperiment.py -m $machine \
+    ./cheetah.py create-campaign -e examples/PiExperiment.py -m $machine \
         -a "$CODAR_APPDIR/Example-pi/" \
         -o test_output/$machine-pi
 
     echo $machine-param_test
     rm -rf test_output/$machine-param_test/*
-    ./cheetah.py -e examples/param_test.py -m $machine \
+    ./cheetah.py create-campaign -e examples/param_test.py -m $machine \
         -a "$CHEETAH_DIR/examples/param_test/" \
         -o test_output/$machine-param_test
 done
 
 echo loal-heat-simple
 rm -rf test_output/local-heat-simple/*
-./cheetah.py -e examples/heat_transfer_simple.py -m local \
+./cheetah.py create-campaign -e examples/heat_transfer_simple.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/local-heat-simple
 
@@ -50,13 +50,15 @@ rm -rf test_output/local-heat-simple/*
 
 echo loal-heat-rc-subdirs-inputs
 rm -rf test_output/local-heat-rc-subdirs-inputs/*
-./cheetah.py -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m local \
+./cheetah.py create-campaign \
+    -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/local-heat-rc-subdirs-inputs
 
 echo titan-heat-rc-subdirs-inputs
 rm -rf test_output/titan-heat-rc-subdirs-inputs/*
-./cheetah.py -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m titan \
+./cheetah.py create-campaign \
+    -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/titan-heat-rc-subdirs-inputs
 
@@ -64,18 +66,18 @@ rm -rf test_output/titan-heat-rc-subdirs-inputs/*
 
 echo titan-heat-simple
 rm -rf test_output/titan-heat-simple/*
-./cheetah.py -e examples/heat_transfer_simple.py -m titan \
+./cheetah.py create-campaign -e examples/heat_transfer_simple.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/titan-heat-simple
 
 echo titan-heat-sosflow
 rm -rf test_output/titan-heat-sosflow/*
-./cheetah.py -e examples/heat_transfer_sosflow.py -m titan \
+./cheetah.py create-campaign -e examples/heat_transfer_sosflow.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
     -o test_output/titan-heat-sosflow
 
 echo titan-exaalt
 rm -rf test_output/titan-exaalt/*
-./cheetah.py -e examples/exaalt.py -m titan \
+./cheetah.py create-campaign -e examples/exaalt.py -m titan \
     -a "$CODAR_APPDIR/Example-EXAALT/" \
     -o test_output/titan-exaalt
