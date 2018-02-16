@@ -14,6 +14,7 @@ from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
+from codar.cheetah.helpers import SymLink
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -118,16 +119,34 @@ class Launcher(object):
                 working_dirs = {} # map component name to path
                 for rc in run.run_components:
                     working_dirs[rc.name] = rc.working_dir
+
+                    # if rc has an adios xml file, copy it to working dir
+                    if rc.adios_xml_file:
+                        copy_to_dir(rc.adios_xml_file, rc.working_dir)
+
+                    # now copy other inputs marked under component_inputs
                     if rc.component_inputs is not None:
                         for input_file in rc.component_inputs:
-                            copy_to_dir(input_file, rc.working_dir)
+                            # input type is symlink
+                            if type(input_file) == SymLink:
+                                pass
+
+                            # input type is a regular file
+                            else:
+                                copy_to_dir(input_file, rc.working_dir)
 
                 # ADIOS XML param support
                 adios_xml_params = \
                     run.instance.get_parameter_values_by_type(ParamAdiosXML)
                 for pv in adios_xml_params:
                     working_dir = working_dirs[pv.target]
-                    xml_filepath = os.path.join(working_dir, pv.xml_filename)
+
+                    # dirty way of getting the adios xml filename of the rc
+                    # that is represented by pv.target
+                    rc_adios_xml = self._get_rc_adios_xml_filename(
+                        run, pv.target)
+                    xml_filepath = os.path.join(working_dir,
+                                                os.path.basename(rc_adios_xml))
                     if pv.param_type == "adios_transform":
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
@@ -251,6 +270,19 @@ class Launcher(object):
     def _execute_run_dir_setup_script(self, run_dir, script_path):
         """Raises subprocess.CalledProcessError on failure."""
         subprocess.check_call([script_path], cwd=run_dir)
+
+    def _get_rc_adios_xml_filename(self, run, rc_name):
+        adios_xml_file = None
+        for rc in run.run_components:
+            if rc_name == rc.name:
+                adios_xml_file = rc.adios_xml_file
+
+        assert adios_xml_file is not None, "An ADIOS XML file was not found " \
+                                           "for {}. Set the adios_xml_file " \
+                                           "option for the component in " \
+                                           "codes.".format(rc_name)
+        return adios_xml_file
+
 
     def read_jobid(self):
         jobid_file_path = os.path.join(self.output_directory,

@@ -342,7 +342,6 @@ class ParamAdiosXML(Param):
             raise ValueError("bad format for ParamAdiosXML name")
         # param_type = adios_transform or adios_transport
         self.param_type = parts[0]
-        self.xml_filename = parts[1]
         self.group_name = parts[2]
 
         # if param_type is transform
