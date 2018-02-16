@@ -397,3 +397,11 @@ class ParamRunner(Param):
     specific application code."""
     def __init__(self, target, name, values):
         Param.__init__(self, target, name, values)
+
+
+class SymLink(str):
+    """
+    Class to represent symbolic links as an input type for a run component
+    """
+    def __init__(self, source):
+        self.source = source

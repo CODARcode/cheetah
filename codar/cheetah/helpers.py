@@ -128,10 +128,3 @@ def relative_or_absolute_path(prefix, path):
 def relative_or_absolute_path_list(prefix, path_list):
     return [relative_or_absolute_path(prefix, path) for path in path_list]
 
-
-class SymLink(object):
-    """
-    Class to represent symbolic links as an input type for a run component
-    """
-    def __init__(self, source):
-        self.source = source

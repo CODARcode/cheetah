@@ -20,6 +20,7 @@ from codar.cheetah import machines, parameters, config, templates, exc
 from codar.cheetah.helpers import copy_to_dir
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list
+from codar.cheetah.parameters import SymLink
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -443,8 +444,19 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
             if component_inputs:
-                component_inputs = relative_or_absolute_path_list(
-                                        self.codes_path, component_inputs)
+                # Get the full path of inputs
+                # Separate the strings from symlinks to preserve their type
+                str_inputs = [input for input in component_inputs if type(
+                    input) == str]
+                str_inputs = relative_or_absolute_path_list(self.codes_path,
+                                                            str_inputs)
+
+                symlinks = [input for input in component_inputs if type(
+                    input) == SymLink]
+                symlinks = relative_or_absolute_path_list(self.codes_path,
+                                                          symlinks)
+                symlinks = [SymLink(input) for input in symlinks]
+                component_inputs = str_inputs + symlinks
 
             linked_with_sosflow = self.codes[target].get(
                 'linked_with_sosflow', False)

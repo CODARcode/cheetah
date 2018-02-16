@@ -14,7 +14,7 @@ from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
-from codar.cheetah.helpers import SymLink
+from codar.cheetah.parameters import SymLink
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -129,7 +129,10 @@ class Launcher(object):
                         for input_file in rc.component_inputs:
                             # input type is symlink
                             if type(input_file) == SymLink:
-                                pass
+                                dest = os.path.join(rc.working_dir,
+                                                    os.path.basename(
+                                                        input_file))
+                                os.symlink(input_file, dest)
 
                             # input type is a regular file
                             else:
