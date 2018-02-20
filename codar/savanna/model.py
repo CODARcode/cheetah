@@ -5,6 +5,20 @@ collection of uniquely names parameters. Parameter values are always assumed
 to be strings and not validation is done (that is the responsibilty of the
 application). In addition to code specific parameters, there are execution
 parameters that apply to all codes, e.g. the number of MPI processes.
+
+There are four levels of information:
+ 1) the declarative description of a workflow, describing the codes that
+    make up the workflow and their parameters
+ 2) a realization of the workflow with specific values for all required
+    parameters
+ 3) a binding of the realization to a specific machine and execution
+    environment. This includes resolving all relative paths to absolute paths,
+    and setting up machine specific environment variables and module loads.
+ 4) output: generate job execution scripts that can be used to actually run
+    the workflow on the target machine
+
+Note that steps 1-3 can be used independently and passed to a direct execution
+system, e.g. Parsl or Cheetah Workflow.
 """
 
 import itertools
@@ -16,6 +30,31 @@ from codar.savanna import exc
 
 
 STANDARD_NAMES = set(['nprocs'])
+
+
+class Workflow(object):
+    """
+    Class to represent a set of codes that are executed together to perform
+    a task. For example, this could include a main science code, a
+    vizualization code, an I/O code, and a performance monitering code.
+
+    Built in support will be provided for adding common support codes to a
+    workflow without having to understand the intracacies of it's
+    requirements.
+
+    Note that their may be dependencies between the paramaters passed to
+    each code in a workflow. In particular, support codes like sosflow uses
+    information about the other codes to figure out how to run.
+
+    :ivar codes: list of Code instances that make up the workflow. Some of
+       the codes may be definied explicitly in the workflow specification,
+       while others may be added as support codes.
+    """
+    def __init__(self, codes):
+        self.codes = codes
+
+    def insert_code(self, position, code):
+        self.codes.insert(position, code)
 
 
 class Code(object):
@@ -71,8 +110,8 @@ class Code(object):
 
     def get_code_command(self, parameter_dict):
         """
-        Given a dictionary of parameter names to parameter values,
-        return an CodeCommand object that can be used to execute the code
+        Given a dictionary of parameter names mapped to parameter values,
+        return a CodeCommand object that can be used to execute the code
         with the specified parameter values.
         """
         with_defaults = dict(self.default_values)
@@ -102,10 +141,16 @@ class CodeCommand(object):
     Forms the command line to execute and has callouts to setup up the
     necessary config files.
 
+    TODO: name this CodeRun? The idea is to combine RunComponent and
+    CodeCommand.
+
     :ivar code: the abstract code object
     :ivar exe: the executable; may be a relative path
     :ivar argv: command line to execute the command, not including the
         executable
+    :ivar nprocs: number of MPI processes
+    :ivar env: environment variables to set when executing code. This may be
+        in addition to inherited environment.
     """
     def __init__(self, code, parameter_dict):
         self.code = code
@@ -148,3 +193,4 @@ class CodeCommand(object):
 
     def get_argv(self):
         return list(self.argv)
+

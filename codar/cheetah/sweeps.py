@@ -34,12 +34,16 @@ class Sweep(object):
     """
     Class representing a set of parameter values to search over as
     a cross product.
+
+    :ivar parameters: 2 level nested dict with code names as top level keys,
+        parameter names as second level keys, and list of possible parameter
+        values as the dict values.
     """
     def __init__(self, parameters, node_layout=None):
         self.parameters = parameters
         self.node_layout = node_layout
 
-    def get_instances(self):
+    def get_instances(self, codes):
         """
         Get a list of Instance objects representing dense cross product over
         param values.
@@ -50,14 +54,11 @@ class Sweep(object):
 
         Also how to pass per run output dir? Or is just making CWD the
         per run dir enough for all cases we care about?
-
-        TODO: should have same signature as SweepGroup version OR a
-        different name.
         """
         inst_list = []
         indexes = [range(len(p)) for p in self.parameters]
         for idx_set in itertools.product(*indexes):
-            inst = Instance()
+            inst = Instance(codes)
             for param_i, value_i in enumerate(idx_set):
                 inst.add_parameter(self.parameters[param_i], value_i)
             inst_list.append(inst)

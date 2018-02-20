@@ -230,7 +230,7 @@ class Campaign(object):
                                   group.sosflow,
                                   group.sosflow_analysis,
                                   group.component_inputs)
-                              for i, inst in enumerate(sweep.get_instances())]
+                  for i, inst in enumerate(sweep.get_instances(self.codes))]
                 group_runs.extend(sweep_runs)
                 group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
@@ -656,7 +656,7 @@ class Instance(object):
     middlewear), and the second level contains the parameter values for that
     target.
     """
-    def __init__(self):
+    def __init__(self, codes, parameter_dict):
         # abstract container with all param values in a hierarchy based on
         # their target
         self._parameter_values = defaultdict(dict)
