@@ -5,8 +5,9 @@ import json
 from nose.tools import assert_equal
 
 from codar.cheetah import exc
-from codar.cheetah.model import Campaign, NodeLayout
-from codar.cheetah.parameters import SweepGroup, Sweep, ParamCmdLineArg
+from codar.cheetah.model import Campaign, NodeLayout, Instance
+from codar.cheetah.sweeps import SweepGroup, Sweep
+from codar.savanna.parameters import ParamRunner, ParamCmdLineArg
 
 from test_cheetah import TEST_OUTPUT_DIR
 
@@ -156,3 +157,23 @@ def test_node_layout_bad_shared_nodes():
         assert 'shared nodes > max' in str(e), str(e)
     else:
         assert False, 'error not raised on repeated code'
+
+
+def test_instance_nprocs_only():
+    ds_nprocs = ParamRunner('dataspaces', 'nprocs', [1])
+    ds_arg1   = ParamCmdLineArg('dataspaces', 'arg1', 1, ['val1'])
+
+    core_nprocs = ParamRunner('core', 'nprocs', [96])
+
+    inst = Instance()
+    inst.add_parameter(ds_nprocs, 0)
+    inst.add_parameter(ds_arg1, 0)
+    inst.add_parameter(core_nprocs, 0)
+
+    codes_argv = inst.get_codes_argv()
+
+    assert_equal(len(codes_argv), 2)
+    argv_map = dict(codes_argv)
+
+    assert_equal(argv_map['dataspaces'], ['val1'])
+    assert_equal(argv_map['core'], [])

@@ -14,9 +14,11 @@ import math
 import shutil
 import shlex
 import inspect
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
-from codar.cheetah import machines, parameters, config, templates, exc
+from codar.savanna.parameters import ParameterValue
+from codar.savanna.model import CodeCommand
+from codar.cheetah import machines, sweeps, config, templates, exc
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -281,7 +283,7 @@ class Campaign(object):
         """
         requested_group_names = []
         for group_i, group in enumerate(self.sweeps):
-            if not isinstance(group, parameters.SweepGroup):
+            if not isinstance(group, sweeps.SweepGroup):
                 raise ValueError("top level run groups must be SweepGroup")
             requested_group_names.append(group.name)
 
@@ -640,3 +642,133 @@ class RunComponent(object):
         if self.timeout:
             data['timeout'] = self.timeout
         return data
+
+
+class Instance(object):
+    """
+    Represent an instance of an application with fixed parameters. An
+    application may consistent of multiple codes running at the same time,
+    and multiple middlewear layers (scheduler like PBS, runner like aprun,
+    or swift), all of which may have their own parameters.
+
+    Abstractly, an instance is a two-level nested dict, where the first
+    level indicates the target for a parameter (application code or
+    middlewear), and the second level contains the parameter values for that
+    target.
+    """
+    def __init__(self):
+        # abstract container with all param values in a hierarchy based on
+        # their target
+        self._parameter_values = defaultdict(dict)
+
+        # temporary containers for staging params so derived values can
+        # be calculated after all are added.
+        self._simple_pv_list = defaultdict(list)
+        self._derived_pv_list = defaultdict(list)
+
+        # subset of paramaters related to application codes that will
+        # need to be run
+        self._code_commands = dict()
+
+        self._values_calculated = False
+
+    def add_parameter(self, p, idx):
+        if self._values_calculated:
+            raise ValueError("new parameters can't be added after get")
+        pv = ParameterValue(p, idx)
+        if callable(pv.value):
+            self._derived_pv_list[pv.target].append(pv)
+        else:
+            self._simple_pv_list[pv.target].append(pv)
+
+    @property
+    def parameter_values(self):
+        """Wrapper to allow delayed calculation of derived parameter values."""
+        if not self._values_calculated:
+            self._calculate_values()
+        return self._parameter_values
+
+    @property
+    def code_commands(self):
+        """Wrapper to allow delayed calculation of derived parameter values."""
+        if not self._values_calculated:
+            self._calculate_values()
+        return self._code_commands
+
+    def _calculate_values(self):
+        for target, target_pv_list in self._simple_pv_list.items():
+            target_p = self._parameter_values[target]
+
+            # NB: not attempting to support deriving values from other
+            # derived values.
+            simple_value_map = dict((pv.name, pv.value)
+                                    for pv in target_pv_list)
+            for derived_pv in self._derived_pv_list[target]:
+                derived_pv.value = derived_pv.value(simple_value_map)
+                target_pv_list.append(derived_pv)
+
+            for pv in target_pv_list:
+                # Add a command for any code that has at least one param
+                # of any type, even if no command line args or opts.
+                if target not in self._code_commands:
+                    self._code_commands[target] = CodeCommand(target)
+
+                # Custom handling for command line param types
+                if pv.is_type(ParamCmdLineArg):
+                    self._code_commands[target].add_arg(pv.position, pv.value)
+                elif pv.is_type(ParamCmdLineOption):
+                    self._code_commands[target].add_option(pv.option, pv.value)
+                if pv.name in target_p:
+                    raise ValueError('parameter name conflict: "%s"' % pv.name)
+                # Always save the value, regardless of param type.
+                target_p[pv.name] = pv
+        self._values_calculated = True
+
+    def get_codes_argv(self):
+        """Get an _unordered_ dict mapping code name to list of args for
+        that code. Higher levels of model are responsible for re-ordering
+        as needed."""
+        return dict([(k, cc.get_argv())
+                     for (k, cc) in self.code_commands.items()])
+
+    def as_string(self):
+        """Get a command line like value for the instance. Note that this
+        only includes positional and option command line args, not config
+        args like adios XML. TODO: deprecate??"""
+        parts = [self.exe]
+        for position in range(1, 101):
+            if position in self.args:
+                parts.append(str(self.args[position]))
+            else:
+                break
+        for option, value in self.options.items():
+            # TODO: handle separator between option and value, e.g. '',
+            # '=', or ' '.
+            parts.append(option + ' ' + value)
+        return " ".join(parts)
+
+    def get_parameter_values_by_type(self, param_class):
+        """
+        Get a list of ParamaterValues of the specified type in the instance.
+        """
+        pvs = []
+        for target, target_params in self.parameter_values.items():
+            for name, pv in target_params.items():
+                if pv.is_type(param_class):
+                    pvs.append(pv)
+        return pvs
+
+    def get_nprocs(self, target):
+        pv = self.parameter_values[target].get('nprocs')
+        if pv is None:
+            return 1
+        return pv.value
+
+    def as_dict(self):
+        """
+        Produce dict (mainly for for JSON seriliazation) with keys based on
+        parameter names. This ignores the type of the param, it's just the
+        name value pairs.
+        """
+        return dict((target, dict((pv.name, pv.value) for pv in d.values()))
+                    for target, d in self.parameter_values.items())

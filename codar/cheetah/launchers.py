@@ -12,7 +12,7 @@ import shutil
 import subprocess
 
 from codar.cheetah import adios_params, config, templates
-from codar.cheetah.parameters import ParamAdiosXML
+from codar.savanna.parameters import ParamAdiosXML
 from codar.cheetah.helpers import parse_timedelta_seconds
 
 
