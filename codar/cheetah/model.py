@@ -437,6 +437,11 @@ class Run(object):
         self.component_inputs = component_inputs
         self.run_components = self._get_run_components()
 
+        # Filename in the run dir that will store the size of the run dir
+        # prior to submitting the campaign
+        self._pre_submit_dir_size_fname = \
+            ".codar.cheetah.pre_submit_dir_size.out"
+
     def _get_run_components(self):
         comps = []
         codes_argv = self._get_codes_argv_ordered()

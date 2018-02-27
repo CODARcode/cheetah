@@ -13,7 +13,7 @@ import subprocess
 from codar.cheetah import adios_params, config, templates
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
-from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
+from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -247,6 +247,28 @@ class Launcher(object):
                 # append to fob list file in group dir
                 f.write(fob_s)
                 f.write("\n")
+
+                # Get the size of the run dir. This should be the last step
+                # in the creation of the run dir.
+                self._get_pre_submit_dir_size(run)
+
+    def _get_pre_submit_dir_size(self, run):
+        """
+        Get and write the size of the run directory prior to running the
+        campaign. This will be needed to calculate the size of the data
+        output by the experiment.
+        Write byte count to file .codar.cheetah.pre_submit_dir_size.out
+        :param run: Object of type Run
+        """
+
+        run_dir_size = dir_size(run.run_path)
+        # add length of the file that will be written below
+        run_dir_size += len(str(run_dir_size))
+
+        # write dir size to a file in the run dir
+        f_out = os.path.join(run.run_path, run._pre_submit_dir_size_fname)
+        with open(f_out, 'w') as f:
+            f.write(str(run_dir_size))
 
     def _execute_run_dir_setup_script(self, run_dir, script_path):
         """Raises subprocess.CalledProcessError on failure."""
