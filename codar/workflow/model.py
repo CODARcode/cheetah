@@ -19,10 +19,13 @@ import shutil
 import math
 import threading
 import signal
+from glob import glob
+from pathlib import Path
+import json
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
-from codar.cheetah.helpers import dir_size
+from codar.cheetah.helpers import get_file_size
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -386,6 +389,10 @@ class Pipeline(object):
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = None
 
+        # This needs to be somewhere else
+        self._adios_output_sizes_file_prefix = \
+            ".codar.cheetah.adios_sizes.out.json"
+
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -643,11 +650,29 @@ class Pipeline(object):
         Record the size of all adios files in the run dir.
         """
 
-        # Check for adios files in the experiment working dir
+        def _search_adios_files_and_write_size(working_dir):
+            """
+            Search for adios files and get their size.
+            Write a dict of filenames and sizes in working_dir.
+            :param path: str pointing to the directory to search
+            """
+            files_and_sizes = {}
+            adios_files = glob.glob(working_dir + "/*.bp*")
+            for adios_file in adios_files:
+                size = get_file_size(adios_file)
+                files_and_sizes[adios_file] = size
+                # Write dict to file
+                out_filename = os.path.join(
+                    Path(working_dir),self._adios_output_sizes_file_prefix)
+                with open(out_filename, 'w') as f:
+                    f.write(json.dumps(files_and_sizes))
 
+        # Check for adios files in the experiment working dir
+        _search_adios_files_and_write_size(self.working_dir)
 
         # Check for adios files in the working dir of each rc
-        pass
+        for rc in self.runs:
+            _search_adios_files_and_write_size(rc.working_dir)
 
 
 class Runner(object):
