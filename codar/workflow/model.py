@@ -22,6 +22,7 @@ import signal
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
+from codar.cheetah.helpers import dir_size
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -471,6 +472,7 @@ class Pipeline(object):
             self._execute_done_callbacks()
 
     def run_post_process_script(self):
+        self._get_adios_file_sizes()
         if self.post_process_script is None:
             return None
         if self._force_killed:
@@ -635,6 +637,17 @@ class Pipeline(object):
         # has been configured and force kill was not called.
         if self._post_thread is not None:
             self._post_thread.join()
+
+    def _get_adios_file_sizes(self):
+        """
+        Record the size of all adios files in the run dir.
+        """
+
+        # Check for adios files in the experiment working dir
+
+
+        # Check for adios files in the working dir of each rc
+        pass
 
 
 class Runner(object):
