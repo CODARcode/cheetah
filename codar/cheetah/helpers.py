@@ -4,6 +4,7 @@ import numbers
 import shutil
 import stat
 import glob
+from pathlib import Path
 
 
 def make_executable(path):
@@ -157,3 +158,19 @@ def dir_size(path, exclude=None):
         return dir_size
 
     return get_dir_size(path)
+
+
+def get_file_size(path):
+    """
+    Get size of the file or directory pointed to by path.
+    Directory size is recursive; it includes sizes of enclosing files/dirs.
+    :param path: path to the file or directory. Should not contain wildcards.
+                 Can be of type str or Path.
+    :return: size in bytes
+    """
+    if type(path) is str:
+        path = Path(path)
+    if path.is_file():
+        return os.path.getsize(path)
+    elif path.is_dir():
+        return dir_size(path)
