@@ -652,7 +652,7 @@ class Pipeline(object):
 
         def _adios_file_sizes_recursive(path):
             fname_size = {}
-            for entry in os.scandir(self.working_dir):
+            for entry in os.scandir(path):
                 if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
                     size = get_file_size(entry.path)
                     fname_size[entry.path] = size
