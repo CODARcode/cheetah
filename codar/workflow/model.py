@@ -650,29 +650,22 @@ class Pipeline(object):
         Record the size of all adios files in the run dir.
         """
 
-        def _search_adios_files_and_write_size(working_dir):
-            """
-            Search for adios files and get their size.
-            Write a dict of filenames and sizes in working_dir.
-            :param path: str pointing to the directory to search
-            """
-            files_and_sizes = {}
-            adios_files = glob.glob(working_dir + "/*.bp*")
-            for adios_file in adios_files:
-                size = get_file_size(adios_file)
-                files_and_sizes[adios_file] = size
-                # Write dict to file
-                out_filename = os.path.join(
-                    Path(working_dir),self._adios_output_sizes_file_prefix)
-                with open(out_filename, 'w') as f:
-                    f.write(json.dumps(files_and_sizes))
+        def _adios_file_sizes_recursive(path):
+            fname_size = {}
+            for entry in os.scandir(self.working_dir):
+                if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
+                    size = get_file_size(entry.path)
+                    fname_size[entry.path] = size
+                elif entry.is_dir():
+                    _adios_file_sizes_recursive(entry.path)
+            return fname_size
 
-        # Check for adios files in the experiment working dir
-        _search_adios_files_and_write_size(self.working_dir)
-
-        # Check for adios files in the working dir of each rc
-        for rc in self.runs:
-            _search_adios_files_and_write_size(rc.working_dir)
+        d_fname_size =_adios_file_sizes_recursive(self.working_dir)
+        # Write dict to file
+        out_fname = os.path.join(Path(self.working_dir),
+                                 self._adios_output_sizes_file_prefix)
+        with open(out_fname, 'w') as f:
+            f.write(json.dumps(d_fname_size))
 
 
 class Runner(object):

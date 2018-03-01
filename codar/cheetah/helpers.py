@@ -140,22 +140,21 @@ def get_immediate_subdirs(dir_path):
             os.path.isdir(os.path.join(dir_path, name))]
 
     
-def dir_size(path, exclude=None):
+def dir_size(path):
     """
     Get the size of the directory represented by path recursively.
     :param path: Path to the dir whose size needs to be calculated
-    :param exclude: List of pathnames to be excluded from the size calculation
     :return: size in bytes of the dir
     """
     # Closure for recursiveness
     def get_dir_size(path):
-        dir_size = 0
+        size = 0
         for entry in os.scandir(path):
             if entry.is_file():
-                dir_size += entry.stat(follow_symlinks=False).st_size
+                size += entry.stat(follow_symlinks=False).st_size
             elif entry.is_dir():
-                dir_size += get_dir_size(entry.path)
-        return dir_size
+                size += get_dir_size(entry.path)
+        return size
 
     return get_dir_size(path)
 
