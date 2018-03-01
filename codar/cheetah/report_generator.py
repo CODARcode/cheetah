@@ -143,18 +143,43 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
         unique_keys.add(rc_name + "__adios_time")
         #unique_keys.add(rc_name + "__adios_data")
 
+    # Get the sizes of the output adios files.
+    # The sizes were calculated by the post-processing function after the
+    # run finished.
+    # For every adios file, create columns named 'adios_file_1',
+    # 'adios_file_2' etc. Set their value to the adios file name.
+    # Then create columns named 'adios_file_1_size', 'adios_file_2_size'
+    # etc. Set their value to the size of the file.
+
+    # @TODO: The name of the file must be fetched from somewhere
+    adios_filesizes_json = os.path.join(Path(run_dir),
+                                        ".codar.cheetah.adios_sizes.out.json")
+    if adios_filesizes_json.is_file():
+        with open(adios_filesizes_json, 'r') as f:
+            adios_sizes_d = json.load(f)
+            file_count = 0
+            for key, value in adios_sizes_d.items():
+                file_count = file_count + 1
+                new_key = "adios_file_" + str(file_count)
+                serialized_run_params[new_key] = key
+                unique_keys.add(new_key)
+
+                size_key = new_key + "_size"
+                serialized_run_params[size_key] = value
+                unique_keys.add(size_key)
+    
     # Get the output of du instead of reading sos data for output data size
     # This is hacky. I am assuming that this file contains output of du.
-    dir_size = -1
-    post_process_file = run_dir + "/codar.workflow.stdout.post-process"
-    if Path(post_process_file).is_file():
-        f = open(post_process_file, "r")
-        lines = f.readlines()
-        lastline = lines[-1]
-        dir_size = int(re.search(r'\d+', lastline).group())
-    
-    serialized_run_params["dir_size"] = dir_size
-    unique_keys.add("dir_size")
+    # dir_size = -1
+    # post_process_file = run_dir + "/codar.workflow.stdout.post-process"
+    # if Path(post_process_file).is_file():
+    #     f = open(post_process_file, "r")
+    #     lines = f.readlines()
+    #     lastline = lines[-1]
+    #     dir_size = int(re.search(r'\d+', lastline).group())
+    #
+    # serialized_run_params["dir_size"] = dir_size
+    # unique_keys.add("dir_size")
     
     serialized_run_params["run_dir"] = run_dir
     # print(serialized_run_params)
