@@ -200,7 +200,6 @@ class PipelineRunner(object):
         """
         Record the size of all adios files in the run dir.
         """
-        print("Running adios file sizes")
 
         def _adios_file_sizes_recursive(path):
             fname_size = {}
