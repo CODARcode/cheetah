@@ -385,10 +385,6 @@ class Pipeline(object):
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = None
 
-        # This needs to be somewhere else
-        self._adios_output_sizes_file_prefix = \
-            ".codar.cheetah.adios_sizes.out.json"
-
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing

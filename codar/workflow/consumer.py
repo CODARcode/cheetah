@@ -125,7 +125,6 @@ class PipelineRunner(object):
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
 
-        print("Running pipeline_finished")
         self._get_adios_file_sizes(pipeline)
         with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)

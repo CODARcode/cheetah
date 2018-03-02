@@ -167,7 +167,7 @@ def __parse_run_dir(run_dir, parsed_runs, unique_keys):
                 size_key = new_key + "_size"
                 serialized_run_params[size_key] = value
                 unique_keys.add(size_key)
-    
+
     # Get the output of du instead of reading sos data for output data size
     # This is hacky. I am assuming that this file contains output of du.
     # dir_size = -1

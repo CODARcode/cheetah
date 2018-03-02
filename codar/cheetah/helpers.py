@@ -163,8 +163,8 @@ def get_file_size(dir_entry):
     """
     Get size of the file or directory pointed to by path.
     Directory size is recursive; it includes sizes of enclosing files/dirs.
-    :param path: path to the file or directory. Should not contain wildcards.
-                 Can be of type str or Path.
+    :param dir_entry: path to the file or directory. Should not contain wildcards.
+                      Must be of type DirEntry.
     :return: size in bytes
     """
     #if type(path) is str:
