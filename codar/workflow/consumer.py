@@ -2,7 +2,11 @@
 specified total process limit."""
 
 import threading
+import os
+import json
+from pathlib import Path
 
+from codar.cheetah.helpers import get_file_size
 from codar.workflow import status
 from codar.workflow.scheduler import JobList
 
@@ -120,6 +124,8 @@ class PipelineRunner(object):
 
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
+
+        self._get_adios_file_sizes(pipeline)
         with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)
             if self._status is not None:
@@ -189,3 +195,25 @@ class PipelineRunner(object):
         still_running = list(self._running_pipelines)
         for pipeline in still_running:
             pipeline.join_all()
+
+    def _get_adios_file_sizes(self, pipeline):
+        """
+        Record the size of all adios files in the run dir.
+        """
+
+        def _adios_file_sizes_recursive(path):
+            fname_size = {}
+            for entry in os.scandir(path):
+                if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
+                    size = get_file_size(entry.path)
+                    fname_size[entry.path] = size
+                elif entry.is_dir():
+                    _adios_file_sizes_recursive(entry.path)
+            return fname_size
+
+        d_fname_size =_adios_file_sizes_recursive(pipeline.working_dir)
+        # Write dict to file
+        out_fname = os.path.join(Path(pipeline.working_dir),
+                                 ".codar.adios_file_sizes.out.json")
+        with open(out_fname, 'w') as f:
+            f.write(json.dumps(d_fname_size))

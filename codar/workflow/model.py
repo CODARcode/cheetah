@@ -19,13 +19,9 @@ import shutil
 import math
 import threading
 import signal
-from glob import glob
-from pathlib import Path
-import json
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
-from codar.cheetah.helpers import get_file_size
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -644,28 +640,6 @@ class Pipeline(object):
         # has been configured and force kill was not called.
         if self._post_thread is not None:
             self._post_thread.join()
-
-    def _get_adios_file_sizes(self):
-        """
-        Record the size of all adios files in the run dir.
-        """
-
-        def _adios_file_sizes_recursive(path):
-            fname_size = {}
-            for entry in os.scandir(path):
-                if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
-                    size = get_file_size(entry.path)
-                    fname_size[entry.path] = size
-                elif entry.is_dir():
-                    _adios_file_sizes_recursive(entry.path)
-            return fname_size
-
-        d_fname_size =_adios_file_sizes_recursive(self.working_dir)
-        # Write dict to file
-        out_fname = os.path.join(Path(self.working_dir),
-                                 self._adios_output_sizes_file_prefix)
-        with open(out_fname, 'w') as f:
-            f.write(json.dumps(d_fname_size))
 
 
 class Runner(object):
