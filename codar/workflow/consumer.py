@@ -208,7 +208,8 @@ class PipelineRunner(object):
             for entry in os.scandir(path):
                 if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
                     size = get_file_size(entry)
-                    fname_size[entry.path] = size
+                    relative_path = entry.path.split(path+"/", 1).pop()
+                    fname_size[relative_path] = size
                 elif entry.is_dir():
                     _adios_file_sizes_recursive(entry.path)
             return fname_size
