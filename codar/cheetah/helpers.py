@@ -159,7 +159,7 @@ def dir_size(path):
     return get_dir_size(path)
 
 
-def get_file_size(path):
+def get_file_size(dir_entry):
     """
     Get size of the file or directory pointed to by path.
     Directory size is recursive; it includes sizes of enclosing files/dirs.
@@ -167,9 +167,10 @@ def get_file_size(path):
                  Can be of type str or Path.
     :return: size in bytes
     """
-    if type(path) is str:
-        path = Path(path)
-    if path.is_file():
-        return os.path.getsize(path)
-    elif path.is_dir():
-        return dir_size(path)
+    #if type(path) is str:
+    #    path = Path(path)
+    if dir_entry.is_file():
+        return os.path.getsize(dir_entry.path)
+    elif dir_entry.is_dir():
+        return dir_size(dir_entry.path)
+

@@ -125,6 +125,7 @@ class PipelineRunner(object):
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
 
+        print("Running pipeline_finished")
         self._get_adios_file_sizes(pipeline)
         with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)
@@ -200,12 +201,13 @@ class PipelineRunner(object):
         """
         Record the size of all adios files in the run dir.
         """
+        print("Running adios file sizes")
 
         def _adios_file_sizes_recursive(path):
             fname_size = {}
             for entry in os.scandir(path):
                 if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
-                    size = get_file_size(entry.path)
+                    size = get_file_size(entry)
                     fname_size[entry.path] = size
                 elif entry.is_dir():
                     _adios_file_sizes_recursive(entry.path)
@@ -213,7 +215,7 @@ class PipelineRunner(object):
 
         d_fname_size =_adios_file_sizes_recursive(pipeline.working_dir)
         # Write dict to file
-        out_fname = os.path.join(Path(pipeline.working_dir),
+        out_fname = os.path.join(pipeline.working_dir,
                                  ".codar.adios_file_sizes.out.json")
         with open(out_fname, 'w') as f:
             f.write(json.dumps(d_fname_size))

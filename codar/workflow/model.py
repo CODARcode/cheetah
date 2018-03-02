@@ -475,7 +475,6 @@ class Pipeline(object):
             self._execute_done_callbacks()
 
     def run_post_process_script(self):
-        self._get_adios_file_sizes()
         if self.post_process_script is None:
             return None
         if self._force_killed:
