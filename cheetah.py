@@ -67,7 +67,6 @@ def generate_report(prog, argv):
                              "./campaign_results.csv")
 
     args = parser.parse_args(argv)
-    print(args.output_file)
     report_generator.generate_report()
 
 
