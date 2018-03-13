@@ -35,10 +35,11 @@ for machine in local titan cori theta; do
 done
 
 # run local param test and analyze results, to exercise report generator
-pushd test_output/local-param_test/$USER
+cd test_output/local-param_test/$USER
 ./run-all.sh
 ./test/wait.sh >/dev/null
 cd ..
+echo "Running generate-report for local-param_test..."
 $CHEETAH_DIR/cheetah.py generate-report >report.log 2>&1
 rval=$?
 if [ ! -s campaign_results.csv -o $rval != 0 ]; then
@@ -46,14 +47,17 @@ if [ ! -s campaign_results.csv -o $rval != 0 ]; then
     echo "Return value: $rval"
     exit 1
 fi
-grep -q 'WARN\|ERR' report.log
-if [ $? = 0 ]; then
-    report_path="$(pwd)"/report.log
-    echo "ERROR: generate-report log has warnings or errors,"\
+report_path="$(pwd)"/report.log
+err_warn_count=$(grep -c 'WARN\|ERR' report.log || true)
+if [ $err_warn_count != 0 ]; then
+    echo "ERROR: generate-report log has warnings or errors," \
          "see '$report_path'"
     exit 1
+else
+    echo "generate-report succeeded, log is at '$report_path'"
 fi
-popd
+
+cd $CHEETAH_DIR
 
 echo loal-heat-simple
 rm -rf test_output/local-heat-simple/*

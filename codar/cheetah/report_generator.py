@@ -73,12 +73,17 @@ class _RunParser:
     def read_sos_perf_data(self):
         """
 
-        :return:
+        :return: True if sos data was found, False otherwise
         """
+
+        # Don't look for any sosflow data if it's not enabled on any of
+        # the run components.
+        if not any(run.get('sosflow', False) for run in self.fob_dict['runs']):
+            return False
 
         sos_perf_results = sos_flow_analysis(self.run_dir)
         if sos_perf_results is None:
-            return None
+            return False
 
         # keys in sos_perf_results are full exe paths. Get the rc name from
         # the exe path
