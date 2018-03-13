@@ -9,8 +9,9 @@ import os
 import json
 import shlex
 import subprocess
+import math
 
-from codar.cheetah import adios_params, config, templates
+from codar.cheetah import adios_params, config, templates, exc
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
@@ -53,7 +54,7 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, group_name, runs,
-                               max_nprocs, processes_per_node, nodes,
+                               max_nprocs, nodes,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
                                sosd_path=None,
@@ -65,7 +66,8 @@ class Launcher(object):
                                scheduler_options=None,
                                run_dir_setup_script=None):
         """Copy scripts for the appropriate scheduler to group directory,
-        and write environment configuration"""
+        and write environment configuration. Returns required number of nodes,
+        which will be calculated if the passed nodes is None"""
         script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
                                   self.scheduler_name, 'group')
         if not os.path.isdir(script_dir):
@@ -74,25 +76,9 @@ class Launcher(object):
         if scheduler_options is None:
             scheduler_options = {}
         copytree_to_dir(script_dir, self.output_directory)
-        env_path = os.path.join(self.output_directory, 'group-env.sh')
-        group_env = templates.GROUP_ENV_TEMPLATE.format(
-            walltime=parse_timedelta_seconds(walltime),
-            max_procs=max_nprocs,
-            processes_per_node=processes_per_node,
-            nodes=nodes,
-            node_exclusive=node_exclusive,
-            account=scheduler_options.get('project', ''),
-            queue=scheduler_options.get('queue', ''),
-            # TODO: require name be valid for all schedulers
-            campaign_name='codar.cheetah.'+campaign_name,
-            group_name=group_name,
-            constraint=scheduler_options.get('constraint', ''),
-            license=scheduler_options.get('license', '')
-        )
-        with open(env_path, 'w') as f:
-            f.write(group_env)
 
         fobs_path = os.path.join(self.output_directory, 'fobs.json')
+        min_nodes = 1
         with open(fobs_path, 'w') as f:
             for i, run in enumerate(runs):
                 # TODO: abstract this to higher levels
@@ -105,6 +91,9 @@ class Launcher(object):
                 if run.sosflow:
                     run.insert_sosflow(sosd_path, sos_analysis_path,
                                        run.run_path, machine.processes_per_node)
+
+                if run.get_total_nodes() > min_nodes:
+                    min_nodes = run.get_total_nodes()
 
                 if tau_config is not None:
                     copy_to_dir(tau_config, run.run_path)
@@ -247,6 +236,40 @@ class Launcher(object):
                 # append to fob list file in group dir
                 f.write(fob_s)
                 f.write("\n")
+
+        if nodes is None:
+            nodes = min_nodes
+        elif nodes < min_nodes:
+            raise exc.CheetahException(
+                "nodes for group is too low, need at least %d, got %d"
+                % (min_nodes, nodes))
+
+        # TODO: what case does this handle? should have a test case for
+        # it.
+        if machine.node_exclusive:
+            group_ppn = machine.processes_per_node
+        else:
+            group_ppn = math.ceil((max_nprocs) / nodes)
+
+        env_path = os.path.join(self.output_directory, 'group-env.sh')
+        group_env = templates.GROUP_ENV_TEMPLATE.format(
+            walltime=parse_timedelta_seconds(walltime),
+            max_procs=max_nprocs,
+            processes_per_node=group_ppn,
+            nodes=nodes,
+            node_exclusive=node_exclusive,
+            account=scheduler_options.get('project', ''),
+            queue=scheduler_options.get('queue', ''),
+            # TODO: require name be valid for all schedulers
+            campaign_name='codar.cheetah.'+campaign_name,
+            group_name=group_name,
+            constraint=scheduler_options.get('constraint', ''),
+            license=scheduler_options.get('license', '')
+        )
+        with open(env_path, 'w') as f:
+            f.write(group_env)
+
+        return nodes
 
     def _execute_run_dir_setup_script(self, run_dir, script_path):
         """Raises subprocess.CalledProcessError on failure."""
