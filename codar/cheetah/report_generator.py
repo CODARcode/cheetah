@@ -27,6 +27,7 @@ class _RunParser:
         self.serialized_run_params = {}
         self.fob_dict = {}
         self.rc_names = []
+        self.rc_working_dir = {}
 
         # sos_flow sees exes in the perf data that it collects. Form a
         # mapping of rc_exe:rc_name so that we can get the rc_name from the
@@ -42,7 +43,11 @@ class _RunParser:
     def get_rc_names(self):
         # Get rc names
         for rc in self.fob_dict['runs']:
-            self.rc_names.append(rc['name'])
+            rc_name = rc['name']
+            rc_exe_name = rc['exe']
+            rc_working_dir = rc['working_dir']
+            self.rc_names.append(rc_name)
+            self.rc_working_dir[rc_name] = rc_working_dir
 
             # sos_flow sees an rc exe as
             # '/var/opt/cray/alps/spool/16406362/xgc-es+tau', whereas
@@ -50,8 +55,8 @@ class _RunParser:
             # '/lustre/atlas/proj-shared/csc143/kmehta/xgc/xgc-es+tau'.
             # That is, the exe paths are different. So, just get the rc_exe
             # name and not the path as the key. e.g. "xgc-es+tau":"xgc"
-            exe_basename = os.path.basename(rc['exe'])
-            self.rc_name_exe[exe_basename] = rc['name']
+            exe_basename = os.path.basename(rc_exe_name)
+            self.rc_name_exe[exe_basename] = rc_name
 
     def get_run_params(self):
         # Now form dict of user codes and run params by reading
@@ -92,7 +97,8 @@ class _RunParser:
     def get_cheetah_perf_data(self):
         for rc_name in self.rc_names:
             walltime_fname = "codar.workflow.walltime." + rc_name
-            filepath = os.path.join(self.run_dir, walltime_fname)
+            filepath = os.path.join(self.rc_working_dir[rc_name],
+                                    walltime_fname)
             if Path(filepath).is_file():
                 with open(filepath) as f:
                     line = f.readline()
@@ -141,7 +147,7 @@ class _RunParser:
 
         # Open status return files for all RCs to verify they exited cleanly
         for rc in self.rc_names:
-            return_code_file = os.path.join(self.run_dir,
+            return_code_file = os.path.join(self.rc_working_dir[rc],
                                             "codar.workflow.return." + rc)
             if not Path(return_code_file).is_file():
                 print("WARN: Could not find file " + return_code_file +
