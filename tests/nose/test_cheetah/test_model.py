@@ -6,7 +6,8 @@ from nose.tools import assert_equal
 
 from codar.cheetah import exc
 from codar.cheetah.model import Campaign, NodeLayout
-from codar.cheetah.parameters import SweepGroup, Sweep, ParamCmdLineArg
+from codar.cheetah.parameters import SweepGroup, Sweep
+from codar.cheetah.parameters import ParamCmdLineArg, ParamAdiosXML
 
 from test_cheetah import TEST_OUTPUT_DIR
 
@@ -113,6 +114,34 @@ def test_error_campaign_undefined_code():
         assert 'code_dne' in str(e), str(e)
     else:
         assert False, 'error not raised on param using unknown code'
+
+
+def test_error_campaign_missing_adios_xml():
+    class TestMissingAdiosXMLCampaign(TestCampaign):
+        codes = [('test', dict(exe='test'))]
+        sweeps = [
+            SweepGroup(name='test_group', nodes=1, parameter_groups=[
+              Sweep([
+                ParamCmdLineArg('test', 'arg', 1, ['a', 'b']),
+                ParamAdiosXML('test', 'transport', 'adios_transport:test',
+                        ['MPI_AGGREGATE:num_aggregators=4;num_osts=44',
+                         'POSIX',
+                         'FLEXPATH']),
+              ])
+            ])
+        ]
+
+    try:
+        c = TestMissingAdiosXMLCampaign('titan', '/test')
+        out_dir = os.path.join(TEST_OUTPUT_DIR,
+                       'test_model', 'test_error_campaign_missing_adios_xml')
+        fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+        shutil.rmtree(out_dir, ignore_errors=True)
+        c.make_experiment_run_dir(out_dir)
+    except exc.CheetahException as e:
+        assert 'ADIOS XML file was not found' in str(e), str(e)
+    else:
+        assert False, 'error not raised on missing ADIOS XML file'
 
 
 def test_node_layout_repeated_code():

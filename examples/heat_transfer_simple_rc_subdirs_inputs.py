@@ -15,15 +15,18 @@ class HeatTransfer(Campaign):
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
     codes = [('stage', dict(exe="stage_write/stage_write", sleep_after=5)),
-             ('heat', dict(exe="heat_transfer_adios2", sleep_after=0))]
+             ('heat', dict(exe="heat_transfer_adios2", sleep_after=0,
+                           adios_xml_file="heat_transfer.xml"))]
 
     # The application is designed to run on two machines.
     # (These are magic strings known to Cheetah.)
     supported_machines = ['local', 'titan']
 
     # Inputs are copied to each "run directory" -- directory created by
-    # Cheetah for each run
-    inputs = ["heat_transfer.xml"]
+    # Cheetah for each run. The adios_xml_file for each code specified
+    # above is included automatically, so does not need to be specified
+    # here.
+    inputs = []
 
     # If the heat or stage code fails (nonzero exit code) during a run,
     # kill the other code if still running. This is useful for multi-code

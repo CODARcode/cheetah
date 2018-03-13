@@ -127,3 +127,4 @@ def relative_or_absolute_path(prefix, path):
 
 def relative_or_absolute_path_list(prefix, path_list):
     return [relative_or_absolute_path(prefix, path) for path in path_list]
+

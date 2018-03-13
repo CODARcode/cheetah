@@ -17,7 +17,10 @@ import inspect
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, config, templates, exc
-from codar.cheetah.helpers import copy_to_dir, relative_or_absolute_path_list
+from codar.cheetah.helpers import copy_to_dir
+from codar.cheetah.helpers import relative_or_absolute_path, \
+    relative_or_absolute_path_list
+from codar.cheetah.parameters import SymLink
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -235,7 +238,7 @@ class Campaign(object):
                                   self.inputs,
                                   node_layout,
                                   group.component_subdirs,
-                                  group.sosflow,
+                                  group.sosflow_profiling,
                                   group.sosflow_analysis,
                                   group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
@@ -405,8 +408,8 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, component_subdirs, sosflow, sosflow_analyis,
-                 component_inputs=None):
+                 node_layout, component_subdirs, sosflow_profiling,
+                 sosflow_analyis, component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -417,7 +420,7 @@ class Run(object):
         # important to use a copy.
         self.node_layout = node_layout.copy()
         self.component_subdirs = component_subdirs
-        self.sosflow = sosflow
+        self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
         self.run_components = self._get_run_components()
@@ -441,17 +444,35 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
             if component_inputs:
-                component_inputs = relative_or_absolute_path_list(
-                                        self.codes_path, component_inputs)
+                # Get the full path of inputs
+                # Separate the strings from symlinks to preserve their type
+                str_inputs = [input for input in component_inputs if type(
+                    input) == str]
+                str_inputs = relative_or_absolute_path_list(self.codes_path,
+                                                            str_inputs)
 
-            sosflow = self.codes[target].get('sosflow', False)
+                symlinks = [input for input in component_inputs if type(
+                    input) == SymLink]
+                symlinks = relative_or_absolute_path_list(self.codes_path,
+                                                          symlinks)
+                symlinks = [SymLink(input) for input in symlinks]
+                component_inputs = str_inputs + symlinks
+
+            linked_with_sosflow = self.codes[target].get(
+                'linked_with_sosflow', False)
+
+            adios_xml_file = self.codes[target].get('adios_xml_file', None)
+            if adios_xml_file:
+                adios_xml_file = relative_or_absolute_path(
+                    self.codes_path, adios_xml_file)
 
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
                                 working_dir=working_dir,
                                 component_inputs=component_inputs,
-                                sosflow=sosflow)
+                                linked_with_sosflow=linked_with_sosflow,
+                                adios_xml_file=adios_xml_file)
             comps.append(comp)
         return comps
 
@@ -495,7 +516,7 @@ class Run(object):
         This should not include the nodes required by sosflow."""
         num_nodes = 0
         for rc in self.run_components:
-            if rc.sosflow:
+            if rc.linked_with_sosflow:
                 code_node = self.node_layout.get_node_containing_code(rc.name)
                 code_procs_per_node = code_node[rc.name]
                 num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
@@ -575,7 +596,7 @@ class Run(object):
         # calculation
         for rc in self.run_components:
             # ignore component if not setup to use sosflow
-            if not rc.sosflow:
+            if not rc.linked_with_sosflow:
                 continue
 
             # TODO: is this actually used directly?
@@ -628,7 +649,8 @@ class Run(object):
 class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
-                 sosflow=False, env=None, timeout=None):
+                 linked_with_sosflow=False, adios_xml_file=None,
+                 env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -638,7 +660,8 @@ class RunComponent(object):
         self.timeout = timeout
         self.working_dir = working_dir
         self.component_inputs = component_inputs
-        self.sosflow = sosflow
+        self.linked_with_sosflow = linked_with_sosflow
+        self.adios_xml_file = adios_xml_file
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -647,7 +670,8 @@ class RunComponent(object):
                     nprocs=self.nprocs,
                     working_dir=self.working_dir,
                     sleep_after=self.sleep_after,
-                    sosflow=self.sosflow)
+                    linked_with_sosflow=self.linked_with_sosflow,
+                    adios_xml_file=self.adios_xml_file)
         if self.env:
             data['env'] = self.env
         if self.timeout:
