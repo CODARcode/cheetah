@@ -76,9 +76,11 @@ class _RunParser:
         :return: True if sos data was found, False otherwise
         """
 
-        # Don't look for any sosflow data if it's not enabled on any of
-        # the run components.
-        if not any(run.get('sosflow', False) for run in self.fob_dict['runs']):
+        # Don't look for any sosflow data if it's not enabled, i.e. if
+        # none of the run components is sosflow_aggregator_{N} or
+        # sosflow_analysis_{N}.
+        if not any(run['name'].startswith('sosflow_')
+                   for run in self.fob_dict['runs']):
             return False
 
         sos_perf_results = sos_flow_analysis(self.run_dir)
