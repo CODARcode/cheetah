@@ -4,6 +4,7 @@ import numbers
 import shutil
 import stat
 import glob
+from pathlib import Path
 
 
 def make_executable(path):
@@ -128,3 +129,47 @@ def relative_or_absolute_path(prefix, path):
 def relative_or_absolute_path_list(prefix, path_list):
     return [relative_or_absolute_path(prefix, path) for path in path_list]
 
+
+def get_immediate_subdirs(dir_path):
+    """
+    Get a list of top-level subdirectories.
+    :param dir_path: Directory path to search
+    :return: list of subdirectory names
+    """
+    return [name for name in os.listdir(dir_path) if
+            os.path.isdir(os.path.join(dir_path, name))]
+
+    
+def dir_size(path):
+    """
+    Get the size of the directory represented by path recursively.
+    :param path: Path to the dir whose size needs to be calculated
+    :return: size in bytes of the dir
+    """
+    # Closure for recursiveness
+    def get_dir_size(path):
+        size = 0
+        for entry in os.scandir(path):
+            if entry.is_file():
+                size += entry.stat(follow_symlinks=False).st_size
+            elif entry.is_dir():
+                size += get_dir_size(entry.path)
+        return size
+
+    return get_dir_size(path)
+
+
+def get_file_size(dir_entry):
+    """
+    Get size of the file or directory pointed to by path.
+    Directory size is recursive; it includes sizes of enclosing files/dirs.
+    :param dir_entry: path to the file or directory. Should not contain wildcards.
+                      Must be of type DirEntry.
+    :return: size in bytes
+    """
+    #if type(path) is str:
+    #    path = Path(path)
+    if dir_entry.is_file():
+        return os.path.getsize(dir_entry.path)
+    elif dir_entry.is_dir():
+        return dir_size(dir_entry.path)

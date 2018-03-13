@@ -20,7 +20,7 @@ REASON_EXCEPTION = 'exception'
 REASON_NOFIT = 'nofit'
 
 
-class WorkflowStatus(object):
+class WorkflowStatus(threading.Thread):
     def __init__(self, file_path):
         threading.Thread.__init__(self, name='Thread-status-0')
         self.file_path = file_path

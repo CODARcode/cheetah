@@ -1,6 +1,7 @@
 import os.path
 import shutil
 import json
+import getpass
 
 from nose.tools import assert_equal
 
@@ -74,7 +75,8 @@ def test_codes_ordering():
     c = TestMultiExeCampaign('titan', '/test')
     out_dir = os.path.join(TEST_OUTPUT_DIR,
                            'test_model', 'test_codes_ordering')
-    fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+    fob_path = os.path.join(out_dir, getpass.getuser(),
+                            'test_group', 'fobs.json')
     shutil.rmtree(out_dir, ignore_errors=True) # clean up any old test output
     c.make_experiment_run_dir(out_dir)
 
@@ -106,7 +108,8 @@ def test_error_campaign_undefined_code():
         c = TestUndefinedCodeCampaign('titan', '/test')
         out_dir = os.path.join(TEST_OUTPUT_DIR,
                            'test_model', 'test_error_campaign_undefined_code')
-        fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+        fob_path = os.path.join(out_dir, getpass.getuser(),
+                                'test_group', 'fobs.json')
         shutil.rmtree(out_dir, ignore_errors=True)
         c.make_experiment_run_dir(out_dir)
     except exc.CheetahException as e:
