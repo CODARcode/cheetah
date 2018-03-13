@@ -8,7 +8,6 @@ All parameters specified in the spec file must be used as column headers in
 an output csv file.
 """
 
-import re
 import os
 from pathlib import Path
 import json
@@ -35,7 +34,8 @@ class _RunParser:
         self.rc_name_exe = {}
 
     def read_fob_json(self):
-        fob_json_filename = self.run_dir + "/" + "codar.cheetah.fob.json"
+        fob_json_filename = os.path.join(self.run_dir,
+                                         "codar.cheetah.fob.json")
         with open(fob_json_filename, 'r') as f:
             self.fob_dict = json.load(f)
 
@@ -50,14 +50,15 @@ class _RunParser:
             # '/lustre/atlas/proj-shared/csc143/kmehta/xgc/xgc-es+tau'.
             # That is, the exe paths are different. So, just get the rc_exe
             # name and not the path as the key. e.g. "xgc-es+tau":"xgc"
-            self.rc_name_exe[rc['exe'].split("/")[-1]] = rc['name']
+            exe_basename = os.path.basename(rc['exe'])
+            self.rc_name_exe[exe_basename] = rc['name']
 
     def get_run_params(self):
         # Now form dict of user codes and run params by reading
         # codar.cheetah.run-params.json.
 
-        run_params_json_filename = self.run_dir + "/" + \
-                                   "codar.cheetah.run-params.json"
+        run_params_json_filename = os.path.join(self.run_dir,
+                                               "codar.cheetah.run-params.json")
         with open(run_params_json_filename, "r") as f:
             run_params_dict = json.load(f)
 
@@ -140,8 +141,8 @@ class _RunParser:
 
         # Open status return files for all RCs to verify they exited cleanly
         for rc in self.rc_names:
-            return_code_file = self.run_dir + "/" + "codar.workflow.return." \
-                               + rc
+            return_code_file = os.path.join(self.run_dir,
+                                            "codar.workflow.return." + rc)
             if not Path(return_code_file).is_file():
                 print("WARN: Could not find file " + return_code_file +
                       ". Skipping run directory.")
@@ -270,7 +271,7 @@ class _ReportGenerator:
             for rc, rc_return_code in rc_return_codes.items():
                 if rc_return_code != 0:
                     break
-            successful_runs.append(str(sweep_group) + "/" + run_dir)
+            successful_runs.append(os.path.join(str(sweep_group), run_dir))
 
         # Parse runs that have succeeded
         for run_dir in successful_runs:
