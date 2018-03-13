@@ -329,24 +329,23 @@ class ParamAdiosXML(Param):
     variables can be included in the sweep.
 
     Format:
-        adios_transform:<xml_filename>:<group_name>:<var_name>
-        adios_transport:<xml_filename>:<group_name>
+        adios_transform:<group_name>:<var_name>
+        adios_transport:<group_name>
 
-    Note that the filename is assumed to be relative to the app directory
-    specified as a Cheetah command line argument.
+    Note that the filename is specified in the code definition.
     """
     def __init__(self, target, name, adios_xml_tags, values):
         Param.__init__(self, target, name, values)
         parts = adios_xml_tags.split(":")
-        if len(parts) < 3:
+        if len(parts) < 2:
             raise ValueError("bad format for ParamAdiosXML name")
         # param_type = adios_transform or adios_transport
         self.param_type = parts[0]
-        self.group_name = parts[2]
+        self.group_name = parts[1]
 
         # if param_type is transform
-        if len(parts) == 4:
-            self.var_name = parts[3]
+        if len(parts) == 3:
+            self.var_name = parts[2]
 
 
 class ParamConfig(Param):

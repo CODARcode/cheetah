@@ -10,7 +10,7 @@ import json
 import shlex
 import subprocess
 
-from codar.cheetah import adios_params, config, templates
+from codar.cheetah import adios_params, config, templates, exc
 from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir
@@ -280,12 +280,12 @@ class Launcher(object):
             if rc_name == rc.name:
                 adios_xml_file = rc.adios_xml_file
 
-        assert adios_xml_file is not None, "An ADIOS XML file was not found " \
-                                           "for {}. Set the adios_xml_file " \
-                                           "option for the component in " \
-                                           "codes.".format(rc_name)
+        if adios_xml_file is None:
+            raise exc.CheetahException("An ADIOS XML file was not found "
+                                       "for {}. Set the adios_xml_file "
+                                       "option for the component in "
+                                       "codes.".format(rc_name))
         return adios_xml_file
-
 
     def read_jobid(self):
         jobid_file_path = os.path.join(self.output_directory,
