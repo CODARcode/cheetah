@@ -19,7 +19,7 @@ from pathlib import Path
 from collections import OrderedDict
 
 from codar.cheetah import machines, parameters, config, templates, exc
-from codar.cheetah.helpers import copy_to_dir
+from codar.cheetah.helpers import copy_to_dir, copy_to_path
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list
 from codar.cheetah.parameters import SymLink
@@ -620,6 +620,14 @@ class Run(object):
 
         if not ds_server:
             raise Exception("Dataspaces server needs to be specified in codes")
+
+        # Copy the configuration file dataspaces.conf
+        ds_conf = os.path.join(self.codes_path, "dataspaces.conf")
+        if not os.path.isfile(ds_conf):
+            raise Exception("Could not find dataspaces.conf in " +
+                            self.codes_path)
+        dst = os.path.join(self.run_path, "dataspaces.conf")
+        copy_to_path(ds_conf, dst)
 
         num_clients = sum([rc.nprocs for rc in rc_list])
         num_servers = config.get_dataspaces_num_servers(num_clients)
