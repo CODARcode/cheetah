@@ -8,7 +8,7 @@ import sys
 import argparse
 
 from codar.cheetah.loader import load_experiment_class
-from codar.cheetah import report_generator
+from codar.cheetah import report_generator, status
 
 
 def main():
@@ -18,11 +18,12 @@ def main():
  Supported commands:
     create-campaign    Create a campaign directory from a spec file
     generate-report    Generate a report of results from a completed campaign
+    status             Print information about a campaign
     help               Show this help message and exit
 
  For details on running each command, run 'cheetah.py <command> -h'.
 ''')
-    commands = ['help', 'create-campaign', 'generate-report']
+    commands = ['help', 'create-campaign', 'generate-report', 'status']
     top_parser.add_argument('command', help='Subcommand to run',
                             choices=commands)
     args = top_parser.parse_args(sys.argv[1:2])
@@ -32,6 +33,8 @@ def main():
         create_campaign(prog, command_args)
     elif args.command == 'generate-report':
         generate_report(prog, command_args)
+    elif args.command == 'status':
+        status_command(prog, command_args)
     elif args.command == 'help':
         top_parser.print_help()
         sys.exit(os.EX_OK)
@@ -73,6 +76,28 @@ def generate_report(prog, argv):
 
     args = parser.parse_args(argv)
     report_generator.generate_report()
+
+
+def status_command(prog, argv):
+    parser = argparse.ArgumentParser(prog=prog,
+                description="Get status of an existing campaign")
+    parser.add_argument('-c', '--campaign-directory', required=False,
+                        default='.',
+                        help='Get status for top level campaign directory')
+    parser.add_argument('-u', '--users', required=False,
+                        default=None, nargs='*',
+                        help='Get status for specific user(s) only')
+    parser.add_argument('-g', '--groups', required=False,
+                        default=None, nargs='*',
+                        help='Get status for specific sweep group(s) only')
+    parser.add_argument('-d', '--details', required=False, action='store_true',
+                        help='Show detailed run counts for each group')
+
+    args = parser.parse_args(argv)
+    status.print_campaign_status(args.campaign_directory,
+                                 filter_user=args.users,
+                                 filter_group=args.groups,
+                                 group_details=args.details)
 
 
 if __name__ == '__main__':
