@@ -282,21 +282,6 @@ class Launcher(object):
                 # in the creation of the run dir.
                 self._get_pre_submit_dir_size(run)
 
-    def _get_dataspaces_coupling_rcs(self):
-        """
-        Get list of RCs that will couple using Dataspaces.
-        To do this, 1) parse the resulting adios xml file of each RC and see if
-        any transports are marked for DATASPACES/DIMES.
-        2) If RC is stage_write, parse its command line args to see if
-        transport method is set to DATASPACES/DIMES
-        Note: This function must be called _after_ the final ADIOS XML file for
-        run RCs is generated from ADIOS params.
-        :return: A set of RC names
-        """
-
-        coupling_rcs = ()
-        return coupling_rcs
-
     def _get_pre_submit_dir_size(self, run):
         """
         Get and write the size of the run directory prior to running the
