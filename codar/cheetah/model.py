@@ -23,6 +23,9 @@ from codar.cheetah.helpers import copy_to_dir
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list
 from codar.cheetah.parameters import SymLink
+from codar.cheetah import config
+from codar.cheetah.adios_params import xml_has_transport
+from codar.cheetah.parameters import ParamCmdLineArg
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -547,6 +550,89 @@ class Run(object):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
+
+    def add_dataspaces_support(self, machine_name):
+        """
+        Add support for dataspaces.
+        Check RC Adios xml files to see if any transport methods are marked
+        for coupling with DATASPACES/DIMES.
+        For stage_write, check command line args to see if DATASPACES/DIMES
+        is specified.
+        :param machine_name: The current machine. I dont like this here.
+        :return:
+        """
+
+        rcs_for_coupling = set()
+        # Search in all RC's adios xml file if any transport is set for
+        # coupling with DATASPACES/DIMES
+        # This is not case insensitive
+        for rc in self.run_components:
+            if rc.adios_xml_file:
+                f_xml = os.path.join(rc.working_dir, os.path.basename(
+                    rc.adios_xml_file))
+                if xml_has_transport(f_xml, "DATASPACES") or \
+                        xml_has_transport(f_xml, "DIMES"):
+                    rcs_for_coupling.add(rc)
+
+        # Special handling for stage_write
+        # Check command line args for string to be one of DATASPACES/DIMES
+        for rc in self.run_components:
+            if "stage_write" in rc.exe:
+                param_values = self.instance.parameter_values[rc.name]
+                cmdlineargs = [val.value for val in param_values.values() if
+                               (val.is_type(ParamCmdLineArg) and
+                               type(val.value) == str)]
+                if 'DATASPACES' in cmdlineargs or 'DIMES' in cmdlineargs:
+                    rcs_for_coupling.add(rc)
+
+        if rcs_for_coupling:
+            self._insert_dataspaces_rc(list(rcs_for_coupling), machine_name)
+
+        # Create symlink in rc working_dir to dataspaces output conf file
+        src = os.path.join(self.run_path, "conf")
+        for rc in rcs_for_coupling:
+            dst = os.path.join(rc.working_dir, "conf")
+            if src != dst:
+                os.symlink(src, dst)
+
+    def _insert_dataspaces_rc(self, rc_list, machine):
+        """
+        Add dataspaces support for this run.
+        Creates a new RC with dataspaces server as the exe.
+        :param rc_list: List of RC objects coupling using dataspaces
+        :param machine_name: Current machine
+        :return:
+        """
+
+        # Sanity check. rc list for coupling must have >1 RCs
+        if len(rc_list) == 1:
+            raise Exception("Atleast 2 codes needed for Dataspaces coupling. "
+                            "Found 1.")
+
+        # Check that codes has dataspaces_server exe
+        ds_server = None
+        sleep_after = 0
+        for code in self.codes:
+            exe = self.codes[code]['exe']
+            if 'dataspaces_server' in exe:
+                ds_server = exe
+                sleep_after = self.codes[code].get('sleep_after', 0)
+
+        if not ds_server:
+            raise Exception("Dataspaces server needs to be specified in codes")
+
+        num_clients = sum([rc.nprocs for rc in rc_list])
+        num_servers = config.get_dataspaces_num_servers(num_clients)
+        args = ['-s', str(num_servers), '-c', str(num_clients)]
+        rc_name = "dataspaces_server"
+        ranks_per_node = machine.dataspaces_servers_per_node
+
+        rc = RunComponent(rc_name, ds_server, args,
+                          nprocs=num_servers, sleep_after=sleep_after,
+                          working_dir=self.run_path)
+
+        self.node_layout.add_node({rc_name: ranks_per_node})
+        self.run_components.insert(0, rc)
 
     def insert_sosflow(self, sosd_path, sos_analysis_path, run_path, ppn):
         """Insert a new component at start of list to launch sosflow daemon.

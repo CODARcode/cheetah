@@ -105,7 +105,8 @@ class Launcher(object):
 
                 if run.sosflow_profiling:
                     run.insert_sosflow(sosd_path, sos_analysis_path,
-                                       run.run_path, machine.processes_per_node)
+                                       run.run_path,
+                                       machine.processes_per_node)
 
                 if tau_config is not None:
                     copy_to_dir(tau_config, run.run_path)
@@ -165,9 +166,16 @@ class Launcher(object):
                             method_opts = value_tokens[1]
 
                         adios_params.adios_xml_transport(
-                            xml_filepath, pv.group_name, method_name, method_opts)
+                            xml_filepath, pv.group_name, method_name,
+                            method_opts)
                     else:
-                        raise "Unrecognized adios param"
+                        raise Exception("Unrecognized adios param")
+
+                # Insert dataspaces server instances if RCs will couple
+                # using dataspaces.
+                # This must be called after the ADIOS params are parsed and
+                # the final ADIOS XML is generated
+                run.add_dataspaces_support(machine)
 
                 # Generic config file support. Note: slurps entire
                 # config file into memory, requires adding file to
@@ -273,6 +281,21 @@ class Launcher(object):
                 # Get the size of the run dir. This should be the last step
                 # in the creation of the run dir.
                 self._get_pre_submit_dir_size(run)
+
+    def _get_dataspaces_coupling_rcs(self):
+        """
+        Get list of RCs that will couple using Dataspaces.
+        To do this, 1) parse the resulting adios xml file of each RC and see if
+        any transports are marked for DATASPACES/DIMES.
+        2) If RC is stage_write, parse its command line args to see if
+        transport method is set to DATASPACES/DIMES
+        Note: This function must be called _after_ the final ADIOS XML file for
+        run RCs is generated from ADIOS params.
+        :return: A set of RC names
+        """
+
+        coupling_rcs = ()
+        return coupling_rcs
 
     def _get_pre_submit_dir_size(self, run):
         """
