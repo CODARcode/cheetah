@@ -13,7 +13,8 @@ from pathlib import Path
 import json
 import csv
 from codar.cheetah.sos_flow_analysis import sos_flow_analysis
-from codar.cheetah.helpers import get_immediate_subdirs
+from codar.cheetah.helpers import get_immediate_subdirs, \
+                                  require_campaign_directory
 
 
 class _RunParser:
@@ -198,7 +199,7 @@ class _ReportGenerator:
     """
 
     """
-    def __init__(self, out_file_name):
+    def __init__(self, campaign_directory, output_filename):
         # A list of dicts. Each dict contains metadata and performance
         # information about the run
         self.parsed_runs = []
@@ -207,9 +208,11 @@ class _ReportGenerator:
         #  output
         self.unique_keys = set()
 
+        self.campaign_directory = campaign_directory
+
         # Name of the output (csv) file where the performance report will be
         #  written
-        self.output_filename = out_file_name
+        self.output_filename = output_filename
 
         # Temp var to keep track of the current user campaign
         self.current_campaign_user = None
@@ -220,7 +223,7 @@ class _ReportGenerator:
         :return:
         """
 
-        print("Parsing campaign ...")
+        print("Parsing campaign", self.campaign_directory, "...")
 
         # Traverse user campaigns
         self.parse_user_campaigns()
@@ -235,34 +238,37 @@ class _ReportGenerator:
         """
 
         # At the top level, a campaign consists of user-level campaigns
-        user_dirs = get_immediate_subdirs("./")
+        user_dirs = get_immediate_subdirs(self.campaign_directory)
 
         # Traverse user campaigns
-        for subdir in user_dirs:
-            print("Parsing campaign for " + subdir)
-            self.current_campaign_user = subdir
+        for user in user_dirs:
+            print("Parsing sweep groups for", user, "...")
+            self.current_campaign_user = user
+
+            user_dir = os.path.join(self.campaign_directory, user)
 
             # Verify that current dir is a user-level campaign endpoint by
             # checking for the presence of the campaign-env.sh file.
-            assert (os.path.isfile(os.path.join(subdir, "campaign-env.sh"))), \
+            assert (os.path.isfile(os.path.join(user_dir, "campaign-env.sh"))), \
                 "Current directory is not a user-level campaign"
 
             # Walk through sweep groups
-            sweep_groups = get_immediate_subdirs("./" + subdir)
+            sweep_groups = get_immediate_subdirs(user_dir)
             if not sweep_groups:
                 print("No sweep groups found")
                 return
 
             for sweep_group in sweep_groups:
-                self.parse_sweep_group("./" + subdir + "/" + sweep_group)
+                group_dir = os.path.join(user_dir, sweep_group)
+                self.parse_sweep_group(group_dir)
 
-    def parse_sweep_group(self, sweep_group):
+    def parse_sweep_group(self, group_dir):
         """
         Parse sweep group and get post-run performance information
         """
 
         # Check if group was run by checking if status file exists
-        status_file = sweep_group + "/codar.workflow.status.json"
+        status_file = os.path.join(group_dir, "codar.workflow.status.json")
         if not Path(status_file).is_file():
             print("WARN: Could not find file " + status_file +
                   ". Skipping sweep group")
@@ -284,7 +290,7 @@ class _ReportGenerator:
             for rc, rc_return_code in rc_return_codes.items():
                 if rc_return_code != 0:
                     break
-            successful_runs.append(os.path.join(str(sweep_group), run_dir))
+            successful_runs.append(os.path.join(group_dir, run_dir))
 
         # Parse runs that have succeeded
         for run_dir in successful_runs:
@@ -295,7 +301,7 @@ class _ReportGenerator:
         Parse run directory of a sweep group
         """
 
-        print("Parsing " + run_dir)
+        print("Parsing run", run_dir[len(self.campaign_directory)+1:])
         rp = _RunParser(run_dir)
 
         # Re-verify that all run components have exited cleanly by
@@ -367,14 +373,14 @@ class _ReportGenerator:
         :return:
         """
         print("Done generating report.")
-        print("Writing output to file " + self.output_filename)
+        print("Writing output to " + self.output_filename)
         with open(self.output_filename, 'w') as f:
             dict_writer = csv.DictWriter(f, sorted(self.unique_keys))
             dict_writer.writeheader()
             dict_writer.writerows(self.parsed_runs)
 
 
-def generate_report(out_file_name="./campaign_results.csv"):
+def generate_report(campaign_directory, output_file_path):
     """
     This is a post-run function.
     It walks the campaign tree and retrieves performance information
@@ -383,8 +389,10 @@ def generate_report(out_file_name="./campaign_results.csv"):
 
     # Ensure this is a campaign by checking for the presence of the
     # .campaign file
-    assert (os.path.isfile("./.campaign")), "Current directory is not a " \
-                                            "top-level campaign"
+    require_campaign_directory(campaign_directory)
 
-    rg = _ReportGenerator(out_file_name)
+    if not output_file_path.startswith('/'):
+        output_file_path = os.path.join(campaign_directory, output_file_path)
+
+    rg = _ReportGenerator(campaign_directory, output_file_path)
     rg.parse_campaign()

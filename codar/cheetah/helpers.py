@@ -7,6 +7,9 @@ import glob
 from pathlib import Path
 
 
+from codar.cheetah import exc
+
+
 def make_executable(path):
     current_mode = os.stat(path).st_mode
     os.chmod(path, current_mode | stat.S_IEXEC)
@@ -139,7 +142,7 @@ def get_immediate_subdirs(dir_path):
     return [name for name in os.listdir(dir_path) if
             os.path.isdir(os.path.join(dir_path, name))]
 
-    
+
 def dir_size(path):
     """
     Get the size of the directory represented by path recursively.
@@ -173,3 +176,18 @@ def get_file_size(dir_entry):
         return os.path.getsize(dir_entry.path)
     elif dir_entry.is_dir():
         return dir_size(dir_entry.path)
+
+
+def is_campaign_directory(path):
+    """Return True if the specified path exists, is a directory, and has a
+    .campaign file to indicate it's a top level campaign directory."""
+    return (os.path.isdir(path)
+            and os.path.isfile(os.path.join(path, '.campaign')))
+
+
+def require_campaign_directory(path):
+    """Raise CheetahException if the specified path is not a top-level
+    campaign directory."""
+    if not is_campaign_directory(path):
+        raise exc.CheetahException("Path '%s' is not a " \
+                                   "top-level campaign directory" % path)

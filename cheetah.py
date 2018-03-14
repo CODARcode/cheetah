@@ -8,7 +8,7 @@ import sys
 import argparse
 
 from codar.cheetah.loader import load_experiment_class
-from codar.cheetah import report_generator
+from codar.cheetah import report_generator, status
 
 
 def main():
@@ -18,11 +18,14 @@ def main():
  Supported commands:
     create-campaign    Create a campaign directory from a spec file
     generate-report    Generate a report of results from a completed campaign
+    status             Print information about a campaign
+    help               Show this help message and exit
 
  For details on running each command, run 'cheetah.py <command> -h'.
 ''')
+    commands = ['help', 'create-campaign', 'generate-report', 'status']
     top_parser.add_argument('command', help='Subcommand to run',
-                            choices=['create-campaign', 'generate-report'])
+                            choices=commands)
     args = top_parser.parse_args(sys.argv[1:2])
     prog = 'cheetah.py ' + args.command
     command_args = sys.argv[2:]
@@ -30,6 +33,11 @@ def main():
         create_campaign(prog, command_args)
     elif args.command == 'generate-report':
         generate_report(prog, command_args)
+    elif args.command == 'status':
+        status_command(prog, command_args)
+    elif args.command == 'help':
+        top_parser.print_help()
+        sys.exit(os.EX_OK)
     else:
         assert False, 'unknown command: %s' % args.command
 
@@ -61,13 +69,38 @@ def create_campaign(prog, argv):
 def generate_report(prog, argv):
     parser = argparse.ArgumentParser(prog=prog,
                 description="Generate a report for a completed campaign")
+    parser.add_argument('campaign_directory',
+                        help='Top level directory of the campaign.')
     parser.add_argument('-o', '--output-file', required=False,
-                        default="./campaign_results.csv",
-                        help="Redirect output to file, else write as "
-                             "./campaign_results.csv")
+                        default="campaign_results.csv",
+                        help="Alternate file name or path for results. "
+                             "Default is to store in campaign directory "
+                             "with default name 'campaign-results.csv'")
 
     args = parser.parse_args(argv)
-    report_generator.generate_report()
+    report_generator.generate_report(args.campaign_directory,
+                                     args.output_file)
+
+
+def status_command(prog, argv):
+    parser = argparse.ArgumentParser(prog=prog,
+                description="Get status of an existing campaign")
+    parser.add_argument('campaign_directory',
+                        help='Top level campaign directory')
+    parser.add_argument('-u', '--user', required=False,
+                        default=None, nargs='*',
+                        help='Get status for specific user(s) only')
+    parser.add_argument('-g', '--group', required=False,
+                        default=None, nargs='*',
+                        help='Get status for specific sweep group(s) only')
+    parser.add_argument('-d', '--details', required=False, action='store_true',
+                        help='Show detailed run counts for each group')
+
+    args = parser.parse_args(argv)
+    status.print_campaign_status(args.campaign_directory,
+                                 filter_user=args.user,
+                                 filter_group=args.group,
+                                 group_details=args.details)
 
 
 if __name__ == '__main__':
