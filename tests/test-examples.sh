@@ -35,26 +35,27 @@ for machine in local titan cori theta; do
 done
 
 # run local param test and analyze results, to exercise report generator
-cd test_output/local-param_test/$USER
-./run-all.sh
-./test/wait.sh >/dev/null
-cd ..
+# and status subcommand
+cd test_output/local-param_test
+$USER/run-all.sh
+$CHEETAH_DIR/cheetah.py status . >status.log 2>&1
+$USER/test/wait.sh >/dev/null
 echo "Running generate-report for local-param_test..."
-$CHEETAH_DIR/cheetah.py generate-report >report.log 2>&1
+$CHEETAH_DIR/cheetah.py generate-report . >report.log 2>&1
 rval=$?
 if [ ! -s campaign_results.csv -o $rval != 0 ]; then
     echo "ERROR: generate-report for local-param_test failed"
     echo "Return value: $rval"
     exit 1
 fi
-report_path="$(pwd)"/report.log
+report_log_path="$(pwd)"/report.log
 err_warn_count=$(grep -c 'WARN\|ERR' report.log || true)
 if [ $err_warn_count != 0 ]; then
     echo "ERROR: generate-report log has warnings or errors," \
-         "see '$report_path'"
+         "see '$report_log_path'"
     exit 1
 else
-    echo "generate-report succeeded, log is at '$report_path'"
+    echo "generate-report succeeded, log is at '$report_log_path'"
 fi
 
 cd $CHEETAH_DIR

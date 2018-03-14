@@ -69,25 +69,28 @@ def create_campaign(prog, argv):
 def generate_report(prog, argv):
     parser = argparse.ArgumentParser(prog=prog,
                 description="Generate a report for a completed campaign")
+    parser.add_argument('campaign_directory',
+                        help='Top level directory of the campaign.')
     parser.add_argument('-o', '--output-file', required=False,
-                        default="./campaign_results.csv",
-                        help="Redirect output to file, else write as "
-                             "./campaign_results.csv")
+                        default="campaign_results.csv",
+                        help="Alternate file name or path for results. "
+                             "Default is to store in campaign directory "
+                             "with default name 'campaign-results.csv'")
 
     args = parser.parse_args(argv)
-    report_generator.generate_report()
+    report_generator.generate_report(args.campaign_directory,
+                                     args.output_file)
 
 
 def status_command(prog, argv):
     parser = argparse.ArgumentParser(prog=prog,
                 description="Get status of an existing campaign")
-    parser.add_argument('-c', '--campaign-directory', required=False,
-                        default='.',
-                        help='Get status for top level campaign directory')
-    parser.add_argument('-u', '--users', required=False,
+    parser.add_argument('campaign_directory',
+                        help='Top level campaign directory')
+    parser.add_argument('-u', '--user', required=False,
                         default=None, nargs='*',
                         help='Get status for specific user(s) only')
-    parser.add_argument('-g', '--groups', required=False,
+    parser.add_argument('-g', '--group', required=False,
                         default=None, nargs='*',
                         help='Get status for specific sweep group(s) only')
     parser.add_argument('-d', '--details', required=False, action='store_true',
@@ -95,8 +98,8 @@ def status_command(prog, argv):
 
     args = parser.parse_args(argv)
     status.print_campaign_status(args.campaign_directory,
-                                 filter_user=args.users,
-                                 filter_group=args.groups,
+                                 filter_user=args.user,
+                                 filter_group=args.group,
                                  group_details=args.details)
 
 

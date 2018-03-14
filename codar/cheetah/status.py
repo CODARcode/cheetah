@@ -5,16 +5,18 @@ import os
 import json
 from collections import defaultdict
 
-from codar.cheetah.helpers import get_immediate_subdirs
+from codar.cheetah.helpers import get_immediate_subdirs, \
+                                  require_campaign_directory
 
 
-def print_campaign_status(campaign_top_path, filter_user=None,
+def print_campaign_status(campaign_directory, filter_user=None,
                           filter_group=None, group_details=False):
-    user_dirs = get_immediate_subdirs(campaign_top_path)
+    require_campaign_directory(campaign_directory)
+    user_dirs = get_immediate_subdirs(campaign_directory)
     for user in user_dirs:
         if filter_user and user not in filter_user:
             continue
-        user_dir = os.path.join(campaign_top_path, user)
+        user_dir = os.path.join(campaign_directory, user)
         group_dirs = get_immediate_subdirs(user_dir)
         for group in group_dirs:
             if filter_group and group not in filter_group:
@@ -28,7 +30,7 @@ def print_campaign_status(campaign_top_path, filter_user=None,
                 continue
 
             with open(jobid_file_path) as f:
-                jobid = f.read()
+                jobid = f.read().strip()
                 jobid = jobid.split(':')[1]
 
             status_file_path = os.path.join(group_dir,
