@@ -18,11 +18,13 @@ def main():
  Supported commands:
     create-campaign    Create a campaign directory from a spec file
     generate-report    Generate a report of results from a completed campaign
+    help               Show this help message and exit
 
  For details on running each command, run 'cheetah.py <command> -h'.
 ''')
+    commands = ['help', 'create-campaign', 'generate-report']
     top_parser.add_argument('command', help='Subcommand to run',
-                            choices=['create-campaign', 'generate-report'])
+                            choices=commands)
     args = top_parser.parse_args(sys.argv[1:2])
     prog = 'cheetah.py ' + args.command
     command_args = sys.argv[2:]
@@ -30,6 +32,9 @@ def main():
         create_campaign(prog, command_args)
     elif args.command == 'generate-report':
         generate_report(prog, command_args)
+    elif args.command == 'help':
+        top_parser.print_help()
+        sys.exit(os.EX_OK)
     else:
         assert False, 'unknown command: %s' % args.command
 
