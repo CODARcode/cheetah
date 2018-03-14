@@ -616,6 +616,7 @@ class Run(object):
             exe = self.codes[code]['exe']
             if 'dataspaces_server' in exe:
                 ds_server = exe
+                ds_rc_name = code
                 sleep_after = self.codes[code].get('sleep_after', 0)
 
         if not ds_server:
@@ -633,13 +634,20 @@ class Run(object):
         num_servers = config.get_dataspaces_num_servers(num_clients)
         args = ['-s', str(num_servers), '-c', str(num_clients)]
         rc_name = "dataspaces_server"
-        ranks_per_node = machine.dataspaces_servers_per_node
+
+        # Get the node layout
+        node_layout = None
+        for d in self.node_layout.layout_list:
+            if ds_rc_name == list(d.keys())[0]:
+                node_layout = d[ds_rc_name]
+        if node_layout is None:
+            node_layout = machine.dataspaces_servers_per_node
 
         rc = RunComponent(rc_name, ds_server, args,
                           nprocs=num_servers, sleep_after=sleep_after,
                           working_dir=self.run_path)
 
-        self.node_layout.add_node({rc_name: ranks_per_node})
+        self.node_layout.add_node({rc_name: node_layout})
         self.run_components.insert(0, rc)
 
     def insert_sosflow(self, sosd_path, sos_analysis_path, run_path, ppn):
