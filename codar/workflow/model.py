@@ -255,6 +255,8 @@ class Run(threading.Thread):
         back off and the group still exists, SIGKILL is sent to the group.
         If WAIT_DELAY_GIVE_UP is reached, an error is logged and the function
         will return. Inspired by proctrack_pgid plugin from slurm."""
+        _log.debug('%s _pgroup_wait max delay %d'
+                   % (self.log_prefix, WAIT_DELAY_GIVE_UP))
         delay = 1
         signum = 0 # 0 is the null signal, does error checking only
         while True:
