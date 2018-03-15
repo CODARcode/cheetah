@@ -79,6 +79,8 @@ class Run(threading.Thread):
         self._state_lock = threading.Lock()
         self._end_time = None # if set, run is done
         self._killed = False  # distinguish between natural done and killed
+        self._timeout_pending = False # avoid double kill while waiting
+                                      # on timeout
         self._timed_out = False # or timeout
 
         self._exception = False # or python exception in run method
@@ -181,13 +183,17 @@ class Run(threading.Thread):
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
             _log.warn('%s killing (timeout %d)', self.log_prefix, self.timeout)
-            self._term_kill()
-            self._p.wait()
             with self._state_lock:
-                if self._p.returncode != 0:
-                    # check return code in case it completes while handling
-                    # the exception before kill.
-                    self._timed_out = True
+                self._timeout_pending = True
+            if not self._killed:
+                self._term_kill()
+                self._p.wait()
+                with self._state_lock:
+                    if self._p.returncode != 0:
+                        # check return code in case it completes while handling
+                        # the exception before kill.
+                        self._timed_out = True
+                    self._timeout_pending = False
 
         self._pgroup_wait()
         with self._state_lock:
@@ -212,6 +218,8 @@ class Run(threading.Thread):
                 # avoid double kill - there is a delay between this
                 # being called and end_time being set, and kill after
                 # partial failure can result in multiple async calls
+                return
+            if self._timeout_pending:
                 return
             if self._end_time is not None:
                 # already finished naturally
