@@ -19,6 +19,7 @@ import shutil
 import math
 import threading
 import signal
+import logging
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
@@ -32,6 +33,9 @@ WALLTIME_NAME = 'codar.workflow.walltime'
 KILL_WAIT = 30
 WAIT_DELAY_KILL = 30
 WAIT_DELAY_GIVE_UP = 120
+
+
+_log = logging.getLogger('codar.workflow.model')
 
 
 def _get_path(default_dir, default_name, specified_name):
@@ -48,7 +52,7 @@ class Run(threading.Thread):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
-                 logger=None, log_prefix=None, sleep_after=None):
+                 log_prefix=None, sleep_after=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -80,7 +84,6 @@ class Run(threading.Thread):
         self._exception = False # or python exception in run method
 
         self.log_prefix = log_prefix or name
-        self.logger = logger
         self.runner = None
         self.callbacks = set()
 
@@ -148,14 +151,12 @@ class Run(threading.Thread):
             # drastic approach may provide extra information and won't
             # take much longer.
             self._exception = True # Note: state lock not required
-            if self.logger is not None:
-                self.logger.exception('exception in Run thread')
+            _log.exception('exception in Run thread')
             # attempt to execute callbacks, so more threads could be run
             try:
                 self._run_callbacks()
             except:
-                if self.logger is not None:
-                    self.logger.exception(
+                _log.exception(
                        'exception in Run callbacks after Run thread exception')
 
     def _run(self):
@@ -166,23 +167,20 @@ class Run(threading.Thread):
         self._start_time = time.time()
         with self._state_lock:
             if self._killed:
-                self.logger.info('%s not starting, killed before start',
-                                 self.log_prefix)
+                _log.info('%s not starting, killed before start',
+                          self.log_prefix)
                 self._end_time = time.time()
             else:
                 self._popen(args)
         if self._p is None:
             self._run_callbacks()
             return
-        if self.logger is not None:
-            self.logger.info('%s start pid=%d pgid=%d args=%r',
-                             self.log_prefix, self._p.pid, self._pgid, args)
+        _log.info('%s start pid=%d pgid=%d args=%r',
+                  self.log_prefix, self._p.pid, self._pgid, args)
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
-            if self.logger is not None:
-                self.logger.warn('%s killing (timeout %d)', self.log_prefix,
-                                 self.timeout)
+            _log.warn('%s killing (timeout %d)', self.log_prefix, self.timeout)
             self._term_kill()
             self._p.wait()
             with self._state_lock:
@@ -194,9 +192,8 @@ class Run(threading.Thread):
         self._pgroup_wait()
         with self._state_lock:
             self._end_time = time.time()
-        if self.logger is not None:
-            self.logger.info('%s done %d %d', self.log_prefix, self._p.pid,
-                             self._p.returncode)
+        _log.info('%s done %d %d', self.log_prefix, self._p.pid,
+                         self._p.returncode)
         self._save_walltime(self._end_time - self._start_time)
         self._save_returncode(self._p.returncode)
         self._run_callbacks()
@@ -222,8 +219,7 @@ class Run(threading.Thread):
             self._killed = True
 
         if self._p is not None:
-            if self.logger is not None:
-                self.logger.warn('%s kill requested', self.log_prefix)
+            _log.warn('%s kill requested', self.log_prefix)
             self._kill_thread = threading.Thread(target=self._term_kill)
             self._kill_thread.start()
 
@@ -262,14 +258,11 @@ class Run(threading.Thread):
             delay *= 2
             if delay > WAIT_DELAY_KILL:
                 signum = signal.SIGKILL
-                if self.logger is not None:
-                    self.logger.warn(
+                _log.warn(
                         '%s pgroup still exists, sending KILL, next delay=%d',
                         self.log_prefix, delay)
             if delay > WAIT_DELAY_GIVE_UP:
-                if self.logger is not None:
-                    self.logger.error('%s pgroup did not exit',
-                                      self.log_prefix)
+                _log.error('%s pgroup did not exit', self.log_prefix)
                 break
 
     @classmethod
@@ -302,9 +295,8 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env.update(self.env)
-        if self.logger is not None:
-            self.logger.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
-                              env.get('LD_LIBRARY_PATH', ''))
+        _log.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
+                   env.get('LD_LIBRARY_PATH', ''))
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
                                    preexec_fn=os.setpgrp)
@@ -341,10 +333,6 @@ class Run(threading.Thread):
         if self._kill_thread is not None:
             self._kill_thread.join()
 
-    def set_logger(self, logger, log_prefix):
-        self.logger = logger
-        self.log_prefix = log_prefix
-
     def get_nodes_used(self):
         """Get number of nodes needed to run this app. Requires that the
         pipeline set_ppn method has been called to set this and tasks_per_node
@@ -378,10 +366,10 @@ class Pipeline(object):
         self.done_callbacks = set()
         self.fatal_callbacks = set()
         self.total_procs = 0
-        self.logger = None
-        self.log_prefix = None
+        self.log_prefix = self.id
         for run in runs:
             self.total_procs += run.nprocs
+            run.log_prefix = "%s:%s" % (self.id, run.name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = None
 
@@ -456,9 +444,8 @@ class Pipeline(object):
                 self.run_post_process_script()
                 run_done_callbacks = True
             elif self.kill_on_partial_failure and not run.succeeded:
-                if self.logger is not None:
-                    self.logger.warn('%s run %s failed, killing remaining',
-                                     self.log_prefix, run.name)
+                _log.warn('%s run %s failed, killing remaining',
+                          self.log_prefix, run.name)
                 # if configured, kill all runs in the pipeline if one of
                 # them has a nonzero exit code. Still allow post process to
                 # run if set.
@@ -499,10 +486,8 @@ class Pipeline(object):
             rval = subprocess.call(args, stdout=outf, stderr=errf,
                                    cwd=self.working_dir)
         except subprocess.SubprocessError as e:
-            if self.logger is not None:
-                self.logger.warn(
-                    "pipe '%s' failed to run post process script: %s",
-                    self.id, str(e))
+            _log.warn("pipe '%s' failed to run post process script: %s",
+                      self.id, str(e))
             rval = None
         finally:
             end_time = time.time()
@@ -596,12 +581,6 @@ class Pipeline(object):
     def get_pids(self):
         assert self._running
         return [run.get_pid() for run in self.runs]
-
-    def set_loggers(self, logger):
-        self.logger = logger
-        self.log_prefix = self.id
-        for run in self.runs:
-            run.set_logger(logger, "%s:%s" % (self.id, run.name))
 
     def force_kill_all(self):
         """
