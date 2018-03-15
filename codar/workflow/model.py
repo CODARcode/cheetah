@@ -205,6 +205,7 @@ class Run(threading.Thread):
         self._run_callbacks()
 
     def _run_callbacks(self):
+        _log.debug('%s _run_callbacks', self.log_prefix)
         for callback in self.callbacks:
             callback(self)
 
@@ -235,6 +236,7 @@ class Run(threading.Thread):
         """Issue signals to entire process group. First give processes a
         chance to exit cleanly with CONT+TERM, then attempt to KILL after
         a delay."""
+        _log.debug('%s _term_kill', self.log_prefix)
         os.killpg(self._pgid, signal.SIGCONT)
         os.killpg(self._pgid, signal.SIGTERM)
         time.sleep(KILL_WAIT)
@@ -519,6 +521,7 @@ class Pipeline(object):
 
     def _execute_done_callbacks(self):
         # NOTE: must be called w/o any locks!
+        _log.debug('%s _execute_done_callbacks', self.log_prefix)
         for cb in self.done_callbacks:
             cb(self)
 
@@ -530,6 +533,7 @@ class Pipeline(object):
 
     def _execute_fatal_callbacks(self):
         # NOTE: must be called w/o any locks!
+        _log.debug('%s _execute_fatal_callbacks', self.log_prefix)
         for cb in self.fatal_callbacks:
             cb(self)
 
