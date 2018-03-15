@@ -551,14 +551,14 @@ class Run(object):
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
 
-    def add_dataspaces_support(self, machine_name):
+    def add_dataspaces_support(self, machine):
         """
         Add support for dataspaces.
         Check RC Adios xml files to see if any transport methods are marked
         for coupling with DATASPACES/DIMES.
         For stage_write, check command line args to see if DATASPACES/DIMES
         is specified.
-        :param machine_name: The current machine. I dont like this here.
+        :param machine: The current machine. I dont like this here.
         :return:
         """
 
@@ -586,7 +586,7 @@ class Run(object):
                     rcs_for_coupling.add(rc)
 
         if rcs_for_coupling:
-            self._insert_dataspaces_rc(list(rcs_for_coupling), machine_name)
+            self._insert_dataspaces_rc(list(rcs_for_coupling), machine)
 
         # Create symlink in rc working_dir to dataspaces output conf file
         src = os.path.join(self.run_path, "conf")
@@ -606,8 +606,8 @@ class Run(object):
 
         # Sanity check. rc list for coupling must have >1 RCs
         if len(rc_list) == 1:
-            raise Exception("Atleast 2 codes needed for Dataspaces coupling. "
-                            "Found 1.")
+            raise exc.CheetahException("Atleast 2 codes needed for "
+                                       "Dataspaces coupling. Found 1.")
 
         # Check that codes has dataspaces_server exe
         ds_server = None
@@ -620,13 +620,14 @@ class Run(object):
                 sleep_after = self.codes[code].get('sleep_after', 0)
 
         if not ds_server:
-            raise Exception("Dataspaces server needs to be specified in codes")
+            raise exc.CheetahException("Dataspaces server needs to be "
+                                       "specified in codes")
 
         # Copy the configuration file dataspaces.conf
         ds_conf = os.path.join(self.codes_path, "dataspaces.conf")
         if not os.path.isfile(ds_conf):
-            raise Exception("Could not find dataspaces.conf in " +
-                            self.codes_path)
+            raise exc.CheetahException("Could not find dataspaces.conf in "
+                                       + self.codes_path)
         dst = os.path.join(self.run_path, "dataspaces.conf")
         copy_to_path(ds_conf, dst)
 

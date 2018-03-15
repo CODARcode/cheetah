@@ -169,7 +169,7 @@ class Launcher(object):
                             xml_filepath, pv.group_name, method_name,
                             method_opts)
                     else:
-                        raise Exception("Unrecognized adios param")
+                        raise exc.CheetahException("Unrecognized adios param")
 
                 # Insert dataspaces server instances if RCs will couple
                 # using dataspaces.
