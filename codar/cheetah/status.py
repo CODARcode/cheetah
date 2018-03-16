@@ -11,7 +11,8 @@ from codar.cheetah.helpers import get_immediate_subdirs, \
 
 
 def print_campaign_status(campaign_directory, filter_user=None,
-                          filter_group=None, group_details=False,
+                          filter_group=None, filter_run=None,
+                          group_details=False,
                           print_logs=False, log_level='DEBUG',
                           return_codes=False):
     require_campaign_directory(campaign_directory)
@@ -62,14 +63,15 @@ def print_campaign_status(campaign_directory, filter_user=None,
                                         indent=2)
                 if return_codes:
                     get_workflow_status(status_file_path,
-                                        print_return_codes=True, indent=2)
+                                        print_return_codes=True, indent=2,
+                                        filter_run=filter_run)
                 if print_logs:
-                    _print_fobrun_log(log_file_path, log_level)
+                    _print_fobrun_log(log_file_path, log_level, filter_run)
             else:
                 print(user_group, ':', 'NOT STARTED')
 
 
-def _print_fobrun_log(log_file_path, log_level):
+def _print_fobrun_log(log_file_path, log_level, filter_run=None):
     log_level_int = getattr(logging, log_level.upper(), None)
     if not isinstance(log_level_int, int):
         raise ValueError('Invalid log level: %s' % log_level)
@@ -79,6 +81,14 @@ def _print_fobrun_log(log_file_path, log_level):
             _, line_level, _ = _parse_fobrun_log_line(line)
             if line_level < log_level_int:
                 continue
+            if filter_run:
+                found = False
+                for fr in filter_run:
+                    if fr in line:
+                        found = True
+                        break
+                if not found:
+                    continue
             print(' ', line)
 
 
@@ -97,7 +107,7 @@ def _numeric_log_level(log_level_string):
 
 
 def get_workflow_status(status_file_path, print_counts=False, indent=0,
-                        print_return_codes=False):
+                        print_return_codes=False, filter_run=None):
     with open(status_file_path) as f:
         status_data = json.load(f)
 
@@ -138,6 +148,8 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
 
     if print_return_codes:
         for run_name in sorted(status_data.keys()):
+            if filter_run and run_name not in filter_run:
+                continue
             run_data = status_data[run_name]
             rc = run_data.get('return_codes', {})
             if not rc:
@@ -146,5 +158,6 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
             for code_name in sorted(rc.keys()):
                 print('%s%s: %d'
                       % (prefix * 2, code_name, rc[code_name]))
+        print()
 
     return status_data, state_counts, reason_counts, rc_counts
