@@ -12,7 +12,8 @@ from codar.cheetah.helpers import get_immediate_subdirs, \
 
 def print_campaign_status(campaign_directory, filter_user=None,
                           filter_group=None, group_details=False,
-                          print_logs=False, log_level='DEBUG'):
+                          print_logs=False, log_level='DEBUG',
+                          return_codes=False):
     require_campaign_directory(campaign_directory)
     user_dirs = get_immediate_subdirs(campaign_directory)
     for user in user_dirs:
@@ -57,7 +58,11 @@ def print_campaign_status(campaign_directory, filter_user=None,
                     print(user_group, ':', 'IN PROGRESS,', 'job', jobid,
                           ',', total-in_progress, '/', total)
                 if group_details:
-                    get_workflow_status(status_file_path, True, 2)
+                    get_workflow_status(status_file_path, print_counts=True,
+                                        indent=2)
+                if return_codes:
+                    get_workflow_status(status_file_path,
+                                        print_return_codes=True, indent=2)
                 if print_logs:
                     _print_fobrun_log(log_file_path, log_level)
             else:
@@ -91,7 +96,8 @@ def _numeric_log_level(log_level_string):
     return log_level_int
 
 
-def get_workflow_status(status_file_path, print_details=False, indent=0):
+def get_workflow_status(status_file_path, print_counts=False, indent=0,
+                        print_return_codes=False):
     with open(status_file_path) as f:
         status_data = json.load(f)
 
@@ -114,16 +120,31 @@ def get_workflow_status(status_file_path, print_details=False, indent=0):
                 total_rc += 1
                 rc_counts[rc] += 1
 
-    if print_details:
-        prefix = " " * indent
+    prefix = " " * indent
+    if print_counts:
         print('%s== total runs:' % prefix, total_count)
-        for k, v in state_counts.items():
+        for k in sorted(state_counts.keys()):
+            v = state_counts[k]
             print('%sstate  %11s: %d' % (prefix, k, v))
         print('\n%s== total w/ reason:' % prefix, total_reasons)
-        for k, v in reason_counts.items():
+        for k in sorted(reason_counts.keys()):
+            v = reason_counts[k]
             print('%sreason %11s: %d' % (prefix, k, v))
         print('\n%s== total return codes:' % prefix, total_rc)
-        for k, v in rc_counts.items():
+        for k in sorted(rc_counts.keys()):
+            v = rc_counts[k]
             print('%sreturn code %d: %d' % (prefix, k, v))
+        print()
+
+    if print_return_codes:
+        for run_name in sorted(status_data.keys()):
+            run_data = status_data[run_name]
+            rc = run_data.get('return_codes', {})
+            if not rc:
+                continue
+            print(prefix + run_name)
+            for code_name in sorted(rc.keys()):
+                print('%s%s: %d'
+                      % (prefix * 2, code_name, rc[code_name]))
 
     return status_data, state_counts, reason_counts, rc_counts

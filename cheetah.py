@@ -102,6 +102,9 @@ def status_command(prog, argv):
                                  'DEBUG'],
                         help='Display messages of specified level or above'
                              ' (requires --logs)')
+    parser.add_argument('-r', '--return-codes', required=False,
+                        action='store_true',
+                        help='Show return codes for codes within each run')
 
     args = parser.parse_args(argv)
     status.print_campaign_status(args.campaign_directory,
@@ -109,7 +112,8 @@ def status_command(prog, argv):
                                  filter_group=args.group,
                                  group_details=args.details,
                                  print_logs=args.logs,
-                                 log_level=args.log_level)
+                                 log_level=args.log_level,
+                                 return_codes=args.return_codes)
 
 
 if __name__ == '__main__':
