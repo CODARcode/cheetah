@@ -4,13 +4,15 @@ Funtions to print status information for campaigns.
 import os
 import json
 from collections import defaultdict
+import logging
 
 from codar.cheetah.helpers import get_immediate_subdirs, \
                                   require_campaign_directory
 
 
 def print_campaign_status(campaign_directory, filter_user=None,
-                          filter_group=None, group_details=False):
+                          filter_group=None, group_details=False,
+                          print_logs=False, log_level='DEBUG'):
     require_campaign_directory(campaign_directory)
     user_dirs = get_immediate_subdirs(campaign_directory)
     for user in user_dirs:
@@ -33,6 +35,7 @@ def print_campaign_status(campaign_directory, filter_user=None,
                 jobid = f.read().strip()
                 jobid = jobid.split(':')[1]
 
+            log_file_path = os.path.join(group_dir, 'codar.FOBrun.log')
             status_file_path = os.path.join(group_dir,
                                             'codar.workflow.status.json')
             walltime_file_path = os.path.join(group_dir,
@@ -55,8 +58,37 @@ def print_campaign_status(campaign_directory, filter_user=None,
                           ',', total-in_progress, '/', total)
                 if group_details:
                     get_workflow_status(status_file_path, True, 2)
+                if print_logs:
+                    _print_fobrun_log(log_file_path, log_level)
             else:
                 print(user_group, ':', 'NOT STARTED')
+
+
+def _print_fobrun_log(log_file_path, log_level):
+    log_level_int = getattr(logging, log_level.upper(), None)
+    if not isinstance(log_level_int, int):
+        raise ValueError('Invalid log level: %s' % log_level)
+    with open(log_file_path) as f:
+        for line in f:
+            line = line.strip()
+            _, line_level, _ = _parse_fobrun_log_line(line)
+            if line_level < log_level_int:
+                continue
+            print(' ', line)
+
+
+def _parse_fobrun_log_line(line):
+    dt_string = line[:24]
+    level, message = line[24:].split(':', 1)
+    level = _numeric_log_level(level)
+    return dt_string, level, message
+
+
+def _numeric_log_level(log_level_string):
+    log_level_int = getattr(logging, log_level_string.upper(), None)
+    if not isinstance(log_level_int, int):
+        raise ValueError('Invalid log level: %s' % log_level_string)
+    return log_level_int
 
 
 def get_workflow_status(status_file_path, print_details=False, indent=0):
