@@ -5,6 +5,7 @@ import os
 import json
 from collections import defaultdict
 import logging
+import glob
 
 from codar.cheetah.helpers import get_immediate_subdirs, \
                                   require_campaign_directory
@@ -14,7 +15,7 @@ def print_campaign_status(campaign_directory, filter_user=None,
                           filter_group=None, filter_run=None,
                           group_details=False,
                           print_logs=False, log_level='DEBUG',
-                          return_codes=False):
+                          return_codes=False, print_output=False):
     require_campaign_directory(campaign_directory)
     user_dirs = get_immediate_subdirs(campaign_directory)
     for user in user_dirs:
@@ -67,6 +68,8 @@ def print_campaign_status(campaign_directory, filter_user=None,
                                         filter_run=filter_run)
                 if print_logs:
                     _print_fobrun_log(log_file_path, log_level, filter_run)
+                if print_output:
+                    _print_group_code_output(group_dir, filter_run)
             else:
                 print(user_group, ':', 'NOT STARTED')
 
@@ -90,6 +93,50 @@ def _print_fobrun_log(log_file_path, log_level, filter_run=None):
                 if not found:
                     continue
             print(' ', line)
+
+
+def _print_group_code_output(group_dir, filter_run=None):
+    run_dirs = get_immediate_subdirs(group_dir)
+    for run_name in run_dirs:
+        if filter_run and run_name not in filter_run:
+            continue
+        run_dir = os.path.join(group_dir, run_name)
+        _print_run_code_output(run_name, run_dir)
+
+
+def _print_run_code_output(run_name, run_dir):
+    # Note: this also handles experiments using component subdirs, where
+    # the files are in a subdirectory with the code's name
+    out_files = (glob.glob(os.path.join(run_dir, 'codar.workflow.stdout.*'))
+                +glob.glob(os.path.join(run_dir, '*/codar.workflow.stdout.*')))
+    err_files = (glob.glob(os.path.join(run_dir, 'codar.workflow.stderr.*'))
+                +glob.glob(os.path.join(run_dir, '*/codar.workflow.stderr.*')))
+
+    outputs = defaultdict(dict) # key is code name, values are
+                                # dict { 'out': '...', 'err': '...'}
+    for fpath in out_files:
+        fname = os.path.basename(fpath)
+        parts = fname.split('.')
+        code = parts[-1]
+        outputs[code]['out'] = fpath
+    for fpath in err_files:
+        fname = os.path.basename(fpath)
+        parts = fname.split('.')
+        code = parts[-1]
+        outputs[code]['err'] = fpath
+
+    for code in sorted(outputs.keys()):
+        for k in ['out', 'err']:
+            if k not in outputs[code]:
+                continue
+            fpath = outputs[code][k]
+            size = os.path.getsize(fpath)
+            print('>>>', run_name, code, 'std' + k, '(%d bytes)' % size)
+            with open(fpath) as f:
+                for line in f:
+                    line = line.strip()
+                    print(line)
+            print()
 
 
 def _parse_fobrun_log_line(line):
