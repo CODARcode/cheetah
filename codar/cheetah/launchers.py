@@ -105,7 +105,8 @@ class Launcher(object):
 
                 if run.sosflow_profiling:
                     run.insert_sosflow(sosd_path, sos_analysis_path,
-                                       run.run_path, machine.processes_per_node)
+                                       run.run_path,
+                                       machine.processes_per_node)
 
                 if tau_config is not None:
                     copy_to_dir(tau_config, run.run_path)
@@ -165,9 +166,16 @@ class Launcher(object):
                             method_opts = value_tokens[1]
 
                         adios_params.adios_xml_transport(
-                            xml_filepath, pv.group_name, method_name, method_opts)
+                            xml_filepath, pv.group_name, method_name,
+                            method_opts)
                     else:
-                        raise "Unrecognized adios param"
+                        raise exc.CheetahException("Unrecognized adios param")
+
+                # Insert dataspaces server instances if RCs will couple
+                # using dataspaces.
+                # This must be called after the ADIOS params are parsed and
+                # the final ADIOS XML is generated
+                run.add_dataspaces_support(machine)
 
                 # Generic config file support. Note: slurps entire
                 # config file into memory, requires adding file to

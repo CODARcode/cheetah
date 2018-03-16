@@ -21,7 +21,7 @@ class Machine(object):
 
     def __init__(self, name, launcher_class, scheduler_name, runner_name,
                  processes_per_node=None, node_exclusive=False,
-                 scheduler_options=None):
+                 scheduler_options=None, dataspaces_servers_per_node=1):
         self.name = name
         self.launcher_class = launcher_class
         self.scheduler_name = scheduler_name
@@ -32,6 +32,7 @@ class Machine(object):
         self.node_exclusive = node_exclusive
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)
         self.scheduler_options = scheduler_options or {}
+        self.dataspaces_servers_per_node = dataspaces_servers_per_node
 
     def get_launcher_instance(self, output_directory, num_codes):
         return self.launcher_class(self.name, self.scheduler_name,
@@ -67,14 +68,15 @@ local=Machine('local', launchers.Launcher, "local", "mpiexec",
 
 titan=Machine('titan', launchers.Launcher, "pbs", "aprun",
               processes_per_node=16, node_exclusive=True,
-              scheduler_options=dict(project="",
-                                     queue="debug"))
+              scheduler_options=dict(project="", queue="debug"),
+              dataspaces_servers_per_node=4)
 
 # TODO: remove node exclusive restriction, which can be avoided on cori
 # using correct sbatch and srun options. As a start just get feature
 # parity with titan.
 cori=Machine('cori', launchers.Launcher, "slurm", "srun",
              processes_per_node=32, node_exclusive=True,
+             dataspaces_servers_per_node=4,
              scheduler_options=dict(project="",
                                     queue="debug",
                                     constraint="haswell",
@@ -83,6 +85,7 @@ cori=Machine('cori', launchers.Launcher, "slurm", "srun",
 
 theta=Machine('theta', launchers.Launcher, "cobalt", "aprun",
               processes_per_node=64, node_exclusive=True,
+              dataspaces_servers_per_node=8,
               scheduler_options=dict(project="",
                                      queue="debug-flat-quad"))
 

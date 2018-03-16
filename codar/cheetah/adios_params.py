@@ -38,5 +38,27 @@ def adios_xml_transport(xml_filepath, group_name, method_name, method_opts):
     elem.text = method_opts
     tree.write(xml_filepath, xml_declaration=True)
 
+
+def xml_has_transport(xml_filepath, transport_type):
+    """
+    Check ADIOS XML file if provided transport method is present for any group
+    :param xml_filepath: Path to the adios xml file
+    :param transport_type: Transport type (POSIX, MPI, MPI_AGGREGATE,
+    DATASPACES, DIMES, FLEXPATH)
+    :return: True if transport type found, else false.
+    """
+
+    # Get tree in all lowercase to make search case-insensitive
+    # _tree = ET.parse(xml_filepath)
+    # tmp_tree = ET.tostring(_tree)
+    # tmp_tree = tmp_tree.lower()
+    # tree = ET.fromstring(tmp_tree)
+
+    tree = ET.parse(xml_filepath)
+    elem = tree.find('method[@method="' + transport_type + '"]')
+    if elem is not None:
+        return True
+    return False
+
 #if __name__ == "__main__":
  #   adios_xml_transform("heat:T", "sz", "/Users/kpu/vshare/scratch/heat_transfer.xml")
