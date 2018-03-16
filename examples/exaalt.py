@@ -32,7 +32,7 @@ class Exaalt(Campaign):
       # stage.
       p.SweepGroup(name="test-32",
                    nodes=34,
-                   walltime=timedelta(hours=1),
+                   walltime=timedelta(hours=1, minutes=5),
                    per_run_timeout=timedelta(minutes=15),
                    parameter_groups=[
         p.Sweep([
@@ -69,7 +69,7 @@ class Exaalt(Campaign):
       # the batch queue.
       p.SweepGroup(name="64-128-256",
                    nodes=384,
-                   walltime=timedelta(hours=12),
+                   walltime=timedelta(hours=48),
                    per_run_timeout=timedelta(hours=1),
                    parameter_groups=[
         p.Sweep([

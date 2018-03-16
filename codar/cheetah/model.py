@@ -17,11 +17,12 @@ import inspect
 import getpass
 from pathlib import Path
 from collections import OrderedDict
+import warnings
 
 from codar.cheetah import machines, parameters, config, templates, exc
 from codar.cheetah.helpers import copy_to_dir
 from codar.cheetah.helpers import relative_or_absolute_path, \
-    relative_or_absolute_path_list
+    relative_or_absolute_path_list, parse_timedelta_seconds
 from codar.cheetah.parameters import SymLink
 
 
@@ -273,6 +274,20 @@ class Campaign(object):
                 group_ppn = self.machine.processes_per_node
             else:
                 group_ppn = math.ceil((max_procs) / group.nodes)
+
+            if group.per_run_timeout:
+                per_run_seconds = parse_timedelta_seconds(group.per_run_timeout)
+                walltime_guess = (per_run_seconds * len(group_runs)) + 60
+                walltime_group = parse_timedelta_seconds(group.walltime)
+                if walltime_group < walltime_guess:
+                    warnings.warn('group "%s" walltime %d is less than '
+                                  '(per_run_timeout * nruns) + 60 = %d, '
+                                  'it is recommended to set it higher to '
+                                  'avoid problems with the workflow '
+                                  'engine being killed before it can write '
+                                  'all status information'
+                                  % (group.name, walltime_group, walltime_guess))
+
             # TODO: refactor so we can just pass the campaign and group
             # objects, i.e. add methods so launcher can get all info it needs
             # and simplify this loop.
