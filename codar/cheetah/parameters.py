@@ -9,16 +9,18 @@ from collections import defaultdict
 class SweepGroup(object):
     """
     Class representing a grouping of run parameters that can be executed by
-    a single scheduler job, because they share the same scheduler parameters
-    (currently only # of nodes is at this level).
+    a single scheduler job, because they share the same scheduler parameters.
+
+    Note that nodes is no longer required - if not specified, it is calculated
+    based on the biggest run within the group.
 
     How this gets converted into a script depends on the target machine and
     which scheduler (if any) that machine uses.
     """
-    def __init__(self, name, nodes, parameter_groups, component_subdirs=False,
+    def __init__(self, name, parameter_groups, component_subdirs=False,
                  component_inputs=None, walltime=3600, max_procs=None,
                  per_run_timeout=None, sosflow_profiling=False,
-                 sosflow_analysis=False):
+                 sosflow_analysis=False, nodes=None):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs

@@ -51,8 +51,8 @@ class HeatTransfer(Campaign):
     sweeps = [
 
      # Each SweepGroup specifies a set of runs to be performed on a specified
-     # number of nodes. Here we have 1 SweepGroup, which will run on 4 nodes.
-     # On titan each executable consumes an entire node, even if it
+     # number of nodes. Here we have 1 SweepGroup, which will run on 4 nodes
+     # on titan. On titan each executable consumes an entire node, even if it
      # doesn't make use of all processes on the node, so this will run
      # the first two instances at the same time across four nodes, and
      # start the last instance as soon as one of those two instances
@@ -60,9 +60,6 @@ class HeatTransfer(Campaign):
      # that have >14 processes, all three could be submitted at the same
      # time with one node unused.
      p.SweepGroup("small_scale",
-
-                  # Number of nodes to run on
-                  nodes=4,
 
                   # Create separate subdir for each component
                   component_subdirs=True,

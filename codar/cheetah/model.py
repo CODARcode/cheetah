@@ -24,7 +24,6 @@ from codar.cheetah.helpers import copy_to_dir, copy_to_path
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
 from codar.cheetah.parameters import SymLink
-from codar.cheetah import config
 from codar.cheetah.adios_params import xml_has_transport
 from codar.cheetah.parameters import ParamCmdLineArg
 
@@ -125,7 +124,8 @@ class Campaign(object):
 
         conflict_names = set(self.codes.keys()) & RESERVED_CODE_NAMES
         if conflict_names:
-            raise ValueError('Code names conflict with reserved names: '
+            raise exc.CheetahException(
+                'Code names conflict with reserved names: '
                 + ", ".join(str(name) for name in conflict_names))
 
         if self.tau_config is None:
@@ -172,8 +172,9 @@ class Campaign(object):
             if m == machine_name:
                 machine = machines.get_by_name(m)
         if machine is None:
-            raise ValueError("machine '%s' not supported by experiment '%s'"
-                             % (machine_name, self.name))
+            raise exc.CheetahException(
+                "machine '%s' not supported by experiment '%s'"
+                % (machine_name, self.name))
         return machine
 
     def make_experiment_run_dir(self, output_dir):
@@ -186,7 +187,8 @@ class Campaign(object):
         if self.umask:
             umask_int = int(self.umask, 8)
             if ((umask_int & stat.S_IXUSR) or (umask_int & stat.S_IRUSR)):
-                raise ValueError('bad umask, user r-x must be allowed')
+                raise exc.CheetahException(
+                        'bad umask, user r-x must be allowed')
             os.umask(umask_int)
 
         # Create the top level campaign directory
@@ -264,6 +266,7 @@ class Campaign(object):
                 group_runs.extend(sweep_runs)
                 group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
+
             if group.max_procs is None:
                 max_procs = max([r.get_total_nprocs() for r in group_runs])
             else:
@@ -271,12 +274,8 @@ class Campaign(object):
                 if group.max_procs < procs_per_run:
                     # TODO: improve error message, specifying which
                     # group and by how much it's off etc
-                    raise ValueError("max_procs for group is too low")
+                    raise exc.CheetahException("max_procs for group is too low")
                 max_procs = group.max_procs
-            if self.machine.node_exclusive:
-                group_ppn = self.machine.processes_per_node
-            else:
-                group_ppn = math.ceil((max_procs) / group.nodes)
 
             if group.per_run_timeout:
                 per_run_seconds = parse_timedelta_seconds(group.per_run_timeout)
@@ -289,16 +288,15 @@ class Campaign(object):
                                   'avoid problems with the workflow '
                                   'engine being killed before it can write '
                                   'all status information'
-                                  % (group.name, walltime_group, walltime_guess))
+                                % (group.name, walltime_group, walltime_guess))
 
             # TODO: refactor so we can just pass the campaign and group
             # objects, i.e. add methods so launcher can get all info it needs
             # and simplify this loop.
-            launcher.create_group_directory(
+            group.nodes = launcher.create_group_directory(
                 self.name, group_name,
                 group_runs,
                 max_procs,
-                processes_per_node=group_ppn,
                 nodes=group.nodes,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
@@ -536,8 +534,8 @@ class Run(object):
 
     def get_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
-        Node-sharing not supported yet.
-        This should not include the nodes required by sosflow."""
+        NOTE: if run after insert_sosflow, then this WILL include the sosflow
+        nodes, otherwise it will not. Node-sharing not supported yet."""
         num_nodes = 0
         for rc in self.run_components:
             code_node = self.node_layout.get_node_containing_code(rc.name)

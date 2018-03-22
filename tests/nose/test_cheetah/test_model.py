@@ -8,7 +8,8 @@ from nose.tools import assert_equal
 from codar.cheetah import exc
 from codar.cheetah.model import Campaign, NodeLayout
 from codar.cheetah.parameters import SweepGroup, Sweep
-from codar.cheetah.parameters import ParamCmdLineArg, ParamAdiosXML
+from codar.cheetah.parameters import ParamRunner, ParamCmdLineArg, \
+                                ParamAdiosXML
 
 from test_cheetah import TEST_OUTPUT_DIR
 
@@ -59,7 +60,7 @@ def test_codes_ordering():
                  ('sixth', dict(exe='testf')),
                  ('seventh', dict(exe='testg'))]
         sweeps = [
-            SweepGroup(name='test_group', nodes=1, parameter_groups=[
+            SweepGroup(name='test_group', parameter_groups=[
               Sweep([
                 ParamCmdLineArg('first', 'arg', 1, ['a', 'b']),
                 ParamCmdLineArg('second', 'arg', 1, ['2']),
@@ -138,13 +139,73 @@ def test_error_campaign_missing_adios_xml():
         c = TestMissingAdiosXMLCampaign('titan', '/test')
         out_dir = os.path.join(TEST_OUTPUT_DIR,
                        'test_model', 'test_error_campaign_missing_adios_xml')
-        fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
-        shutil.rmtree(out_dir, ignore_errors=True)
-        c.make_experiment_run_dir(out_dir)
     except exc.CheetahException as e:
         assert 'ADIOS XML file was not found' in str(e), str(e)
     else:
         assert False, 'error not raised on missing ADIOS XML file'
+
+
+def test_error_nodes_too_small():
+    class TestNotEnoughNodesCampaign(TestCampaign):
+        codes = [('test1', dict(exe='test1')),
+                 ('test2', dict(exe='test2'))]
+        sweeps = [
+            SweepGroup(name='test_group', nodes=1, parameter_groups=[
+              Sweep([
+                ParamCmdLineArg('test1', 'arg1', 1, ['a', 'b']),
+                ParamCmdLineArg('test1', 'arg2', 2, ['1', '2']),
+                ParamCmdLineArg('test2', 'arg1', 1, ['y', 'z']),
+                ParamCmdLineArg('test2', 'arg2', 2, ['-1', '-2']),
+              ])
+            ])
+        ]
+
+    try:
+        c = TestNotEnoughNodesCampaign('titan', '/test')
+        out_dir = os.path.join(TEST_OUTPUT_DIR,
+                           'test_model', 'test_error_not_enough_nodes')
+        fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+        shutil.rmtree(out_dir, ignore_errors=True)
+        c.make_experiment_run_dir(out_dir)
+    except exc.CheetahException as e:
+        assert 'nodes for group is too low' in str(e), str(e)
+        assert 'need at least 2' in str(e), str(e)
+        assert 'got 1' in str(e), str(e)
+    else:
+        assert False, 'error not raised on param using unknown code'
+
+
+def test_nodes_sosflow():
+    class TestSosflowCampaign(TestCampaign):
+        codes = [('test1', dict(exe='test1', sosflow=True)),
+                 ('test2', dict(exe='test2', sosflow=True)),
+                 ('nosos', dict(exe='nosos', sosflow=False))]
+        sweeps = [
+            SweepGroup(name='test_group', sosflow=True, sosflow_analysis=True,
+                       parameter_groups=[
+              Sweep([
+                ParamRunner('test1', 'nprocs', [7]),
+                ParamCmdLineArg('test1', 'arg1', 1, ['a', 'b']),
+                ParamCmdLineArg('test1', 'arg2', 2, ['1', '2']),
+
+                ParamRunner('test2', 'nprocs', [16]),
+                ParamCmdLineArg('test2', 'arg1', 1, ['y', 'z']),
+                ParamCmdLineArg('test2', 'arg2', 2, ['-1', '-2']),
+
+                ParamRunner('nosos', 'nprocs', [1]),
+                ParamCmdLineArg('nosos', 'arg1', 1, ['one', 'two']),
+              ])
+            ])
+        ]
+
+    c = TestSosflowCampaign('titan', '/test')
+    out_dir = os.path.join(TEST_OUTPUT_DIR,
+                       'test_model', 'test_nodes_sosflow')
+    fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
+    shutil.rmtree(out_dir, ignore_errors=True)
+    c.make_experiment_run_dir(out_dir)
+    group = c.sweeps[0]
+    assert group.nodes == 4, group.nodes
 
 
 def test_node_layout_repeated_code():
