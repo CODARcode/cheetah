@@ -93,14 +93,37 @@ def status_command(prog, argv):
     parser.add_argument('-g', '--group', required=False,
                         default=None, nargs='*',
                         help='Get status for specific sweep group(s) only')
+    parser.add_argument('-r', '--run', required=False,
+                        default=None, nargs='*',
+                        help='Get status for specific run(s) only')
     parser.add_argument('-d', '--details', required=False, action='store_true',
                         help='Show detailed run counts for each group')
+    parser.add_argument('-l', '--logs', required=False, action='store_true',
+                        help='Show workflow log file for each group')
+    parser.add_argument('-v', '--log-level', required=False, default='DEBUG',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO',
+                                 'DEBUG'],
+                        help='Display messages of specified level or above'
+                             ' (requires --logs)')
+    parser.add_argument('-c', '--return-codes', required=False,
+                        action='store_true',
+                        help='Show return codes for components within each run')
+
+    parser.add_argument('-o', '--print-code-output', required=False,
+                        action='store_true',
+                        help='Show stderr and stdout for codes within each run')
+
 
     args = parser.parse_args(argv)
     status.print_campaign_status(args.campaign_directory,
                                  filter_user=args.user,
                                  filter_group=args.group,
-                                 group_details=args.details)
+                                 filter_run=args.run,
+                                 group_details=args.details,
+                                 print_logs=args.logs,
+                                 log_level=args.log_level,
+                                 return_codes=args.return_codes,
+                                 print_output=args.print_code_output)
 
 
 if __name__ == '__main__':

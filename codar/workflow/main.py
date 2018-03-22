@@ -46,17 +46,17 @@ def main():
     else:
         runner = None
 
+    logger = logging.getLogger('codar.workflow')
     if args.log_file:
-        logger = logging.getLogger('codar.workflow')
         handler = logging.FileHandler(args.log_file)
         formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(args.log_level)
     else:
-        logger = None
+        logger.addHandler(logging.NullHandler())
 
-    consumer = PipelineRunner(runner=runner, logger=logger,
+    consumer = PipelineRunner(runner=runner,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node,
                               status_file=args.status_file)
