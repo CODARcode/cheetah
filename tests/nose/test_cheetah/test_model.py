@@ -139,6 +139,8 @@ def test_error_campaign_missing_adios_xml():
         c = TestMissingAdiosXMLCampaign('titan', '/test')
         out_dir = os.path.join(TEST_OUTPUT_DIR,
                        'test_model', 'test_error_campaign_missing_adios_xml')
+        shutil.rmtree(out_dir, ignore_errors=True)
+        c.make_experiment_run_dir(out_dir)
     except exc.CheetahException as e:
         assert 'ADIOS XML file was not found' in str(e), str(e)
     else:
@@ -177,12 +179,12 @@ def test_error_nodes_too_small():
 
 def test_nodes_sosflow():
     class TestSosflowCampaign(TestCampaign):
-        codes = [('test1', dict(exe='test1', sosflow=True)),
-                 ('test2', dict(exe='test2', sosflow=True)),
-                 ('nosos', dict(exe='nosos', sosflow=False))]
+        codes = [('test1', dict(exe='test1', linked_with_sosflow=True)),
+                 ('test2', dict(exe='test2', linked_with_sosflow=True)),
+                 ('nosos', dict(exe='nosos', linked_with_sosflow=False))]
         sweeps = [
-            SweepGroup(name='test_group', sosflow=True, sosflow_analysis=True,
-                       parameter_groups=[
+            SweepGroup(name='test_group', sosflow_profiling=True,
+                       sosflow_analysis=True, parameter_groups=[
               Sweep([
                 ParamRunner('test1', 'nprocs', [7]),
                 ParamCmdLineArg('test1', 'arg1', 1, ['a', 'b']),
