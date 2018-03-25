@@ -44,8 +44,10 @@ class HeatTransfer(Campaign):
 
     sweeps = [
 
-     # Each SweepGroup specifies a set of runs to be performed on a specified
-     # number of nodes. Here we have 1 SweepGroup, which will run on 4 nodes.
+     # Each SweepGroup specifies a set of runs to be performed on a
+     # fixed number of nodes, determined based on the target machine and
+     # the requirements of each run within the group. Here we have 1
+     # SweepGroup, which will run on 4 nodes on titan.
      # On titan each executable consumes an entire node, even if it
      # doesn't make use of all processes on the node, so this will run
      # the first two instances at the same time across four nodes, and
@@ -54,7 +56,6 @@ class HeatTransfer(Campaign):
      # that have >14 processes, all three could be submitted at the same
      # time with one node unused.
      p.SweepGroup("small_scale",
-                  nodes=4, # Number of nodes to run on
                   walltime=5460,# Required. Set walltime for scheduler job.
                   per_run_timeout=600,
                                 # Optional. If set, each run in the sweep
