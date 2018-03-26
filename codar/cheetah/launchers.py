@@ -94,9 +94,6 @@ class Launcher(object):
                                        run.run_path,
                                        machine.processes_per_node)
 
-                if run.get_total_nodes() > min_nodes:
-                    min_nodes = run.get_total_nodes()
-
                 if tau_config is not None:
                     copy_to_dir(tau_config, run.run_path)
 
@@ -165,6 +162,11 @@ class Launcher(object):
                 # This must be called after the ADIOS params are parsed and
                 # the final ADIOS XML is generated
                 run.add_dataspaces_support(machine)
+
+                # Calculate the no. of nodes required by this run.
+                # This must be done after dataspaces support is added.
+                if run.get_total_nodes() > min_nodes:
+                    min_nodes = run.get_total_nodes()
 
                 # Generic config file support. Note: slurps entire
                 # config file into memory, requires adding file to
