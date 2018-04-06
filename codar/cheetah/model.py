@@ -128,6 +128,15 @@ class Campaign(object):
                 'Code names conflict with reserved names: '
                 + ", ".join(str(name) for name in conflict_names))
 
+        # Resolve relative code exe pahts. Checking for existence is not
+        # done until make_experiment_run_dir is called to simplify unit
+        # testing.
+        for code_name, code in self.codes.items():
+            exe_path = code['exe']
+            if not exe_path.startswith('/'):
+                exe_path = os.path.join(self.app_dir, exe_path)
+                code['exe'] = exe_path
+
         if self.tau_config is None:
             self.tau_config = config.etc_path('tau.conf')
         elif not self.tau_config.startswith('/'):
@@ -177,12 +186,16 @@ class Campaign(object):
                 % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir):
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=True):
         """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
         run."""
+
+        # set to False for unit tests
+        if _check_code_paths:
+            self._check_code_paths()
 
         if self.umask:
             umask_int = int(self.umask, 8)
@@ -318,6 +331,21 @@ class Campaign(object):
         with open(all_params_json_path, "w") as f:
             json.dump([run.get_app_param_dict()
                        for run in self.runs], f, indent=2)
+
+    def _check_code_paths(self):
+        if not os.path.isdir(self.app_dir):
+            raise exc.CheetahException(
+                'specified app directory "%s" does not exist' % self.app_dir)
+        for code_name, code in self.codes.items():
+            exe_path = code['exe']
+            if not os.path.isfile(exe_path):
+                raise exc.CheetahException(
+                    'code "%s" exe at "%s" is not a file'
+                    % (code_name, exe_path))
+            if not os.access(exe_path, os.X_OK):
+                raise exc.CheetahException(
+                    'code "%s" exe at "%s" is not executable by current user'
+                    % (code_name, exe_path))
 
     def _assert_unique_group_names(self, campaign_dir):
         """Assert new groups being added to the campaign do not have the
@@ -466,8 +494,6 @@ class Run(object):
         codes_argv = self._get_codes_argv_ordered()
         for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
-            if not exe_path.startswith('/'):
-                exe_path = os.path.join(self.codes_path, exe_path)
             sleep_after = self.codes[target].get('sleep_after', 0)
 
             # Set separate subdirs for individual components if requested
