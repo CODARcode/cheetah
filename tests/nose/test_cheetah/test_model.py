@@ -79,7 +79,7 @@ def test_codes_ordering():
     fob_path = os.path.join(out_dir, getpass.getuser(),
                             'test_group', 'fobs.json')
     shutil.rmtree(out_dir, ignore_errors=True) # clean up any old test output
-    c.make_experiment_run_dir(out_dir)
+    c.make_experiment_run_dir(out_dir, _check_code_paths=False)
 
     correct_order = list(c.codes.keys())
 
@@ -112,7 +112,7 @@ def test_error_campaign_undefined_code():
         fob_path = os.path.join(out_dir, getpass.getuser(),
                                 'test_group', 'fobs.json')
         shutil.rmtree(out_dir, ignore_errors=True)
-        c.make_experiment_run_dir(out_dir)
+        c.make_experiment_run_dir(out_dir, _check_code_paths=False)
     except exc.CheetahException as e:
         assert 'undefined code' in str(e), str(e)
         assert 'code_dne' in str(e), str(e)
@@ -140,7 +140,7 @@ def test_error_campaign_missing_adios_xml():
         out_dir = os.path.join(TEST_OUTPUT_DIR,
                        'test_model', 'test_error_campaign_missing_adios_xml')
         shutil.rmtree(out_dir, ignore_errors=True)
-        c.make_experiment_run_dir(out_dir)
+        c.make_experiment_run_dir(out_dir, _check_code_paths=False)
     except exc.CheetahException as e:
         assert 'ADIOS XML file was not found' in str(e), str(e)
     else:
@@ -168,7 +168,7 @@ def test_error_nodes_too_small():
                            'test_model', 'test_error_not_enough_nodes')
         fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
         shutil.rmtree(out_dir, ignore_errors=True)
-        c.make_experiment_run_dir(out_dir)
+        c.make_experiment_run_dir(out_dir, _check_code_paths=False)
     except exc.CheetahException as e:
         assert 'nodes for group is too low' in str(e), str(e)
         assert 'need at least 2' in str(e), str(e)
@@ -205,7 +205,7 @@ def test_nodes_sosflow():
                        'test_model', 'test_nodes_sosflow')
     fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
     shutil.rmtree(out_dir, ignore_errors=True)
-    c.make_experiment_run_dir(out_dir)
+    c.make_experiment_run_dir(out_dir, _check_code_paths=False)
     group = c.sweeps[0]
     assert group.nodes == 4, group.nodes
 
@@ -251,3 +251,16 @@ def test_node_layout_bad_shared_nodes():
         assert 'shared nodes > max' in str(e), str(e)
     else:
         assert False, 'error not raised on repeated code'
+
+
+def test_error_missing_app_dir():
+    try:
+        c = TestCampaign('titan', '/tmp/codar.cheetah.dne')
+        out_dir = os.path.join(TEST_OUTPUT_DIR,
+                       'test_model', 'test_error_missing_app_dir')
+        c.make_experiment_run_dir(out_dir)
+    except exc.CheetahException as e:
+        assert '/tmp/codar.cheetah.dne' in str(e), str(e)
+        assert 'does not exist' in str(e), str(e)
+    else:
+        assert False, 'error not raised on missing app dir'
