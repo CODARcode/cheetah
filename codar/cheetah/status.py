@@ -203,7 +203,9 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
                 continue
             print(prefix + run_name)
             for code_name in sorted(rc.keys()):
-                print('%s%s: %d'
+                # Note: return code could be None for some codes, so
+                # must use %s instead of %d
+                print('%s%s: %s'
                       % (prefix * 2, code_name, rc[code_name]))
         print()
 
