@@ -15,7 +15,8 @@ def print_campaign_status(campaign_directory, filter_user=None,
                           filter_group=None, filter_run=None,
                           group_details=False,
                           print_logs=False, log_level='DEBUG',
-                          return_codes=False, print_output=False):
+                          return_codes=False, print_output=False,
+                          show_parameters=False):
     require_campaign_directory(campaign_directory)
     user_dirs = get_immediate_subdirs(campaign_directory)
     for user in user_dirs:
@@ -62,10 +63,11 @@ def print_campaign_status(campaign_directory, filter_user=None,
                 if group_details:
                     get_workflow_status(status_file_path, print_counts=True,
                                         indent=2)
-                if return_codes:
+                if return_codes or show_parameters:
                     get_workflow_status(status_file_path,
                                         print_return_codes=True, indent=2,
-                                        filter_run=filter_run)
+                                        filter_run=filter_run,
+                                        print_parameters=show_parameters)
                 if print_logs:
                     _print_fobrun_log(log_file_path, log_level, filter_run)
                 if print_output:
@@ -154,9 +156,12 @@ def _numeric_log_level(log_level_string):
 
 
 def get_workflow_status(status_file_path, print_counts=False, indent=0,
-                        print_return_codes=False, filter_run=None):
+                        print_return_codes=False, filter_run=None,
+                        print_parameters=False):
     with open(status_file_path) as f:
         status_data = json.load(f)
+
+    group_path = os.path.dirname(status_file_path)
 
     total_count = len(status_data)
     total_rc = 0
@@ -193,20 +198,28 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
             print('%sreturn code %d: %d' % (prefix, k, v))
         print()
 
-    if print_return_codes:
+    if print_return_codes or print_parameters:
         for run_name in sorted(status_data.keys()):
             if filter_run and run_name not in filter_run:
                 continue
             run_data = status_data[run_name]
-            rc = run_data.get('return_codes', {})
-            if not rc:
-                continue
             print(prefix + run_name)
-            for code_name in sorted(rc.keys()):
-                # Note: return code could be None for some codes, so
-                # must use %s instead of %d
-                print('%s%s: %s'
-                      % (prefix * 2, code_name, rc[code_name]))
+            run_path = os.path.join(group_path, run_name)
+            param_json_path = os.path.join(run_path,
+                                           'codar.cheetah.run-params.json')
+            rc = run_data.get('return_codes', {})
+            with open(param_json_path) as f:
+                all_params = json.load(f)
+                for code_name in sorted(all_params.keys()):
+                    # Note: return code could be None for some codes, so
+                    # must use %s instead of %d
+                    print('%s%s: %s'
+                          % (prefix * 2, code_name, rc.get(code_name)))
+                    if print_parameters:
+                        code_params = all_params[code_name]
+                        for k in sorted(code_params.keys()):
+                            v = code_params[k]
+                            print('%s%s=%s' % (prefix * 3, k, v))
         print()
 
     return status_data, state_counts, reason_counts, rc_counts

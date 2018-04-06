@@ -109,6 +109,9 @@ def status_command(prog, argv):
     parser.add_argument('-c', '--return-codes', required=False,
                         action='store_true',
                         help='Show return codes for components within each run')
+    parser.add_argument('-p', '--show-parameters', required=False,
+                        action='store_true',
+                        help='Show parameter values for each run (implies -c)')
 
     parser.add_argument('-o', '--print-code-output', required=False,
                         action='store_true',
@@ -124,7 +127,8 @@ def status_command(prog, argv):
                                  print_logs=args.logs,
                                  log_level=args.log_level,
                                  return_codes=args.return_codes,
-                                 print_output=args.print_code_output)
+                                 print_output=args.print_code_output,
+                                 show_parameters=args.show_parameters)
 
 
 if __name__ == '__main__':
