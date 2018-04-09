@@ -3,6 +3,7 @@ Cheetah paths and (in future) features for loading site configuration.
 """
 import os.path
 import math
+from codar.cheetah import exc
 
 CHEETAH_PATH = os.path.realpath(os.path.join(
                      os.path.dirname(__file__), "..", ".."))
@@ -26,15 +27,24 @@ def etc_path(conf_name):
     return os.path.join(CHEETAH_PATH, "etc", conf_name)
 
 
-def get_dataspaces_num_servers(num_clients):
+def get_dataspaces_num_servers(num_clients, transport_type):
     """
     Get the number of dataspaces server instances that must be created for a
     given number of client processes.
-    :param num_clients:
+    :param num_clients: no. of client processes that connect via dataspaces
+    :param transport_type: type of transport. either dataspaces/dimes
     :return:
     """
 
     # From Philip Davis at Rutgers
     # Create 1 server per 32 clients
     # @TODO Is this specific to Titan?
-    return math.ceil(num_clients/32)
+
+    if transport_type == 'DIMES':
+        return math.ceil(num_clients/1024)
+    elif transport_type == 'DATASPACES':
+        return math.ceil(num_clients / 32)
+    else:
+        raise exc.CheetahException("Unexpected dataspaces transport type. "
+                                   "Expected DATASPACES or DIMES, received "
+                                   + transport_type)
