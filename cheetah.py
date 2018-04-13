@@ -8,7 +8,7 @@ import sys
 import argparse
 
 from codar.cheetah.loader import load_experiment_class
-from codar.cheetah import report_generator, status
+from codar.cheetah import status
 
 
 def main():
@@ -78,6 +78,7 @@ def generate_report(prog, argv):
                              "with default name 'campaign-results.csv'")
 
     args = parser.parse_args(argv)
+    from codar.cheetah import report_generator
     report_generator.generate_report(args.campaign_directory,
                                      args.output_file)
 
