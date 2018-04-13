@@ -8,7 +8,7 @@ import signal
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
-from codar.workflow.model import mpiexec, aprun
+from codar.workflow.model import mpiexec, aprun, srun
 
 
 consumer = None
@@ -43,8 +43,13 @@ def main():
         runner = mpiexec
     elif args.runner == 'aprun':
         runner = aprun
-    else:
+    elif args.runner == 'srun':
+        runner = srun
+    elif args.runner == 'none':
         runner = None
+    else:
+        # Note: arg parser should have caught this already
+        raise ValueError('Unknown runner: %s' % args.runner)
 
     logger = logging.getLogger('codar.workflow')
     if args.log_file:
