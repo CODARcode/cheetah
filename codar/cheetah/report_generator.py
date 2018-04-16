@@ -82,10 +82,12 @@ class _RunParser:
         # sosflow_analysis_{N}.
         if not any(run['name'].startswith('sosflow_')
                    for run in self.fob_dict['runs']):
+            print ("sos rc not found")
             return False
 
         sos_perf_results = sos_flow_analysis(self.run_dir)
         if sos_perf_results is None:
+            print ("empty sos flow analysis")
             return False
 
         # keys in sos_perf_results are full exe paths. Get the rc name from
@@ -396,3 +398,7 @@ def generate_report(campaign_directory, output_file_path):
 
     rg = _ReportGenerator(campaign_directory, output_file_path)
     rg.parse_campaign()
+
+if __name__ == "__main__":
+    generate_report(sys.argv[1], sys.argv[2])
+

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 Authors:
@@ -100,31 +100,28 @@ def get_ranks(c):
     all_rows = c.fetchall()
     allranks = np.array([x[0] for x in all_rows])
     #sql_statement = "select prog_name, name, count(comm_rank) from tblpubs left outer join tbldata on tblpubs.guid = tbldata.pub_guid where name = 'TAU::MPI::INSTANCE_ID' group by prog_name,name order by prog_name;"
-    sql_statement = "select prog_name, value, count(comm_rank) from viewCombined where value_name = 'TAU::MPI::INSTANCE_ID' group by prog_name, value_name order by prog_name;"
+    #sql_statement = "select prog_name, value, count(comm_rank) from viewCombined where value_name = 'TAU::MPI::INSTANCE_ID' group by prog_name, value_name order by prog_name;"
+    sql_statement = "select prog_name, count(comm_rank) from tblpubs group by prog_name;"
     try_execute(c,sql_statement);
     all_rows = c.fetchall()
     prog_names = np.array([x[0] for x in all_rows])
-    prog_instances = np.array([x[1] for x in all_rows])
-    prog_ranks = np.array([x[2] for x in all_rows])
-    sql_statement = "select distinct prog_name, value from viewCombined where value_name = 'TAU::0::Metadata::TAU_SOS_HIGH_RESOLUTION' order by prog_name;"
-    try_execute(c,sql_statement);
-    all_rows = c.fetchall()
-    if len(all_rows) == 0:
-        high_res = np.chararray((len(prog_names)))
-        high_res[:] = 'off'
-    high_res = np.array([x[1] for x in all_rows])
-    return allranks[0], prog_names, prog_instances, prog_ranks, high_res
+    #prog_instances = np.array([x[1] for x in all_rows])
+    prog_ranks = np.array([x[1] for x in all_rows])
+    high_res = np.chararray((len(prog_names)))
+    high_res[:] = 'off'
+    #high_res = 'off'
+    return allranks[0], prog_names, prog_ranks, high_res
 
 # What was the total time for each application?
 # THIS IS BROKEN - apparently SOS gets shut down before the ending timestamp gets written.
 # This needs to be fixed in TAU.  In the meantime, use the "get_group_metric" method
 # to get the inclusive time spent in ".TAU application"
 def get_start_stop(c,prog_name):
-    sql_statement = "select value from viewCombined where value_name like '%Metadata::Starting Timestamp' and comm_rank = 0 and prog_name like '" + prog_name + "';"
+    sql_statement = "select value from viewCombined where value_name like '%Metadata:Starting Timestamp' and comm_rank = 0 and prog_name like '" + prog_name + "';"
     try_execute(c,sql_statement);
     all_rows = c.fetchall()
     starttime = np.array([x[0] for x in all_rows]).astype(np.float)
-    sql_statement = "select value from viewCombined where value_name like '%Metadata::Ending Timestamp' and comm_rank = 0 and prog_name like '" + prog_name + "';"
+    sql_statement = "select value from viewCombined where value_name like '%Metadata:Ending Timestamp' and comm_rank = 0 and prog_name like '" + prog_name + "';"
     try_execute(c,sql_statement);
     all_rows = c.fetchall()
     endtime = np.array([x[0] for x in all_rows]).astype(np.float)
@@ -143,7 +140,7 @@ def get_start_stop(c,prog_name):
 
 # How much <metric> was spent in <group>?
 def get_group_metric(c,timer_type,metric,group,prog_name):
-    sql_statement = "select cast(COALESCE(NULLIF(value,''), '0') as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%" + timer_type + "_" + metric + "::" + group + "%' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
+    sql_statement = "select cast(COALESCE(NULLIF(value,''), '0') as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%" + timer_type + "_" + metric + ":" + group + "%' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
     try_execute(c,sql_statement);
     all_rows = c.fetchall()
     alltime = np.array([x[0] for x in all_rows]).astype(np.float)
@@ -152,17 +149,17 @@ def get_group_metric(c,timer_type,metric,group,prog_name):
 # How many bytes was sent in <group>?
 def get_group_counter(c,group,prog_name,high_res):
     if high_res == 'off':
-        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%Total::" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
+        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%Total:" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
         try_execute(c,sql_statement);
         all_rows = c.fetchall()
         bytes = np.array([x[0] for x in all_rows]).astype(np.float)
         sum = np.sum(bytes)
     else:
-        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%Mean::" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
+        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%Mean:" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
         try_execute(c,sql_statement);
         all_rows = c.fetchall()
         bytes = np.array([x[0] for x in all_rows]).astype(np.float)
-        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%NumEvents::" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
+        sql_statement = "select cast(value as decimal), value_name, comm_rank, max(frame) from viewCombined where value_name like '%NumEvents:" + group + "' and prog_name = '" + prog_name + "' group by value_name, comm_rank;"
         try_execute(c,sql_statement);
         all_rows = c.fetchall()
         counts = np.array([x[0] for x in all_rows]).astype(np.float)
@@ -186,14 +183,16 @@ def sos_flow_analysis(run_dir):
     #make_indices(c)
     #make_view(c)
     
-    total_ranks,prog_names,prog_instances,prog_ranks,high_res = get_ranks(c)
+    total_ranks,prog_names,prog_ranks,high_res = get_ranks(c)
     #print("Total ranks in allocation :", total_ranks, "\n")
-    zipped = zip(prog_names, prog_instances, prog_ranks, high_res)
-    for n,i,r,h in zip(prog_names, prog_instances, prog_ranks, high_res):
+    zipped = zip(prog_names, prog_ranks, high_res)
+    for n,r,h in zip(prog_names, prog_ranks, high_res):
         n_str = n.decode("utf-8")
-        h_str = h.decode("utf-8")
-        i_str = i.decode("utf-8")
-        #print("Ranks in", n_str, i_str, ":", r)
+        #h_str = h.decode("utf-8")
+        
+        # Kshitij: override
+        h_str = "on"
+        #print("Ranks in", n_str, ":", r)
         if h_str == "off":
             total_inclusive = get_start_stop(c,n_str)/1000000
             user_exclusive = (get_group_metric(c,"exclusive","TIME","TAU_USER",n_str)/1000000)/r
@@ -206,9 +205,9 @@ def sos_flow_analysis(run_dir):
             io_write_bytes = get_group_counter(c,"IO Bytes Written",n_str,h_str)
             adios_write_bytes = get_group_counter(c,"ADIOS data size",n_str,h_str)
         else:
-            total_inclusive = (get_group_metric(c,"inclusive","TIME",".TAU application",n_str)/1000000)/r
-            mpi_exclusive = (get_group_metric(c,"exclusive","TIME","MPI_",n_str)/1000000)/r
-            adios_exclusive = (get_group_metric(c,"exclusive","TIME","adios_",n_str)/1000000)/r
+            total_inclusive = (get_group_metric(c,"inclusive","TIME","TAU_USER:.TAU application",n_str)/1000000)/r
+            mpi_exclusive = (get_group_metric(c,"exclusive","TIME","MPI:MPI_",n_str)/1000000)/r
+            adios_exclusive = (get_group_metric(c,"exclusive","TIME","TAU_IO:adios_",n_str)/1000000)/r
             user_exclusive = total_inclusive - (mpi_exclusive + adios_exclusive)
             mpi_collective_bytes = get_group_counter(c,"Message size for %",n_str,h_str)
             mpi_recv_bytes = get_group_counter(c,"Message size received from all nodes",n_str,h_str)
@@ -216,23 +215,29 @@ def sos_flow_analysis(run_dir):
             io_read_bytes = get_group_counter(c,"Bytes Read",n_str,h_str)
             io_write_bytes = get_group_counter(c,"Bytes Written",n_str,h_str)
             adios_write_bytes = get_group_counter(c,"ADIOS data size",n_str,h_str)
-        #print("\t","Total time :",total_inclusive,"seconds")
-        #print("\t","User  time :",user_exclusive,"seconds")
-        #print("\t","MPI   time :",mpi_exclusive,"seconds (",(mpi_exclusive/total_inclusive)*100,"% )")
-        #print("\t","ADIOS time :",adios_exclusive,"seconds (",(adios_exclusive/total_inclusive)*100,"% )")
-        #print("\t","MPI collective bytes   :",mpi_collective_bytes)
-        #print("\t","MPI P2P bytes sent     :",mpi_send_bytes)
-        #print("\t","MPI P2P bytes received :",mpi_recv_bytes)
-        ##print("\t","Posix IO bytes read    :",io_read_bytes)
-        ##print("\t","Posix IO bytes written :",io_write_bytes)
-        #print("\t","ADIOS bytes written    :",adios_write_bytes)
-        #print("")
+        #if True:
+        #    print("\t","Total time :",total_inclusive,"seconds")
+        #    print("\t","User  time :",user_exclusive,"seconds")
+        #    print("\t","MPI   time :",mpi_exclusive,"seconds (",(mpi_exclusive/total_inclusive)*100,"% )")
+        #    print("\t","ADIOS time :",adios_exclusive,"seconds (",(adios_exclusive/total_inclusive)*100,"% )")
+        #    print("\t","MPI collective bytes   :",mpi_collective_bytes)
+        #    print("\t","MPI P2P bytes sent     :",mpi_send_bytes)
+        #    print("\t","MPI P2P bytes received :",mpi_recv_bytes)
+        #    print("\t","Posix IO bytes read    :",io_read_bytes)
+        #    print("\t","Posix IO bytes written :",io_write_bytes)
+        #    print("\t","ADIOS bytes written    :",adios_write_bytes)
+        #    print("")
         
         rc_exe = n_str
         if "/" in n_str:
             rc_exe = n_str.split("/")[-1]
         perf_results[rc_exe] = {"time": total_inclusive,
+                                "mpi_time": mpi_exclusive,
                                "adios_time": adios_exclusive,
                                "adios_data": adios_write_bytes}
+        #print perf_results
         return(perf_results)
 
+if __name__ == '__main__':
+    pr = sos_flow_analysis(sys.argv[1])
+    print (pr)
