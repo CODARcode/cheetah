@@ -94,10 +94,10 @@ class _RunParser:
         # the exe path
         for rc_exe in sos_perf_results:
             rc_name = self.rc_name_exe[rc_exe]
-            self.serialized_run_params[rc_name + "__time"] = \
-                sos_perf_results[rc_exe]["time"]
-            self.serialized_run_params[rc_name + "__adios_time"] = \
-                sos_perf_results[rc_exe]["adios_time"]
+            rc_timers_d = sos_perf_results[rc_exe]
+            for key in rc_timers_d:
+                self.serialized_run_params[rc_name + "__" + key] = \
+                    rc_timers_d[key]
             # serialized_run_params[rc_name + "__adios_data"] = \
             # sos_perf_results[rc_exe]["adios_data"]
             self.serialized_run_params['timer_type'] = 'sosflow'
