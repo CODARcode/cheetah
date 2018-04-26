@@ -14,6 +14,7 @@ export CODAR_WORKFLOW_SCRIPT="{workflow_script_path}"
 export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"
 export CODAR_CHEETAH_UMASK="{umask}"
+export CODAR_CHEETAH_CORE_FILE_LIMIT="{core_file_limit}"
 """
 
 

@@ -59,6 +59,9 @@ class Campaign(object):
     run_post_process_script = None
     run_post_process_stop_group_on_failure = False
 
+    # Set to 0 for unlimited, empty for no change from default
+    core_file_limit = ""
+
     # Optional. Designed to set up application specific environment
     # variables and load environment modules. Must be a dictionary with
     # machine name keys and values pointing at bash scripts. The
@@ -225,6 +228,9 @@ class Campaign(object):
         # Create run script and campaign environment info file
         copy_to_dir(run_all_script, output_dir)
 
+        if self.core_file_limit == 0:
+            self.core_file_limit = 'unlimited'
+
         campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
             experiment_dir=output_dir,
             machine_config=config.machine_submit_env_path(self.machine.name),
@@ -232,7 +238,8 @@ class Campaign(object):
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
             workflow_debug_level="DEBUG",
-            umask=(self.umask or "")
+            umask=(self.umask or ""),
+            core_file_limit=str(self.core_file_limit)
         )
         campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
         with open(campaign_env_path, 'w') as f:

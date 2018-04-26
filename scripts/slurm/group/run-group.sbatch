@@ -17,6 +17,10 @@ if [ -n "$CODAR_CHEETAH_UMASK" ]; then
     umask "$CODAR_CHEETAH_UMASK"
 fi
 
+if [ -n "$CODAR_CHEETAH_CORE_FILE_LIMIT" ]; then
+    ulimit -c "$CODAR_CHEETAH_CORE_FILE_LIMIT"
+fi
+
 start=$(date +%s)
 
 # Main application run
