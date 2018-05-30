@@ -117,10 +117,12 @@ def status_command(prog, argv):
                         help='Show a summary for each run')
     parser.add_argument('-t', '--return-codes', required=False,
                         action='store_true',
-                        help='Show return codes for components within each run')
+                        help='Show return codes for components within each run'
+                             ' (implies -n)')
     parser.add_argument('-p', '--show-parameters', required=False,
                         action='store_true',
-                        help='Show parameter values for each run (implies -t)')
+                        help='Show parameter values for each run (implies -t'
+                             ' and -n)')
     parser.add_argument('-o', '--print-code-output', required=False,
                         action='store_true',
                         help='Show stderr and stdout for codes within each run')
@@ -130,7 +132,9 @@ def status_command(prog, argv):
                                  filter_user=args.user,
                                  filter_group=args.group,
                                  filter_run=args.run,
-                                 group_details=args.details,
+                                 filter_code=args.code,
+                                 group_summary=args.group_summary,
+                                 run_summary=args.run_summary,
                                  print_logs=args.logs,
                                  log_level=args.log_level,
                                  return_codes=args.return_codes,

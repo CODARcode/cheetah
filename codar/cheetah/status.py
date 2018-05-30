@@ -13,7 +13,9 @@ from codar.cheetah.helpers import get_immediate_subdirs, \
 
 def print_campaign_status(campaign_directory, filter_user=None,
                           filter_group=None, filter_run=None,
-                          group_details=False,
+                          filter_code=None,
+                          group_summary=False,
+                          run_summary=False,
                           print_logs=False, log_level='DEBUG',
                           return_codes=False, print_output=False,
                           show_parameters=False):
@@ -60,18 +62,22 @@ def print_campaign_status(campaign_directory, filter_user=None,
                                    + state_counts['not_started'])
                     print(user_group, ':', 'IN PROGRESS,', 'job', jobid,
                           ',', total-in_progress, '/', total)
-                if group_details:
+                if group_summary:
                     get_workflow_status(status_file_path, print_counts=True,
                                         indent=2)
-                if return_codes or show_parameters:
+                if return_codes or show_parameters or run_summary:
                     get_workflow_status(status_file_path,
-                                        print_return_codes=True, indent=2,
+                                        print_return_codes=return_codes,
+                                        indent=2,
                                         filter_run=filter_run,
+                                        filter_code=filter_code,
+                                        run_summary=run_summary,
                                         print_parameters=show_parameters)
                 if print_logs:
                     _print_fobrun_log(log_file_path, log_level, filter_run)
                 if print_output:
-                    _print_group_code_output(group_dir, filter_run)
+                    _print_group_code_output(group_dir, filter_run,
+                                             filter_code)
             else:
                 print(user_group, ':', 'NOT STARTED')
 
@@ -97,16 +103,16 @@ def _print_fobrun_log(log_file_path, log_level, filter_run=None):
             print(' ', line)
 
 
-def _print_group_code_output(group_dir, filter_run=None):
+def _print_group_code_output(group_dir, filter_run=None, filter_code=None):
     run_dirs = get_immediate_subdirs(group_dir)
     for run_name in run_dirs:
         if filter_run and run_name not in filter_run:
             continue
         run_dir = os.path.join(group_dir, run_name)
-        _print_run_code_output(run_name, run_dir)
+        _print_run_code_output(run_name, run_dir, filter_code)
 
 
-def _print_run_code_output(run_name, run_dir):
+def _print_run_code_output(run_name, run_dir, filter_code=None):
     # Note: this also handles experiments using component subdirs, where
     # the files are in a subdirectory with the code's name
     out_files = (glob.glob(os.path.join(run_dir, 'codar.workflow.stdout.*'))
@@ -128,6 +134,8 @@ def _print_run_code_output(run_name, run_dir):
         outputs[code]['err'] = fpath
 
     for code in sorted(outputs.keys()):
+        if filter_code and code not in filter_code:
+            continue
         for k in ['out', 'err']:
             if k not in outputs[code]:
                 continue
@@ -157,7 +165,8 @@ def _numeric_log_level(log_level_string):
 
 def get_workflow_status(status_file_path, print_counts=False, indent=0,
                         print_return_codes=False, filter_run=None,
-                        print_parameters=False):
+                        print_parameters=False,
+                        filter_code=None, run_summary=False):
     with open(status_file_path) as f:
         status_data = json.load(f)
 
@@ -198,12 +207,20 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
             print('%sreturn code %d: %d' % (prefix, k, v))
         print()
 
-    if print_return_codes or print_parameters:
+    if print_return_codes or print_parameters or run_summary:
         for run_name in sorted(status_data.keys()):
             if filter_run and run_name not in filter_run:
                 continue
             run_data = status_data[run_name]
-            print(prefix + run_name)
+
+            reason = run_data.get('reason')
+            if reason:
+                sr_string = run_data['state'] + '; ' + reason
+            else:
+                sr_string = run_data['state']
+            print(prefix + run_name + ':', sr_string)
+            if not (print_return_codes or print_parameters):
+                continue
             run_path = os.path.join(group_path, run_name)
             param_json_path = os.path.join(run_path,
                                            'codar.cheetah.run-params.json')
@@ -211,6 +228,8 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
             with open(param_json_path) as f:
                 all_params = json.load(f)
                 for code_name in sorted(all_params.keys()):
+                    if filter_code and code_name not in filter_code:
+                        continue
                     # Note: return code could be None for some codes, so
                     # must use %s instead of %d
                     print('%s%s: %s'
