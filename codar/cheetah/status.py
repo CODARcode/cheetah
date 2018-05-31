@@ -2,6 +2,7 @@
 Funtions to print status information for campaigns.
 """
 import os
+import sys
 import json
 from collections import defaultdict
 import logging
@@ -153,10 +154,16 @@ def _print_run_code_output(run_name, run_dir, filter_code=None):
             fpath = outputs[code][k]
             size = os.path.getsize(fpath)
             print('>>>', run_name, code, 'std' + k, '(%d bytes)' % size)
-            with open(fpath) as f:
+            # TODO: Encountering non utf-8 chars is unlikely,
+            # but may get binary data, should handle that case better.
+            with open(fpath, encoding='utf-8', errors='backslashreplace') as f:
                 for line in f:
-                    line = line.strip()
-                    print(line)
+                    # Hack to make utf-8 work even if python terminal
+                    # default is ascii (seems necessary on cori for example).
+                    # Maybe there is a cleaner way?
+                    line_bytes = line.encode('utf-8',
+                                             errors='backslashreplace')
+                    sys.stdout.buffer.write(line_bytes)
             print()
 
 
