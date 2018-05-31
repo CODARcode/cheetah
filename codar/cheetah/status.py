@@ -41,6 +41,8 @@ def print_campaign_status(campaign_directory, filter_user=None,
                 jobid = f.read().strip()
                 jobid = jobid.split(':')[1]
 
+            fob_file_path = os.path.join(group_dir, 'fobs.json')
+            code_names = _get_group_code_names(fob_file_path)
             log_file_path = os.path.join(group_dir, 'codar.FOBrun.log')
             status_file_path = os.path.join(group_dir,
                                             'codar.workflow.status.json')
@@ -72,7 +74,8 @@ def print_campaign_status(campaign_directory, filter_user=None,
                                         filter_run=filter_run,
                                         filter_code=filter_code,
                                         run_summary=run_summary,
-                                        print_parameters=show_parameters)
+                                        print_parameters=show_parameters,
+                                        code_names=code_names)
                 if print_logs:
                     _print_fobrun_log(log_file_path, log_level, filter_run)
                 if print_output:
@@ -80,6 +83,14 @@ def print_campaign_status(campaign_directory, filter_user=None,
                                              filter_code)
             else:
                 print(user_group, ':', 'NOT STARTED')
+
+
+def _get_group_code_names(fob_file_path):
+    """Extract code names from first run in fobs file."""
+    with open(fob_file_path) as f:
+        line1 = f.readline()
+        data = json.loads(line1)
+        return [r['name'] for r in data['runs']]
 
 
 def _print_fobrun_log(log_file_path, log_level, filter_run=None):
@@ -166,7 +177,8 @@ def _numeric_log_level(log_level_string):
 def get_workflow_status(status_file_path, print_counts=False, indent=0,
                         print_return_codes=False, filter_run=None,
                         print_parameters=False,
-                        filter_code=None, run_summary=False):
+                        filter_code=None, run_summary=False,
+                        code_names=None):
     with open(status_file_path) as f:
         status_data = json.load(f)
 
@@ -227,7 +239,7 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
             rc = run_data.get('return_codes', {})
             with open(param_json_path) as f:
                 all_params = json.load(f)
-                for code_name in sorted(all_params.keys()):
+                for code_name in code_names:
                     if filter_code and code_name not in filter_code:
                         continue
                     # Note: return code could be None for some codes, so
@@ -235,7 +247,12 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
                     print('%s%s: %s'
                           % (prefix * 2, code_name, rc.get(code_name)))
                     if print_parameters:
-                        code_params = all_params[code_name]
+                        code_params = all_params.get(code_name)
+                        if not code_params:
+                            # Note: middleware components like sosd and
+                            # dataspaces will not be in the params file.
+                            # TODO: should we change that?
+                            continue
                         for k in sorted(code_params.keys()):
                             v = code_params[k]
                             print('%s%s=%s' % (prefix * 3, k, v))
