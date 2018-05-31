@@ -90,15 +90,20 @@ def status_command(prog, argv):
                         help='Top level campaign directory')
     parser.add_argument('-u', '--user', required=False,
                         default=None, nargs='*',
-                        help='Get status for specific user(s) only')
+                        help='Show status for specific user(s) only')
     parser.add_argument('-g', '--group', required=False,
                         default=None, nargs='*',
-                        help='Get status for specific sweep group(s) only')
+                        help='Show status for specific sweep group(s) only')
     parser.add_argument('-r', '--run', required=False,
                         default=None, nargs='*',
-                        help='Get status for specific run(s) only')
-    parser.add_argument('-d', '--details', required=False, action='store_true',
-                        help='Show detailed run counts for each group')
+                        help='Show status for specific run(s) only')
+    parser.add_argument('-c', '--code', required=False,
+                        default=None, nargs='*',
+                        help='Show status for specific code(s) only')
+
+    parser.add_argument('-s', '--group-summary', required=False,
+                        action='store_true',
+                        help='Show a summary of statistics for each group')
     parser.add_argument('-l', '--logs', required=False, action='store_true',
                         help='Show workflow log file for each group')
     parser.add_argument('-v', '--log-level', required=False, default='DEBUG',
@@ -106,24 +111,30 @@ def status_command(prog, argv):
                                  'DEBUG'],
                         help='Display messages of specified level or above'
                              ' (requires --logs)')
-    parser.add_argument('-c', '--return-codes', required=False,
+
+    parser.add_argument('-n', '--run-summary', required=False,
                         action='store_true',
-                        help='Show return codes for components within each run')
+                        help='Show a summary for each run')
+    parser.add_argument('-t', '--return-codes', required=False,
+                        action='store_true',
+                        help='Show return codes for components within each run'
+                             ' (implies -n)')
     parser.add_argument('-p', '--show-parameters', required=False,
                         action='store_true',
-                        help='Show parameter values for each run (implies -c)')
-
+                        help='Show parameter values for each run (implies -t'
+                             ' and -n)')
     parser.add_argument('-o', '--print-code-output', required=False,
                         action='store_true',
                         help='Show stderr and stdout for codes within each run')
-
 
     args = parser.parse_args(argv)
     status.print_campaign_status(args.campaign_directory,
                                  filter_user=args.user,
                                  filter_group=args.group,
                                  filter_run=args.run,
-                                 group_details=args.details,
+                                 filter_code=args.code,
+                                 group_summary=args.group_summary,
+                                 run_summary=args.run_summary,
                                  print_logs=args.logs,
                                  log_level=args.log_level,
                                  return_codes=args.return_codes,
