@@ -52,8 +52,8 @@ class Campaign(object):
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing the FOB definition for the run.
-    # The path can be absolute (starts with /), or relative to the app
-    # directory (if does not start with /).
+    # The path can be absolute (starts with /), or relative to the
+    # directory containing the spec file (if does not start with /).
     # If the script has nonzero exit status, then the entire sweep group
     # can optionally be stopped. This can be used to detect errors early.
     run_post_process_script = None
