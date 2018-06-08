@@ -303,7 +303,7 @@ class _ReportGenerator:
         Parse run directory of a sweep group
         """
 
-        print("Parsing run", run_dir[len(self.campaign_directory)+1:])
+        print("Parsing run", run_dir[len(self.campaign_directory):])
         rp = _RunParser(run_dir)
 
         # Re-verify that all run components have exited cleanly by
