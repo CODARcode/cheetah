@@ -9,6 +9,7 @@ an output csv file.
 """
 
 import os
+import sys
 from pathlib import Path
 import json
 import csv
@@ -18,13 +19,14 @@ from codar.cheetah.helpers import get_immediate_subdirs, \
 
 
 class _RunParser:
-    def __init__(self, run_dir):
+    def __init__(self, run_dir, exit_status):
         """
         Class to parse a run directory.
         :param run_dir:
         """
 
         self.run_dir = run_dir
+        self.exit_status = exit_status
         self.serialized_run_params = {}
         self.fob_dict = {}
         self.rc_names = []
@@ -34,6 +36,9 @@ class _RunParser:
         # mapping of rc_exe:rc_name so that we can get the rc_name from the
         # exe from sos data
         self.rc_name_exe = {}
+
+        # Store the run's exit status as a column in the csv output
+        self.serialized_run_params['exit_status'] = self.exit_status
 
     def read_fob_json(self):
         fob_json_filename = os.path.join(self.run_dir,
@@ -216,8 +221,11 @@ class _ReportGenerator:
         #  written
         self.output_filename = output_filename
 
-        # Temp var to keep track of the current user campaign
+        # Tmp var to keep track of the current user campaign
         self.current_campaign_user = None
+
+        # Dict that holds the exit status of runs
+        self.run_status = {}
 
     def parse_campaign(self):
         """
@@ -269,12 +277,10 @@ class _ReportGenerator:
         Parse sweep group and get post-run performance information
         """
 
+        print("Parsing sweep group " + group_dir)
+
         # Check if group was run by checking if status file exists
         status_file = os.path.join(group_dir, "codar.workflow.status.json")
-        if not Path(status_file).is_file():
-            print("WARN: Could not find file " + status_file +
-                  ". Skipping sweep group")
-            return
 
         # Read status file
         try:
@@ -284,27 +290,22 @@ class _ReportGenerator:
             print("ERROR: Could not read status file " + status_file)
             return
 
-        # Get the return codes of all runs.
-        # If any rc has failed, don't parse the run dir.
-        successful_runs = []
+        # Parse runs that have completed
+        run_status = {}
         for run_dir, values in status_json.items():
-            rc_return_codes = status_json[run_dir]['return_codes']
-            for rc, rc_return_code in rc_return_codes.items():
-                if rc_return_code != 0:
-                    break
-            successful_runs.append(os.path.join(group_dir, run_dir))
+            if status_json[run_dir]['state'] == 'done':
+                run_status[run_dir] = status_json[run_dir]['reason']
 
-        # Parse runs that have succeeded
-        for run_dir in successful_runs:
-            self.parse_run_dir(run_dir)
+        for run_dir, exit_status in run_status.items():
+            self.parse_run_dir(os.path.join(group_dir,run_dir), exit_status)
 
-    def parse_run_dir(self, run_dir):
+    def parse_run_dir(self, run_dir, exit_status):
         """
         Parse run directory of a sweep group
         """
 
-        print("Parsing run", run_dir[len(self.campaign_directory):])
-        rp = _RunParser(run_dir)
+        print("Parsing run", run_dir[len(self.campaign_directory)-1:])
+        rp = _RunParser(run_dir, exit_status)
 
         # Re-verify that all run components have exited cleanly by
         # checking their codar.workflow.return.[rc_name] file.
@@ -312,55 +313,38 @@ class _ReportGenerator:
         # First, get the names of run-components by reading the
         # codar.cheetah.fobs.json file.
 
-        try:
-            # Open fob json file
-            rp.read_fob_json()
-
-            # Get names of all run components
-            rp.get_rc_names()
-
-            # Check the return type of all components to ensure the run
-            # exited cleanly
-            if not rp.verify_run_successful():
-                return
-
-            # Read the application run parameters from run-params.json
-            rp.get_run_params()
-        except:
-            return
-
-        # Append the node layout info from codar.cheetah.fob.json
-        rp.read_node_layout()
-
-        # Run sosflow analysis on the run_dir. If sos data is not available,
-        #  read timing information recorded by Cheetah
-        if not rp.read_sos_perf_data():
-            rp.get_cheetah_perf_data()
-
-        # Get the sizes of the output adios files.
-        # The sizes were calculated by the post-processing function after the
-        # run finished.
-        # For every file, create two columns: 'adios_file_1' and
-        # 'adios_file_1_size', and so on.
-        rp.read_adios_output_file_sizes()
-
-        # Get the output of du instead of reading sos data for output data size
-        # This is hacky. I am assuming that this file contains output of du.
-        # dir_size = -1
-        # post_process_file = run_dir + "/codar.workflow.stdout.post-process"
-        # if Path(post_process_file).is_file():
-        #     f = open(post_process_file, "r")
-        #     lines = f.readlines()
-        #     lastline = lines[-1]
-        #     dir_size = int(re.search(r'\d+', lastline).group())
-        #
-        # serialized_run_params["dir_size"] = dir_size
-
         # Add run dir to the list of csv columns
         rp.serialized_run_params["run_dir"] = run_dir
 
         # Note the user who made this run
         rp.serialized_run_params["user"] = self.current_campaign_user
+
+        # Open fob json file
+        rp.read_fob_json()
+
+        # Get names of all run components
+        rp.get_rc_names()
+
+        # Read the application run parameters from run-params.json
+        rp.get_run_params()
+
+        # Append the node layout info from codar.cheetah.fob.json
+        rp.read_node_layout()
+
+        # Get timing information if the experiment was successful,
+        # else leave the fields blank
+        if exit_status == 'succeeded':
+            # Run sosflow analysis on the run_dir. If sos data is not
+            # available, read timing information recorded by Cheetah
+            if not rp.read_sos_perf_data():
+                rp.get_cheetah_perf_data()
+
+            # Get the sizes of the output adios files.
+            # The sizes were calculated by the post-processing function
+            # after the run finished.
+            # For every file, create two columns: 'adios_file_1' and
+            # 'adios_file_1_size', and so on.
+            rp.read_adios_output_file_sizes()
 
         # Add any new params discovered in this run dir to unique_keys
         for key in rp.serialized_run_params:
@@ -393,11 +377,9 @@ def generate_report(campaign_directory, output_file_path):
     # .campaign file
     require_campaign_directory(campaign_directory)
 
-    if not output_file_path.startswith('/'):
-        output_file_path = os.path.join(campaign_directory, output_file_path)
-
     rg = _ReportGenerator(campaign_directory, output_file_path)
     rg.parse_campaign()
+
 
 if __name__ == "__main__":
     generate_report(sys.argv[1], sys.argv[2])
