@@ -71,6 +71,12 @@ def generate_report(prog, argv):
                 description="Generate a report for a completed campaign")
     parser.add_argument('campaign_directory',
                         help='Top level directory of the campaign.')
+    parser.add_argument('-u','--run-user-script', required=False, default=None,
+                        help='User script to be executed additionally in '
+                             'each run dir. Must write a file named '
+                             'cheetah_user_report.json for the report '
+                             'generation engine to include '
+                             'user-parsed results.')
     parser.add_argument('-o', '--output-file', required=False,
                         default="campaign_results.csv",
                         help="Alternate file name or path for results. "
@@ -80,6 +86,7 @@ def generate_report(prog, argv):
     args = parser.parse_args(argv)
     from codar.cheetah import report_generator
     report_generator.generate_report(args.campaign_directory,
+                                     args.run_user_script,
                                      args.output_file)
 
 
