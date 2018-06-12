@@ -615,7 +615,7 @@ class Run(object):
                 # enabled, this rc should be marked as a dataspaces client
                 if xml_has_transport(f_xml, "DATASPACES"):
                     rcs_for_coupling['dataspaces'].add(rc)
-                elif xml_has_transport(f_xml, "DIMES"):
+                if xml_has_transport(f_xml, "DIMES"):
                     rcs_for_coupling['dimes'].add(rc)
 
         # Special handling for stage_write
@@ -630,14 +630,6 @@ class Run(object):
                     rcs_for_coupling['dataspaces'].add(rc)
                 elif'DIMES' in cmdlineargs:
                     rcs_for_coupling['dimes'].add(rc)
-
-        # Ensure dimes and dataspaces clients do not contain any common RCs
-        common_RCs = set.intersection(rcs_for_coupling['dimes'],
-                                      rcs_for_coupling[
-            'dataspaces'])
-        if len(common_RCs) > 0:
-            raise exc.CheetahException("Run component found for staging "
-                                       "using both dataspaces and dimes.")
 
         if rcs_for_coupling:
             self._insert_dataspaces_rc(rcs_for_coupling, machine)
@@ -665,7 +657,7 @@ class Run(object):
         for transport_type in client_rcs:
             if len(client_rcs[transport_type]) == 1:
                 raise exc.CheetahException("Atleast 2 codes needed for "
-                                           "Dataspaces coupling. Found 1.")
+                                           "coupling. Found 1.")
 
         # Check that codes has dataspaces_server exe
         ds_server = None
