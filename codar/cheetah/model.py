@@ -601,17 +601,22 @@ class Run(object):
         :return:
         """
 
-        rcs_for_coupling = set()
+        rcs_for_coupling = {'dimes': set(), 'dataspaces': set()}
         # Search in all RC's adios xml file if any transport is set for
         # coupling with DATASPACES/DIMES
-        # This is not case insensitive
+        # This is case sensitive
         for rc in self.run_components:
             if rc.adios_xml_file:
                 f_xml = os.path.join(rc.working_dir, os.path.basename(
                     rc.adios_xml_file))
-                if xml_has_transport(f_xml, "DATASPACES") or \
-                        xml_has_transport(f_xml, "DIMES"):
-                    rcs_for_coupling.add(rc)
+
+                # The xml file may have both dataspaces and dimes in
+                # different groups. If any group has dataspaces
+                # enabled, this rc should be marked as a dataspaces client
+                if xml_has_transport(f_xml, "DATASPACES"):
+                    rcs_for_coupling['dataspaces'].add(rc)
+                elif xml_has_transport(f_xml, "DIMES"):
+                    rcs_for_coupling['dimes'].add(rc)
 
         # Special handling for stage_write
         # Check command line args for string to be one of DATASPACES/DIMES
@@ -621,32 +626,46 @@ class Run(object):
                 cmdlineargs = [val.value for val in param_values.values() if
                                (val.is_type(ParamCmdLineArg) and
                                type(val.value) == str)]
-                if 'DATASPACES' in cmdlineargs or 'DIMES' in cmdlineargs:
-                    rcs_for_coupling.add(rc)
+                if 'DATASPACES' in cmdlineargs:
+                    rcs_for_coupling['dataspaces'].add(rc)
+                elif'DIMES' in cmdlineargs:
+                    rcs_for_coupling['dimes'].add(rc)
+
+        # Ensure dimes and dataspaces clients do not contain any common RCs
+        common_RCs = set.intersection(rcs_for_coupling['dimes'],
+                                      rcs_for_coupling[
+            'dataspaces'])
+        if len(common_RCs) > 0:
+            raise exc.CheetahException("Run component found for staging "
+                                       "using both dataspaces and dimes.")
 
         if rcs_for_coupling:
-            self._insert_dataspaces_rc(list(rcs_for_coupling), machine)
+            self._insert_dataspaces_rc(rcs_for_coupling, machine)
 
         # Create symlink in rc working_dir to dataspaces output conf file
+        rc_list = list(rcs_for_coupling['dimes']) + list(rcs_for_coupling[
+                                                           'dataspaces'])
         src = os.path.join(self.run_path, "conf")
-        for rc in rcs_for_coupling:
+        for rc in rc_list:
             dst = os.path.join(rc.working_dir, "conf")
             if src != dst:
                 os.symlink(src, dst)
 
-    def _insert_dataspaces_rc(self, rc_list, machine):
+    def _insert_dataspaces_rc(self, client_rcs, machine):
         """
         Add dataspaces support for this run.
         Creates a new RC with dataspaces server as the exe.
-        :param rc_list: List of RC objects coupling using dataspaces
+        :param client_rcs: Dist of sets for clients coupling using
+        dataspaces or dimes
         :param machine_name: Current machine
         :return:
         """
 
         # Sanity check. rc list for coupling must have >1 RCs
-        if len(rc_list) == 1:
-            raise exc.CheetahException("Atleast 2 codes needed for "
-                                       "Dataspaces coupling. Found 1.")
+        for transport_type in client_rcs:
+            if len(client_rcs[transport_type]) == 1:
+                raise exc.CheetahException("Atleast 2 codes needed for "
+                                           "Dataspaces coupling. Found 1.")
 
         # Check that codes has dataspaces_server exe
         ds_server = None
@@ -670,10 +689,15 @@ class Run(object):
         dst = os.path.join(self.run_path, "dataspaces.conf")
         copy_to_path(ds_conf, dst)
 
-        num_clients = sum([rc.nprocs for rc in rc_list])
-        num_servers = config.get_dataspaces_num_servers(num_clients)
-        args = ['-s', str(num_servers), '-c', str(num_clients)]
+        num_ds_clients = sum(rc.nprocs for rc in client_rcs['dataspaces'])
+        num_dimes_clients = sum(rc.nprocs for rc in client_rcs['dimes'])
+
+        num_servers = config.get_dataspaces_num_servers(num_dimes_clients,
+                                                        num_ds_clients)
+
         rc_name = "dataspaces_server"
+        args = ['-s', str(num_servers), '-c', str(num_ds_clients +
+                                                  num_dimes_clients)]
 
         # Get the node layout
         node_layout = None
