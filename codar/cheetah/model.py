@@ -613,6 +613,7 @@ class Run(object):
                 # The xml file may have both dataspaces and dimes in
                 # different groups. If any group has dataspaces
                 # enabled, this rc should be marked as a dataspaces client
+                # Order is important here. First search for dataspaces.
                 if xml_has_transport(f_xml, "DATASPACES"):
                     rcs_for_coupling['dataspaces'].add(rc)
                 if xml_has_transport(f_xml, "DIMES"):
@@ -657,7 +658,8 @@ class Run(object):
         for transport_type in client_rcs:
             if len(client_rcs[transport_type]) == 1:
                 raise exc.CheetahException("Atleast 2 codes needed for "
-                                           "coupling. Found 1.")
+                                           "coupling with DATASPACES/DIMES. "
+                                           "Found 1.")
 
         # Check that codes has dataspaces_server exe
         ds_server = None
@@ -681,8 +683,11 @@ class Run(object):
         dst = os.path.join(self.run_path, "dataspaces.conf")
         copy_to_path(ds_conf, dst)
 
+        # Get the no. of dataspaces and dimes clients.
+        # RCs that have both must be counted as dataspaces clients
         num_ds_clients = sum(rc.nprocs for rc in client_rcs['dataspaces'])
-        num_dimes_clients = sum(rc.nprocs for rc in client_rcs['dimes'])
+        unique_dimes_rcs = client_rcs['dimes'] - client_rcs['dataspaces']
+        num_dimes_clients = sum(rc.nprocs for rc in unique_dimes_rcs)
 
         num_servers = config.get_dataspaces_num_servers(num_dimes_clients,
                                                         num_ds_clients)
