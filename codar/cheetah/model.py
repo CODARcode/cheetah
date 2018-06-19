@@ -691,6 +691,7 @@ class Run(object):
 
         num_servers = config.get_dataspaces_num_servers(num_dimes_clients,
                                                         num_ds_clients)
+        assert num_servers > 0
 
         rc_name = "dataspaces_server"
         args = ['-s', str(num_servers), '-c', str(num_ds_clients +
