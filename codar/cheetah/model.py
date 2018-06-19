@@ -632,7 +632,7 @@ class Run(object):
                 elif'DIMES' in cmdlineargs:
                     rcs_for_coupling['dimes'].add(rc)
 
-        if rcs_for_coupling:
+        if rcs_for_coupling['dimes'] or rcs_for_coupling['dataspaces']:
             self._insert_dataspaces_rc(rcs_for_coupling, machine)
 
         # Create symlink in rc working_dir to dataspaces output conf file
