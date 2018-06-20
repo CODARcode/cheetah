@@ -8,6 +8,15 @@ if [ -f "$CODAR_CHEETAH_MACHINE_CONFIG" ]; then
     source "$CODAR_CHEETAH_MACHINE_CONFIG"
 fi
 
+# Don't submit job if all experiments have been run
+if [ -f codar.workflow.status.json ]; then
+    grep state codar.workflow.status.json | grep -q 'not_started'
+    if [ $? != 0 ]; then
+        echo "No more experiments remaining to run in `pwd`"
+        exit
+    fi
+fi
+
 # convert walltime from seconds to HH:MM:SS format needed by PBS
 
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
