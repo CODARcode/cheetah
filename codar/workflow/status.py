@@ -4,6 +4,7 @@ managing. State is saved in a JSON file, overwritten on each state change.
 """
 
 import json
+import os
 import threading
 from collections import defaultdict
 
@@ -26,6 +27,12 @@ class WorkflowStatus(threading.Thread):
         self.file_path = file_path
         self._lock = threading.Lock()
         self._state = defaultdict(dict)
+
+        # If status file exists from a previous run, load it first, so that
+        # you dont overwrite it only with runs from this job
+        if os.path.isfile(file_path):
+            with open(file_path, 'r') as f:
+                self._state = json.load(f)
 
     def set_state(self, pipeline_state):
         with self._lock:
