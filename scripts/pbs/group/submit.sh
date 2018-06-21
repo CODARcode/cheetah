@@ -12,7 +12,7 @@ fi
 if [ -f codar.workflow.status.json ]; then
     grep state codar.workflow.status.json | grep -q 'not_started'
     if [ $? != 0 ]; then
-        echo "No more experiments remaining to run in `pwd`"
+        echo "No more experiments remaining. Skipping group .."
         exit
     fi
 fi
