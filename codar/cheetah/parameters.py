@@ -9,15 +9,18 @@ from collections import defaultdict
 class SweepGroup(object):
     """
     Class representing a grouping of run parameters that can be executed by
-    a single scheduler job, because they share the same scheduler parameters
-    (currently only # of nodes is at this level).
+    a single scheduler job, because they share the same scheduler parameters.
+
+    Note that nodes is no longer required - if not specified, it is calculated
+    based on the biggest run within the group.
 
     How this gets converted into a script depends on the target machine and
     which scheduler (if any) that machine uses.
     """
-    def __init__(self, name, nodes, parameter_groups, component_subdirs=False,
+    def __init__(self, name, parameter_groups, component_subdirs=False,
                  component_inputs=None, walltime=3600, max_procs=None,
-                 per_run_timeout=None, sosflow=False, sosflow_analysis=False):
+                 per_run_timeout=None, sosflow_profiling=False,
+                 sosflow_analysis=False, nodes=None):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
@@ -26,7 +29,7 @@ class SweepGroup(object):
         self.walltime = walltime
         # TODO: allow override in Sweeps?
         self.per_run_timeout = per_run_timeout
-        self.sosflow = sosflow
+        self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analysis
         self.component_inputs = component_inputs
 
@@ -328,25 +331,23 @@ class ParamAdiosXML(Param):
     variables can be included in the sweep.
 
     Format:
-        adios_transform:<xml_filename>:<group_name>:<var_name>
-        adios_transport:<xml_filename>:<group_name>
+        adios_transform:<group_name>:<var_name>
+        adios_transport:<group_name>
 
-    Note that the filename is assumed to be relative to the app directory
-    specified as a Cheetah command line argument.
+    Note that the filename is specified in the code definition.
     """
     def __init__(self, target, name, adios_xml_tags, values):
         Param.__init__(self, target, name, values)
         parts = adios_xml_tags.split(":")
-        if len(parts) < 3:
+        if len(parts) < 2:
             raise ValueError("bad format for ParamAdiosXML name")
         # param_type = adios_transform or adios_transport
         self.param_type = parts[0]
-        self.xml_filename = parts[1]
-        self.group_name = parts[2]
+        self.group_name = parts[1]
 
         # if param_type is transform
-        if len(parts) == 4:
-            self.var_name = parts[3]
+        if len(parts) == 3:
+            self.var_name = parts[2]
 
 
 class ParamConfig(Param):
@@ -397,3 +398,11 @@ class ParamRunner(Param):
     specific application code."""
     def __init__(self, target, name, values):
         Param.__init__(self, target, name, values)
+
+
+class SymLink(str):
+    """
+    Class to represent symbolic links as an input type for a run component
+    """
+    def __init__(self, source):
+        self.source = source

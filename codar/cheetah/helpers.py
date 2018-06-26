@@ -3,6 +3,11 @@ import datetime
 import numbers
 import shutil
 import stat
+import glob
+from pathlib import Path
+
+
+from codar.cheetah import exc
 
 
 def make_executable(path):
@@ -74,8 +79,13 @@ def parse_timedelta_seconds(v):
 def copy_to_dir(source_file, dest_dir, follow_symlinks=True):
     """Wrapper around copyfile with directory destination and more
     control over permissions."""
-    dest_file = os.path.join(dest_dir, os.path.basename(source_file))
-    copy_to_path(source_file, dest_file, follow_symlinks)
+
+    # source_file could contain a wildcard. e.g. '*.in' 
+    # glob to fetch individual files
+    source_files = glob.glob(source_file)
+    for file in source_files:
+        dest_file = os.path.join(dest_dir, os.path.basename(file))
+        copy_to_path(file, dest_file, follow_symlinks)
 
 
 def copy_to_path(source_file, dest_file, follow_symlinks=True):
@@ -110,3 +120,74 @@ def copytree_to_dir(source_dir, dest_dir, follow_symlinks=True):
             copytree_to_dir(sname, dname, follow_symlinks)
         else:
             copy_to_path(sname, dname, follow_symlinks)
+
+
+def relative_or_absolute_path(prefix, path):
+    """If path is an absolute path, return as is, otherwise pre-pend prefix."""
+    if path.startswith("/"):
+        return path
+    return os.path.join(prefix, path)
+
+
+def relative_or_absolute_path_list(prefix, path_list):
+    return [relative_or_absolute_path(prefix, path) for path in path_list]
+
+
+def get_immediate_subdirs(dir_path):
+    """
+    Get a list of top-level subdirectories.
+    :param dir_path: Directory path to search
+    :return: list of subdirectory names
+    """
+    return [name for name in os.listdir(dir_path) if
+            os.path.isdir(os.path.join(dir_path, name))]
+
+
+def dir_size(path):
+    """
+    Get the size of the directory represented by path recursively.
+    :param path: Path to the dir whose size needs to be calculated
+    :return: size in bytes of the dir
+    """
+    # Closure for recursiveness
+    def get_dir_size(path):
+        size = 0
+        for entry in os.scandir(path):
+            if entry.is_file():
+                size += entry.stat(follow_symlinks=False).st_size
+            elif entry.is_dir():
+                size += get_dir_size(entry.path)
+        return size
+
+    return get_dir_size(path)
+
+
+def get_file_size(dir_entry):
+    """
+    Get size of the file or directory pointed to by path.
+    Directory size is recursive; it includes sizes of enclosing files/dirs.
+    :param dir_entry: path to the file or directory. Should not contain wildcards.
+                      Must be of type DirEntry.
+    :return: size in bytes
+    """
+    #if type(path) is str:
+    #    path = Path(path)
+    if dir_entry.is_file():
+        return os.path.getsize(dir_entry.path)
+    elif dir_entry.is_dir():
+        return dir_size(dir_entry.path)
+
+
+def is_campaign_directory(path):
+    """Return True if the specified path exists, is a directory, and has a
+    .campaign file to indicate it's a top level campaign directory."""
+    return (os.path.isdir(path)
+            and os.path.isfile(os.path.join(path, '.campaign')))
+
+
+def require_campaign_directory(path):
+    """Raise CheetahException if the specified path is not a top-level
+    campaign directory."""
+    if not is_campaign_directory(path):
+        raise exc.CheetahException("Path '%s' is not a " \
+                                   "top-level campaign directory" % path)

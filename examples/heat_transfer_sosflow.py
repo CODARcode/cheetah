@@ -19,9 +19,10 @@ class HeatTransfer(Campaign):
     # "stage", exe locations as specified, and a delay of 5 seconds
     # between starting stage and heat.
     codes = [('stage', dict(exe="stage_write/stage_write",
-                            sleep_after=5, sosflow=True)),
+                            sleep_after=5, linked_with_sosflow=True)),
              ('heat', dict(exe="heat_transfer_adios2",
-                           sleep_after=0, sosflow=True))]
+                           sleep_after=0, linked_with_sosflow=True,
+                           adios_xml_file="heat_transfer.xml"))]
 
     # The application is designed to run on two machines.
     # (These are magic strings known to Cheetah.)
@@ -32,8 +33,10 @@ class HeatTransfer(Campaign):
     }
 
     # Inputs are copied to each "run directory" -- directory created by
-    # Cheetah for each run
-    inputs = ["heat_transfer.xml"]
+    # Cheetah for each run. The adios_xml_file for each code specified
+    # above is included automatically, so does not need to be specified
+    # here.
+    inputs = []
 
     # If the heat or stage code fails (nonzero exit code) during a run,
     # kill the other code if still running. This is useful for multi-code
@@ -77,7 +80,7 @@ class HeatTransfer(Campaign):
      # time with one node unused.
      p.SweepGroup("small_scale",
                   nodes=4, # Number of nodes to run on
-                  walltime=3600,# Required. Set walltime for scheduler job.
+                  walltime=5460,# Required. Set walltime for scheduler job.
                   per_run_timeout=600,
                                 # Optional. If set, each run in the sweep
                                 # group will be killed if not complete
@@ -92,7 +95,7 @@ class HeatTransfer(Campaign):
                                 # do runs in parallel, i.e. setting to 28
                                 # for this experiment will allow two runs
                                 # at a time, since 28/14=2.
-                  sosflow=True,
+                  sosflow_profiling=True,
                   sosflow_analysis=True,
 
       # Within a SweepGroup, each parameter_group specifies arguments for

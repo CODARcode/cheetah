@@ -34,8 +34,6 @@ for installation instructions.
 
 ```
 source <(spack module loads --dependencies adios)
-spack load stc turbine mpix-launch-swift
-export CODAR_MPIX_LAUNCH=$(spack find -p mpix-launch-swift | grep mpix-launch | awk '{ print $2 }')
 ```
 
 4. Make a directory for storing campaigns, for example:

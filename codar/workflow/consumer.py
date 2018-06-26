@@ -2,9 +2,16 @@
 specified total process limit."""
 
 import threading
+import os
+import json
+import logging
 
+from codar.cheetah.helpers import get_file_size
 from codar.workflow import status
 from codar.workflow.scheduler import JobList
+
+
+_log = logging.getLogger('codar.workflow.consumer')
 
 
 class PipelineRunner(object):
@@ -21,11 +28,10 @@ class PipelineRunner(object):
     Pipeline or Run threads."""
 
     def __init__(self, runner, max_nodes, processes_per_node,
-                 logger=None, status_file=None):
+                 status_file=None):
         self.max_nodes = max_nodes
         self.ppn = processes_per_node
         self.runner = runner
-        self.logger = logger
 
         if status_file is not None:
             self._status = status.WorkflowStatus(status_file)
@@ -58,10 +64,9 @@ class PipelineRunner(object):
             self._pipeline_ids.add(p.id)
             p.set_ppn(self.ppn)
             if p.get_nodes_used() > self.max_nodes:
-                if self.logger:
-                    self.logger.error(
-                         "pipeline '%s' requires %d nodes > max %d, skipping",
-                         p.id, p.get_nodes_used(), self.max_nodes)
+                _log.error(
+                    "pipeline '%s' requires %d nodes > max %d, skipping",
+                    p.id, p.get_nodes_used(), self.max_nodes)
                 if self._status is not None:
                     state = p.get_state()
                     state.reason = status.REASON_NOFIT
@@ -87,8 +92,7 @@ class PipelineRunner(object):
         """Kill all running processes spawned by this consumer and don't
         start any new processes."""
 
-        if self.logger is not None:
-            self.logger.warn("killing all pipelines and exiting consumer")
+        _log.warn("killing all pipelines and exiting consumer")
 
         with self.pipelines_lock:
             self._killed = True
@@ -112,22 +116,22 @@ class PipelineRunner(object):
     def run_finished(self, run):
         """Monitor thread(s) should call this as runs complete."""
         with self.free_cv:
-            self.logger.debug(
-                "finished run, free nodes %d -> %d",
-                self.free_nodes, self.free_nodes + run.get_nodes_used())
+            _log.debug("finished run, free nodes %d -> %d",
+                       self.free_nodes, self.free_nodes + run.get_nodes_used())
             self.free_nodes += run.get_nodes_used()
             self.free_cv.notify()
 
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
+
+        self._get_adios_file_sizes(pipeline)
         with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)
             if self._status is not None:
                 self._status.set_state(pipeline.get_state())
 
     def pipeline_fatal(self, pipeline):
-        if self.logger is not None:
-            self.logger.error("fatal error in pipeline '%s'" % pipeline.id)
+        _log.error("fatal error in pipeline '%s'" % pipeline.id)
         self.kill_all()
 
     def run_pipelines(self):
@@ -157,10 +161,9 @@ class PipelineRunner(object):
                     pipeline = self.job_list.pop_job(self.free_nodes)
 
                 if self._process_pipelines:
-                    self.logger.debug(
-                        "starting pipeline %s, free nodes %d -> %d",
-                        pipeline.id, self.free_nodes,
-                        self.free_nodes - pipeline.get_nodes_used())
+                    _log.debug("starting pipeline %s, free nodes %d -> %d",
+                               pipeline.id, self.free_nodes,
+                               self.free_nodes - pipeline.get_nodes_used())
                     self.free_nodes -= pipeline.get_nodes_used()
 
             if not self._process_pipelines:
@@ -168,8 +171,6 @@ class PipelineRunner(object):
                 return
 
             with self.pipelines_lock:
-                if self.logger is not None:
-                    pipeline.set_loggers(self.logger)
                 pipeline.start(self, self.runner)
                 self._running_pipelines.add(pipeline)
                 if self._status is not None:
@@ -189,3 +190,26 @@ class PipelineRunner(object):
         still_running = list(self._running_pipelines)
         for pipeline in still_running:
             pipeline.join_all()
+
+    def _get_adios_file_sizes(self, pipeline):
+        """
+        Record the size of all adios files in the run dir.
+        """
+
+        def _adios_file_sizes_recursive(path):
+            fname_size = {}
+            for entry in os.scandir(path):
+                if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
+                    size = get_file_size(entry)
+                    relative_path = entry.path.split(path+"/", 1).pop()
+                    fname_size[relative_path] = size
+                elif entry.is_dir():
+                    _adios_file_sizes_recursive(entry.path)
+            return fname_size
+
+        d_fname_size =_adios_file_sizes_recursive(pipeline.working_dir)
+        # Write dict to file
+        out_fname = os.path.join(pipeline.working_dir,
+                                 ".codar.adios_file_sizes.out.json")
+        with open(out_fname, 'w') as f:
+            f.write(json.dumps(d_fname_size))

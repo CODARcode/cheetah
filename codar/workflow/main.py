@@ -5,10 +5,11 @@ import argparse
 import threading
 import logging
 import signal
+import os
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
-from codar.workflow.model import mpiexec, aprun
+from codar.workflow.model import mpiexec, aprun, srun
 
 
 consumer = None
@@ -43,20 +44,27 @@ def main():
         runner = mpiexec
     elif args.runner == 'aprun':
         runner = aprun
-    else:
+    elif args.runner == 'srun':
+        runner = srun
+    elif args.runner == 'none':
         runner = None
+    else:
+        # Note: arg parser should have caught this already
+        raise ValueError('Unknown runner: %s' % args.runner)
 
+    logger = logging.getLogger('codar.workflow')
     if args.log_file:
-        logger = logging.getLogger('codar.workflow')
         handler = logging.FileHandler(args.log_file)
         formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(args.log_level)
     else:
-        logger = None
+        logger.addHandler(logging.NullHandler())
 
-    consumer = PipelineRunner(runner=runner, logger=logger,
+    logger.info('starting workflow job %s', get_job_id())
+
+    consumer = PipelineRunner(runner=runner,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node,
                               status_file=args.status_file)
@@ -87,3 +95,17 @@ def main():
     # actually causes problems because Python can't handle signals if
     # the main thread is in a join, since that is basically pure C code
     # (pthread_join).
+
+
+def get_job_id():
+    scheduler_vars = dict(
+        SLURM='SLURM_JOB_ID',
+        PBS='PBS_JOBID',
+        COBALT='COBALT_JOBID'
+        )
+    for name, var in scheduler_vars.items():
+        val = os.environ.get(var)
+        if val:
+            return '%s:%s' % (name, val)
+    # fall back to using pid
+    return 'PID:%s' % os.getpid()

@@ -14,10 +14,18 @@ import json
 import math
 import shlex
 import inspect
+import getpass
+from pathlib import Path
 from collections import OrderedDict
+import warnings
 
 from codar.cheetah import machines, parameters, config, templates, exc
-from codar.cheetah.helpers import copy_to_dir
+from codar.cheetah.helpers import copy_to_dir, copy_to_path
+from codar.cheetah.helpers import relative_or_absolute_path, \
+    relative_or_absolute_path_list, parse_timedelta_seconds
+from codar.cheetah.parameters import SymLink
+from codar.cheetah.adios_params import xml_has_transport
+from codar.cheetah.parameters import ParamCmdLineArg
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -35,8 +43,7 @@ class Campaign(object):
     codes = []
     supported_machines = []
     sweeps = []
-    inputs = []
-    inputs_fullpath = []
+    inputs = [] # copied to top level run directory
     umask = None
 
     # If set and there are multiple codes making up the application,
@@ -45,8 +52,8 @@ class Campaign(object):
 
     # Optional. If set, passed single argument which is the absolute
     # path to a JSON file containing the FOB definition for the run.
-    # The path can be absolute (starts with /), or relative to the app
-    # directory (if does not start with /).
+    # The path can be absolute (starts with /), or relative to the
+    # directory containing the spec file (if does not start with /).
     # If the script has nonzero exit status, then the entire sweep group
     # can optionally be stopped. This can be used to detect errors early.
     run_post_process_script = None
@@ -93,6 +100,9 @@ class Campaign(object):
     # script.
     post_process_script = None
 
+    # A file that identifies a directory as a multi-user campaign
+    _id_file = ".campaign"
+
     def __init__(self, machine_name, app_dir):
         # check that subclasses set configuration
         # TODO: better errors
@@ -104,16 +114,28 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
-        for input_rpath in self.inputs:
-            self.inputs_fullpath.append(os.path.join(self.app_dir, input_rpath))
+
+        # allow inputs to be either aboslute paths or relative to
+        # app_dir
+        self.inputs = relative_or_absolute_path_list(self.app_dir, self.inputs)
 
         if not isinstance(self.codes, OrderedDict):
             self.codes = OrderedDict(self.codes)
 
         conflict_names = set(self.codes.keys()) & RESERVED_CODE_NAMES
         if conflict_names:
-            raise ValueError('Code names conflict with reserved names: '
+            raise exc.CheetahException(
+                'Code names conflict with reserved names: '
                 + ", ".join(str(name) for name in conflict_names))
+
+        # Resolve relative code exe pahts. Checking for existence is not
+        # done until make_experiment_run_dir is called to simplify unit
+        # testing.
+        for code_name, code in self.codes.items():
+            exe_path = code['exe']
+            if not exe_path.startswith('/'):
+                exe_path = os.path.join(self.app_dir, exe_path)
+                code['exe'] = exe_path
 
         if self.tau_config is None:
             self.tau_config = config.etc_path('tau.conf')
@@ -159,23 +181,39 @@ class Campaign(object):
             if m == machine_name:
                 machine = machines.get_by_name(m)
         if machine is None:
-            raise ValueError("machine '%s' not supported by experiment '%s'"
-                             % (machine_name, self.name))
+            raise exc.CheetahException(
+                "machine '%s' not supported by experiment '%s'"
+                % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir):
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=True):
         """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
         run."""
 
+        # set to False for unit tests
+        if _check_code_paths:
+            self._check_code_paths()
+
         if self.umask:
             umask_int = int(self.umask, 8)
             if ((umask_int & stat.S_IXUSR) or (umask_int & stat.S_IRUSR)):
-                raise ValueError('bad umask, user r-x must be allowed')
+                raise exc.CheetahException(
+                        'bad umask, user r-x must be allowed')
             os.umask(umask_int)
-        output_dir = os.path.abspath(output_dir)
+
+        # Create the top level campaign directory
+        _output_dir = os.path.abspath(output_dir)
+        os.makedirs(_output_dir, exist_ok=True)
+
+        # Write campaign id file at the top-level campaign directory
+        id_fpath = os.path.join(_output_dir, self._id_file)
+        Path(id_fpath).touch()
+
+        # Create a directory for the user and set it as the campaign location
+        output_dir = os.path.join(_output_dir, getpass.getuser())
         run_all_script = os.path.join(config.CHEETAH_PATH_SCRIPTS,
                                       self.machine.scheduler_name,
                                       'run-all.sh')
@@ -231,16 +269,17 @@ class Campaign(object):
                                   os.path.join(
                                       group_output_dir,
                                       'run-%03d' % (group_run_offset + i)),
-                                  self.inputs_fullpath,
+                                  self.inputs,
                                   node_layout,
                                   group.component_subdirs,
-                                  group.sosflow,
+                                  group.sosflow_profiling,
                                   group.sosflow_analysis,
                                   group.component_inputs)
                               for i, inst in enumerate(sweep.get_instances())]
                 group_runs.extend(sweep_runs)
                 group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
+
             if group.max_procs is None:
                 max_procs = max([r.get_total_nprocs() for r in group_runs])
             else:
@@ -248,20 +287,29 @@ class Campaign(object):
                 if group.max_procs < procs_per_run:
                     # TODO: improve error message, specifying which
                     # group and by how much it's off etc
-                    raise ValueError("max_procs for group is too low")
+                    raise exc.CheetahException("max_procs for group is too low")
                 max_procs = group.max_procs
-            if self.machine.node_exclusive:
-                group_ppn = self.machine.processes_per_node
-            else:
-                group_ppn = math.ceil((max_procs) / group.nodes)
+
+            if group.per_run_timeout:
+                per_run_seconds = parse_timedelta_seconds(group.per_run_timeout)
+                walltime_guess = (per_run_seconds * len(group_runs)) + 60
+                walltime_group = parse_timedelta_seconds(group.walltime)
+                if walltime_group < walltime_guess:
+                    warnings.warn('group "%s" walltime %d is less than '
+                                  '(per_run_timeout * nruns) + 60 = %d, '
+                                  'it is recommended to set it higher to '
+                                  'avoid problems with the workflow '
+                                  'engine being killed before it can write '
+                                  'all status information'
+                                % (group.name, walltime_group, walltime_guess))
+
             # TODO: refactor so we can just pass the campaign and group
             # objects, i.e. add methods so launcher can get all info it needs
             # and simplify this loop.
-            launcher.create_group_directory(
+            group.nodes = launcher.create_group_directory(
                 self.name, group_name,
                 group_runs,
                 max_procs,
-                processes_per_node=group_ppn,
                 nodes=group.nodes,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
@@ -283,6 +331,21 @@ class Campaign(object):
         with open(all_params_json_path, "w") as f:
             json.dump([run.get_app_param_dict()
                        for run in self.runs], f, indent=2)
+
+    def _check_code_paths(self):
+        if not os.path.isdir(self.app_dir):
+            raise exc.CheetahException(
+                'specified app directory "%s" does not exist' % self.app_dir)
+        for code_name, code in self.codes.items():
+            exe_path = code['exe']
+            if not os.path.isfile(exe_path):
+                raise exc.CheetahException(
+                    'code "%s" exe at "%s" is not a file'
+                    % (code_name, exe_path))
+            if not os.access(exe_path, os.X_OK):
+                raise exc.CheetahException(
+                    'code "%s" exe at "%s" is not executable by current user'
+                    % (code_name, exe_path))
 
     def _assert_unique_group_names(self, campaign_dir):
         """Assert new groups being added to the campaign do not have the
@@ -404,8 +467,8 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, component_subdirs, sosflow, sosflow_analyis,
-                 component_inputs=None):
+                 node_layout, component_subdirs, sosflow_profiling,
+                 sosflow_analyis, component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -416,18 +479,21 @@ class Run(object):
         # important to use a copy.
         self.node_layout = node_layout.copy()
         self.component_subdirs = component_subdirs
-        self.sosflow = sosflow
+        self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
         self.run_components = self._get_run_components()
+
+        # Filename in the run dir that will store the size of the run dir
+        # prior to submitting the campaign
+        self._pre_submit_dir_size_fname = \
+            ".codar.cheetah.pre_submit_dir_size.out"
 
     def _get_run_components(self):
         comps = []
         codes_argv = self._get_codes_argv_ordered()
         for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
-            if not exe_path.startswith('/'):
-                exe_path = os.path.join(self.codes_path, exe_path)
             sleep_after = self.codes[target].get('sleep_after', 0)
 
             # Set separate subdirs for individual components if requested
@@ -439,15 +505,36 @@ class Run(object):
             component_inputs = None
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
+            if component_inputs:
+                # Get the full path of inputs
+                # Separate the strings from symlinks to preserve their type
+                str_inputs = [input for input in component_inputs if type(
+                    input) == str]
+                str_inputs = relative_or_absolute_path_list(self.codes_path,
+                                                            str_inputs)
 
-            sosflow = self.codes[target].get('sosflow', False)
+                symlinks = [input for input in component_inputs if type(
+                    input) == SymLink]
+                symlinks = relative_or_absolute_path_list(self.codes_path,
+                                                          symlinks)
+                symlinks = [SymLink(input) for input in symlinks]
+                component_inputs = str_inputs + symlinks
+
+            linked_with_sosflow = self.codes[target].get(
+                'linked_with_sosflow', False)
+
+            adios_xml_file = self.codes[target].get('adios_xml_file', None)
+            if adios_xml_file:
+                adios_xml_file = relative_or_absolute_path(
+                    self.codes_path, adios_xml_file)
 
             comp = RunComponent(name=target, exe=exe_path, args=argv,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
                                 working_dir=working_dir,
                                 component_inputs=component_inputs,
-                                sosflow=sosflow)
+                                linked_with_sosflow=linked_with_sosflow,
+                                adios_xml_file=adios_xml_file)
             comps.append(comp)
         return comps
 
@@ -473,8 +560,8 @@ class Run(object):
 
     def get_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
-        Node-sharing not supported yet.
-        This should not include the nodes required by sosflow."""
+        NOTE: if run after insert_sosflow, then this WILL include the sosflow
+        nodes, otherwise it will not. Node-sharing not supported yet."""
         num_nodes = 0
         for rc in self.run_components:
             code_node = self.node_layout.get_node_containing_code(rc.name)
@@ -491,7 +578,7 @@ class Run(object):
         This should not include the nodes required by sosflow."""
         num_nodes = 0
         for rc in self.run_components:
-            if rc.sosflow:
+            if rc.linked_with_sosflow:
                 code_node = self.node_layout.get_node_containing_code(rc.name)
                 code_procs_per_node = code_node[rc.name]
                 num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
@@ -502,6 +589,128 @@ class Run(object):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
+
+    def add_dataspaces_support(self, machine):
+        """
+        Add support for dataspaces.
+        Check RC Adios xml files to see if any transport methods are marked
+        for coupling with DATASPACES/DIMES.
+        For stage_write, check command line args to see if DATASPACES/DIMES
+        is specified.
+        :param machine: The current machine. I dont like this here.
+        :return:
+        """
+
+        rcs_for_coupling = {'dimes': set(), 'dataspaces': set()}
+        # Search in all RC's adios xml file if any transport is set for
+        # coupling with DATASPACES/DIMES
+        # This is case sensitive
+        for rc in self.run_components:
+            if rc.adios_xml_file:
+                f_xml = os.path.join(rc.working_dir, os.path.basename(
+                    rc.adios_xml_file))
+
+                # The xml file may have both dataspaces and dimes in
+                # different groups. If any group has dataspaces
+                # enabled, this rc should be marked as a dataspaces client
+                # Order is important here. First search for dataspaces.
+                if xml_has_transport(f_xml, "DATASPACES"):
+                    rcs_for_coupling['dataspaces'].add(rc)
+                if xml_has_transport(f_xml, "DIMES"):
+                    rcs_for_coupling['dimes'].add(rc)
+
+        # Special handling for stage_write
+        # Check command line args for string to be one of DATASPACES/DIMES
+        for rc in self.run_components:
+            if "stage_write" in rc.exe:
+                param_values = self.instance.parameter_values[rc.name]
+                cmdlineargs = [val.value for val in param_values.values() if
+                               (val.is_type(ParamCmdLineArg) and
+                               type(val.value) == str)]
+                if 'DATASPACES' in cmdlineargs:
+                    rcs_for_coupling['dataspaces'].add(rc)
+                elif'DIMES' in cmdlineargs:
+                    rcs_for_coupling['dimes'].add(rc)
+
+        if rcs_for_coupling['dimes'] or rcs_for_coupling['dataspaces']:
+            self._insert_dataspaces_rc(rcs_for_coupling, machine)
+
+        # Create symlink in rc working_dir to dataspaces output conf file
+        rc_list = list(rcs_for_coupling['dimes']) + list(rcs_for_coupling[
+                                                           'dataspaces'])
+        src = os.path.join(self.run_path, "conf")
+        for rc in rc_list:
+            dst = os.path.join(rc.working_dir, "conf")
+            if src != dst:
+                os.symlink(src, dst)
+
+    def _insert_dataspaces_rc(self, client_rcs, machine):
+        """
+        Add dataspaces support for this run.
+        Creates a new RC with dataspaces server as the exe.
+        :param client_rcs: Dist of sets for clients coupling using
+        dataspaces or dimes
+        :param machine_name: Current machine
+        :return:
+        """
+
+        # Sanity check. rc list for coupling must have >1 RCs
+        for transport_type in client_rcs:
+            if len(client_rcs[transport_type]) == 1:
+                raise exc.CheetahException("Atleast 2 codes needed for "
+                                           "coupling with DATASPACES/DIMES. "
+                                           "Found 1.")
+
+        # Check that codes has dataspaces_server exe
+        ds_server = None
+        sleep_after = 0
+        for code in self.codes:
+            exe = self.codes[code]['exe']
+            if 'dataspaces_server' in exe:
+                ds_server = exe
+                ds_rc_name = code
+                sleep_after = self.codes[code].get('sleep_after', 0)
+
+        if not ds_server:
+            raise exc.CheetahException("Dataspaces server needs to be "
+                                       "specified in codes")
+
+        # Copy the configuration file dataspaces.conf
+        ds_conf = os.path.join(self.codes_path, "dataspaces.conf")
+        if not os.path.isfile(ds_conf):
+            raise exc.CheetahException("Could not find dataspaces.conf in "
+                                       + self.codes_path)
+        dst = os.path.join(self.run_path, "dataspaces.conf")
+        copy_to_path(ds_conf, dst)
+
+        # Get the no. of dataspaces and dimes clients.
+        # RCs that have both must be counted as dataspaces clients
+        num_ds_clients = sum(rc.nprocs for rc in client_rcs['dataspaces'])
+        unique_dimes_rcs = client_rcs['dimes'] - client_rcs['dataspaces']
+        num_dimes_clients = sum(rc.nprocs for rc in unique_dimes_rcs)
+
+        num_servers = config.get_dataspaces_num_servers(num_dimes_clients,
+                                                        num_ds_clients)
+        assert num_servers > 0
+
+        rc_name = "dataspaces_server"
+        args = ['-s', str(num_servers), '-c', str(num_ds_clients +
+                                                  num_dimes_clients)]
+
+        # Get the node layout
+        node_layout = None
+        for d in self.node_layout.layout_list:
+            if ds_rc_name == list(d.keys())[0]:
+                node_layout = d[ds_rc_name]
+        if node_layout is None:
+            node_layout = machine.dataspaces_servers_per_node
+
+        rc = RunComponent(rc_name, ds_server, args,
+                          nprocs=num_servers, sleep_after=sleep_after,
+                          working_dir=self.run_path)
+
+        self.node_layout.add_node({rc_name: node_layout})
+        self.run_components.insert(0, rc)
 
     def insert_sosflow(self, sosd_path, sos_analysis_path, run_path, ppn):
         """Insert a new component at start of list to launch sosflow daemon.
@@ -571,7 +780,7 @@ class Run(object):
         # calculation
         for rc in self.run_components:
             # ignore component if not setup to use sosflow
-            if not rc.sosflow:
+            if not rc.linked_with_sosflow:
                 continue
 
             # TODO: is this actually used directly?
@@ -624,7 +833,8 @@ class Run(object):
 class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
-                 sosflow=False, env=None, timeout=None):
+                 linked_with_sosflow=False, adios_xml_file=None,
+                 env=None, timeout=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -634,7 +844,8 @@ class RunComponent(object):
         self.timeout = timeout
         self.working_dir = working_dir
         self.component_inputs = component_inputs
-        self.sosflow = sosflow
+        self.linked_with_sosflow = linked_with_sosflow
+        self.adios_xml_file = adios_xml_file
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -643,7 +854,8 @@ class RunComponent(object):
                     nprocs=self.nprocs,
                     working_dir=self.working_dir,
                     sleep_after=self.sleep_after,
-                    sosflow=self.sosflow)
+                    linked_with_sosflow=self.linked_with_sosflow,
+                    adios_xml_file=self.adios_xml_file)
         if self.env:
             data['env'] = self.env
         if self.timeout:

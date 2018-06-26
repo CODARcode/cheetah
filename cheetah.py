@@ -1,20 +1,50 @@
 #!/usr/bin/env python3
 """
-Test main script for new python based cheetah config.
-
-Usage:
-
- python3 cheetah.py -e /path/to/experiment.py -a /path/to/app/dir/ -m MACHINE_NAME -o /path/to/out/dir/
-
+Main script for calling cheetah subcommands.
 """
 
 import os
+import sys
 import argparse
 
 from codar.cheetah.loader import load_experiment_class
+from codar.cheetah import status
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Cheetah experiment harness")
+
+def main():
+    top_parser = argparse.ArgumentParser(
+                    description='Cheetah experiment harness',
+                    usage='''cheetah.py <command> [<options>]
+ Supported commands:
+    create-campaign    Create a campaign directory from a spec file
+    generate-report    Generate a report of results from a completed campaign
+    status             Print information about a campaign
+    help               Show this help message and exit
+
+ For details on running each command, run 'cheetah.py <command> -h'.
+''')
+    commands = ['help', 'create-campaign', 'generate-report', 'status']
+    top_parser.add_argument('command', help='Subcommand to run',
+                            choices=commands)
+    args = top_parser.parse_args(sys.argv[1:2])
+    prog = 'cheetah.py ' + args.command
+    command_args = sys.argv[2:]
+    if args.command == 'create-campaign':
+        create_campaign(prog, command_args)
+    elif args.command == 'generate-report':
+        generate_report(prog, command_args)
+    elif args.command == 'status':
+        status_command(prog, command_args)
+    elif args.command == 'help':
+        top_parser.print_help()
+        sys.exit(os.EX_OK)
+    else:
+        assert False, 'unknown command: %s' % args.command
+
+
+def create_campaign(prog, argv):
+    parser = argparse.ArgumentParser(prog=prog,
+                description='Create a campaign directory')
     parser.add_argument('-e', '--experiment-spec', required=True,
             help="Path to Python module containinig an experiment definition")
     parser.add_argument('-a', '--app-directory', required=True,
@@ -23,10 +53,8 @@ def parse_args():
             help="Name of machine to generate runner for")
     parser.add_argument('-o', '--output-directory', required=True,
             help="Output location where run scripts are saved")
-    return parser.parse_args()
+    args = parser.parse_args(argv)
 
-def main():
-    args = parse_args()
     eclass = load_experiment_class(args.experiment_spec)
     machine_name = args.machine
     # TODO: handle case where cheetah is run on local linux but target
@@ -36,6 +64,89 @@ def main():
 
     e = eclass(machine_name, app_dir)
     e.make_experiment_run_dir(output_dir)
+
+
+def generate_report(prog, argv):
+    parser = argparse.ArgumentParser(prog=prog,
+                description="Generate a report for a completed campaign")
+    parser.add_argument('campaign_directory',
+                        help='Top level directory of the campaign.')
+    parser.add_argument('-u','--run-user-script', required=False, default=None,
+                        help='User script to be executed additionally in '
+                             'each run dir. Must write a file named '
+                             'cheetah_user_report.json for the report '
+                             'generation engine to include '
+                             'user-parsed results.')
+    parser.add_argument('-o', '--output-file', required=False,
+                        default="campaign_results.csv",
+                        help="Alternate file name or path for results. "
+                             "Default is to store in campaign directory "
+                             "with default name 'campaign-results.csv'")
+
+    args = parser.parse_args(argv)
+    from codar.cheetah import report_generator
+    report_generator.generate_report(args.campaign_directory,
+                                     args.run_user_script,
+                                     args.output_file)
+
+
+def status_command(prog, argv):
+    parser = argparse.ArgumentParser(prog=prog,
+                description="Get status of an existing campaign")
+    parser.add_argument('campaign_directory',
+                        help='Top level campaign directory')
+    parser.add_argument('-u', '--user', required=False,
+                        default=None, nargs='*',
+                        help='Show status for specific user(s) only')
+    parser.add_argument('-g', '--group', required=False,
+                        default=None, nargs='*',
+                        help='Show status for specific sweep group(s) only')
+    parser.add_argument('-r', '--run', required=False,
+                        default=None, nargs='*',
+                        help='Show status for specific run(s) only')
+    parser.add_argument('-c', '--code', required=False,
+                        default=None, nargs='*',
+                        help='Show status for specific code(s) only')
+
+    parser.add_argument('-s', '--group-summary', required=False,
+                        action='store_true',
+                        help='Show a summary of statistics for each group')
+    parser.add_argument('-l', '--logs', required=False, action='store_true',
+                        help='Show workflow log file for each group')
+    parser.add_argument('-v', '--log-level', required=False, default='DEBUG',
+                        choices=['CRITICAL', 'ERROR', 'WARNING', 'INFO',
+                                 'DEBUG'],
+                        help='Display messages of specified level or above'
+                             ' (requires --logs)')
+
+    parser.add_argument('-n', '--run-summary', required=False,
+                        action='store_true',
+                        help='Show a summary for each run')
+    parser.add_argument('-t', '--return-codes', required=False,
+                        action='store_true',
+                        help='Show return codes for components within each run'
+                             ' (implies -n)')
+    parser.add_argument('-p', '--show-parameters', required=False,
+                        action='store_true',
+                        help='Show parameter values for each run (implies -t'
+                             ' and -n)')
+    parser.add_argument('-o', '--print-code-output', required=False,
+                        action='store_true',
+                        help='Show stderr and stdout for codes within each run')
+
+    args = parser.parse_args(argv)
+    status.print_campaign_status(args.campaign_directory,
+                                 filter_user=args.user,
+                                 filter_group=args.group,
+                                 filter_run=args.run,
+                                 filter_code=args.code,
+                                 group_summary=args.group_summary,
+                                 run_summary=args.run_summary,
+                                 print_logs=args.logs,
+                                 log_level=args.log_level,
+                                 return_codes=args.return_codes,
+                                 print_output=args.print_code_output,
+                                 show_parameters=args.show_parameters)
 
 
 if __name__ == '__main__':
