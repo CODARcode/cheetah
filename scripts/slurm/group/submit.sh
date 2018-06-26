@@ -17,6 +17,12 @@ if [ -f codar.workflow.status.json ]; then
     fi
 fi
 
+# Don't submit if old job is still running
+if [ -f codar.cheetah.jobid.txt ]; then
+    JOBID=$(cat codar.cheetah.jobid.txt | cut -d: -f2)
+    STATE=$(squeue -h -j $JOBID -O state)
+fi
+
 # convert walltime from seconds to HH:MM:SS format needed by PBS
 
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
