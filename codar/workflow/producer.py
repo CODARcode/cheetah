@@ -4,7 +4,7 @@ import json
 import os
 import logging
 from codar.workflow.model import Pipeline
-from codar.workflow.status import NOT_STARTED
+from codar.workflow.status import DONE, NOT_STARTED
 
 _log = logging.getLogger('codar.workflow.producer')
 
@@ -34,16 +34,14 @@ class JSONFilePipelineReader(object):
                 pipeline_data = json.loads(line)
 
                 # Check if this pipeline has already been run
-                id = pipeline_data['id']
-                status_d = pipelines_status.get(id,{})
+                pipe_id = pipeline_data['id']
+                status_d = pipelines_status.get(pipe_id, {})
                 status = status_d.get('state', NOT_STARTED)
 
-                # Add pipeline if not run before
-                if status == NOT_STARTED:
-                    pipeline = Pipeline.from_data(pipeline_data)
-                    _log.debug("Adding pipeline %s to list of pipelines to "
-                               "be run", pipeline_data['working_dir'])
-                    yield pipeline
+                # Add pipeline if not done
+                if status == DONE:
+                    _log.info("pipeline %s already done, skipping", pipe_id)
                 else:
-                    _log.debug("Run %s already run. Skipping ..",
-                               pipeline_data['working_dir'])
+                    pipeline = Pipeline.from_data(pipeline_data)
+                    _log.debug("adding pipeline %s to run queue", pipe_id)
+                    yield pipeline
