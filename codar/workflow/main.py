@@ -5,6 +5,7 @@ import argparse
 import threading
 import logging
 import signal
+import os
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
@@ -61,6 +62,8 @@ def main():
     else:
         logger.addHandler(logging.NullHandler())
 
+    logger.info('starting workflow job %s', get_job_id())
+
     consumer = PipelineRunner(runner=runner,
                               max_nodes=args.max_nodes,
                               processes_per_node=args.processes_per_node,
@@ -92,3 +95,17 @@ def main():
     # actually causes problems because Python can't handle signals if
     # the main thread is in a join, since that is basically pure C code
     # (pthread_join).
+
+
+def get_job_id():
+    scheduler_vars = dict(
+        SLURM='SLURM_JOB_ID',
+        PBS='PBS_JOBID',
+        COBALT='COBALT_JOBID'
+        )
+    for name, var in scheduler_vars.items():
+        val = os.environ.get(var)
+        if val:
+            return '%s:%s' % (name, val)
+    # fall back to using pid
+    return 'PID:%s' % os.getpid()
