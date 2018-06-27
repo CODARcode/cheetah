@@ -259,6 +259,9 @@ supported parameter types. For a complete list, see the examples and the
 - (beta) Re-submit a group to execute runs that did not execute in a
   previous job
 
+See the v0.5 milestone on github for a complete list including bug fixes:
+https://github.com/CODARcode/cheetah/milestone/1?closed=1
+
 ### v0.1
 
 - Initial release
