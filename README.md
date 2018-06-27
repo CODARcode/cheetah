@@ -202,6 +202,17 @@ supported parameter types. For a complete list, see the examples and the
   taken to generate all the instances to run. For simple campaigns that
   need to do a full cross product of parameter values, only one
   SweepGroup containing one Sweep is needed.
+- node\_layout - an option passed to the Sweep that determines the
+  way to allocate nodes and MPI processes to codes. The default is to allocate
+  an entire node to each code and use the maximum number of cores available.
+  Alternate configuration is specified in a dictionary, with
+  keys giving a machine name that the layout is designed for, and values
+  indicating the layout as a list of dictionaries. Each dictionary
+  represents a single node, the keys inside are code names, and the
+  values are the number of processes to use for each code. Node sharing
+  is not yet supported, so each node dictionary must contain only one code
+  entry, but the format is designed to support sharing. See also the
+  [node layout example](examples/heat_transfer_node_layout.py).
 - ParamX - all parameter types have at least three elements:
   - target - which code the parameter is for. The value must be one of
     the keys in the codes dictionary.
@@ -222,3 +233,33 @@ supported parameter types. For a complete list, see the examples and the
   on the convention used by the code. Note that this is distinct from
   the name, but a good choice for name is the option with the dashes
   removed.
+
+## Changelog
+
+### v0.5
+
+- New subcommand structure (the initial command structure is now under
+  the `create-campaign` subcommand).
+- New `status` subcommand
+- New  `generate-report` subcommand
+- Multi-user campaign support
+- Dataspaces integration
+- Improved ADIOS parameter support
+- Add `node\_layout` Sweep option for per-machine node configuration
+- Working machine support: local, cori, theta, and titan
+- Add umask campaign option
+- Per code/component input files
+- Improved workflow scheduling (more efficient use of available nodes
+  within a sweep group)
+- Add new parameter types `ParamKeyValue` (for ini, namelist, and other
+  similar name=value formatted config files) and `ParamConfig` (fully
+  generic string replacment, can be used with any format)
+- Support symlinks for input files, useful to avoid copying large files
+- (beta) SOSFlow integration
+- (beta) Re-submit a group to execute runs that did not execute in a
+  previous job
+
+### v0.1
+
+- Initial release
+- Working machine support: local, titan

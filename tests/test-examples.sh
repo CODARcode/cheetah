@@ -32,6 +32,13 @@ for machine in local titan cori theta; do
     ./cheetah.py create-campaign -e examples/param_test.py -m $machine \
         -a "$CHEETAH_DIR/examples/param_test/" \
         -o test_output/$machine-param_test
+
+    echo $machine-heat_transfer_node_layout
+    rm -rf test_output/$machine-heat_transfer_node_layout/*
+    ./cheetah.py create-campaign -e examples/heat_transfer_node_layout.py \
+        -m $machine \
+        -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
+        -o test_output/$machine-heat_transfer_node_layout
 done
 
 # run local param test and analyze results, to exercise report generator
