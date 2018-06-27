@@ -243,6 +243,26 @@ supported parameter types. For a complete list, see the examples and the
 - New `status` subcommand
 - New  `generate-report` subcommand
 - Multi-user campaign support
+- Specify different node counts in Sweeps
+- Add experiments to an existing campaign directory
+- Option to override number of nodes
+- Feature to parse and consolidate campaign performance information
+- Have cheetah figure out min/max number of nodes
+- Mark file as ADIOS XML file for an application
+- Support for absolute paths for input files
+- Support for TAU trace directory
+- Support for input files with key-value parameters
+- Get Example-Heat_Transfer + Tau working with Cheetah
+- Support for running per-run setup script during campaign creation
+- Support for sub-directories for FOB components
+- Named group directories in campaign
+- Ordered invocation of FOB components
+- Insert delay between component invocations
+- Derived params based on params for codes
+- Option to kill run if any component fails
+- Support for timeouts
+- Support for named arguments
+- Set custom TAU environment variable for each code
 - Dataspaces integration
 - Improved ADIOS parameter support
 - Add `node\_layout` Sweep option for per-machine node configuration
@@ -254,10 +274,11 @@ supported parameter types. For a complete list, see the examples and the
 - Add new parameter types `ParamKeyValue` (for ini, namelist, and other
   similar name=value formatted config files) and `ParamConfig` (fully
   generic string replacment, can be used with any format)
+- Add hook in report generation to run user script
 - Support symlinks for input files, useful to avoid copying large files
 - (beta) SOSFlow integration
-- (beta) Re-submit a group to execute runs that did not execute in a
-  previous job
+- (beta) Resume partially completed campaigns
+
 
 See the v0.5 milestone on github for a complete list including bug fixes:
 https://github.com/CODARcode/cheetah/milestone/1?closed=1
