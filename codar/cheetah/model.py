@@ -166,14 +166,13 @@ class Campaign(object):
             self.run_dir_setup_script = self._experiment_relative_path(
                                                 self.run_dir_setup_script)
 
+        self.machine_app_config_script = None
         if self.app_config_scripts is not None:
             assert isinstance(self.app_config_scripts, dict)
             script = self.app_config_scripts.get(machine_name)
             if script is not None:
                 self.machine_app_config_script = \
                     self._experiment_relative_path(script)
-        else:
-            self.machine_app_config_script = None
 
     def _get_machine(self, machine_name):
         machine = None
