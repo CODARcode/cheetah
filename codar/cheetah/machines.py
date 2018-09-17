@@ -71,6 +71,11 @@ titan=Machine('titan', launchers.Launcher, "pbs", "aprun",
               scheduler_options=dict(project="", queue="debug"),
               dataspaces_servers_per_node=4)
 
+
+# Added by Eric Suchyta
+rhea = Machine('rhea', launchers.Launcher, "pbs", "mpirun", processes_per_node=16, node_exclusive=True, scheduler_options=dict(project="", queue="rhea"), dataspaces_servers_per_node=4)
+
+
 # TODO: remove node exclusive restriction, which can be avoided on cori
 # using correct sbatch and srun options. As a start just get feature
 # parity with titan.

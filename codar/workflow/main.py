@@ -9,7 +9,7 @@ import os
 
 from codar.workflow.producer import JSONFilePipelineReader
 from codar.workflow.consumer import PipelineRunner
-from codar.workflow.model import mpiexec, aprun, srun
+from codar.workflow.model import mpiexec, aprun, srun, mpirun
 
 
 consumer = None
@@ -19,9 +19,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description='HPC Worflow script')
     parser.add_argument('--max-nodes', type=int, required=True)
     parser.add_argument('--processes-per-node', type=int, required=True)
-    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun',
-                                             'none'],
-                        required=True)
+
+    # Eric Suchyta added mpirun
+    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun', 'mpirun', 'none'], required=True)
+
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
     parser.add_argument('--log-file')
@@ -46,6 +47,8 @@ def main():
         runner = aprun
     elif args.runner == 'srun':
         runner = srun
+    elif args.runner == 'mpirun':
+        runner = mpirun
     elif args.runner == 'none':
         runner = None
     else:

@@ -662,3 +662,7 @@ class MPIRunner(Runner):
 mpiexec = MPIRunner('mpiexec', '-n')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N')
 srun = MPIRunner('srun', '-n', nodes_arg='-N')
+
+
+# Added by Eric Suchyta
+mpirun = MPIRunner('mpirun', '-n', tasks_per_node_arg='-ppn')
