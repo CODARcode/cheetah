@@ -185,8 +185,7 @@ class Campaign(object):
                 % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir, _check_code_paths=True):
-        """Produce scripts and directory structure for running the experiment.
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=True, runner_extra=""): """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
@@ -230,6 +229,7 @@ class Campaign(object):
             app_config=self.machine_app_config_script or "",
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
+            runner_extra=runner_extra,
             workflow_debug_level="DEBUG",
             umask=(self.umask or "")
         )

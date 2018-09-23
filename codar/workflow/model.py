@@ -636,12 +636,20 @@ class Runner(object):
 
 
 class MPIRunner(Runner):
+
     def __init__(self, exe, nprocs_arg, nodes_arg=None,
                  tasks_per_node_arg=None):
         self.exe = exe
         self.nprocs_arg = nprocs_arg
         self.nodes_arg = nodes_arg
         self.tasks_per_node_arg = tasks_per_node_arg
+
+        self.runner_extra = []
+
+
+    def AddExtra(self, runner_extra=""):
+        self.runner_extra += runner_extra.strip().split()
+
 
     def wrap(self, run, find_in_path=True):
         if find_in_path:
@@ -656,6 +664,9 @@ class MPIRunner(Runner):
             runner_args += [self.nodes_arg, str(run.nodes)]
         if self.tasks_per_node_arg:
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
+
+        runner_args += self.runner_args
+
         return runner_args + [run.exe] + run.args
 
 

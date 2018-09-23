@@ -22,6 +22,7 @@ def parse_args():
 
     # Eric Suchyta added mpirun
     parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun', 'mpirun', 'none'], required=True)
+    parser.add_argument('--runner_extra', default="")
 
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
@@ -54,6 +55,8 @@ def main():
     else:
         # Note: arg parser should have caught this already
         raise ValueError('Unknown runner: %s' % args.runner)
+
+    runner.AddExtra(args.runner_extra)
 
     logger = logging.getLogger('codar.workflow')
     if args.log_file:
