@@ -666,8 +666,12 @@ class MPIRunner(Runner):
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
 
         runner_args += self.runner_args
+        runner_args += [run.exe]
+        runner_args += run.args
+        print("{0}".format(' '.join(runner_args)))
+        #return runner_args + [run.exe] + run.args
 
-        return runner_args + [run.exe] + run.args
+        return runner_args
 
 
 mpiexec = MPIRunner('mpiexec', '-n')
