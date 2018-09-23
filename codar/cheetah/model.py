@@ -185,7 +185,8 @@ class Campaign(object):
                 % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir, _check_code_paths=True, runner_extra=""): """Produce scripts and directory structure for running the experiment.
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=True, runner_extra=""):
+        """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
         and within each scheduler group directory, a subdirectory for each
