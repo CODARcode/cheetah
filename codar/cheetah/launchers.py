@@ -69,11 +69,11 @@ class Launcher(object):
         """Copy scripts for the appropriate scheduler to group directory,
         and write environment configuration. Returns required number of nodes,
         which will be calculated if the passed nodes is None"""
-        script_dir = os.path.join(config.CHEETAH_PATH_SCRIPTS,
+        script_dir = os.path.join(config.CHEETAH_PATH_SCHEDULER,
                                   self.scheduler_name, 'group')
         if not os.path.isdir(script_dir):
-            raise ValueError("scheduler '%s' is not yet supported"
-                             % self.scheduler_name)
+            raise ValueError("scheduler '%s' is not yet supported (path '%s')"
+                             % (self.scheduler_name, script_dir))
         if scheduler_options is None:
             scheduler_options = {}
         copytree_to_dir(script_dir, self.output_directory)

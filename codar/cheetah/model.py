@@ -213,7 +213,7 @@ class Campaign(object):
 
         # Create a directory for the user and set it as the campaign location
         output_dir = os.path.join(_output_dir, getpass.getuser())
-        run_all_script = os.path.join(config.CHEETAH_PATH_SCRIPTS,
+        run_all_script = os.path.join(config.CHEETAH_PATH_SCHEDULER,
                                       self.machine.scheduler_name,
                                       'run-all.sh')
         os.makedirs(output_dir, exist_ok=True)
