@@ -2,14 +2,17 @@
 
 set -e
 
-cd $(dirname $0)/../
+cd $(dirname $0)
+TESTS_DIR=$(pwd)
+cd ..
 CHEETAH_DIR=$(pwd)
-CHEETAH=$CHEETAH_DIR/bin/cheetah.py
-mkdir -p test_output
+CHEETAH="$CHEETAH_DIR"/bin/cheetah.py
+OUTDIR="$TESTS_DIR"/output
+mkdir -p "$OUTDIR"
 
 if [ $# -gt 0 ]; then
     if [ "$1" == "-c" ]; then
-        rm -rf test_output/*
+        rm -rf "$OUTDIR"/*
     else
         echo "Error: unknown option '$1'"
         exit 1
@@ -23,28 +26,28 @@ fi
 
 for machine in local titan cori theta; do
     echo $machine-pi
-    rm -rf test_output/$machine-pi/*
+    rm -rf "$OUTDIR"/$machine-pi/*
     $CHEETAH create-campaign -e examples/PiExperiment.py -m $machine \
         -a "$CODAR_APPDIR/Example-pi/" \
-        -o test_output/$machine-pi
+        -o "$OUTDIR"/$machine-pi
 
     echo $machine-param_test
-    rm -rf test_output/$machine-param_test/*
+    rm -rf "$OUTDIR"/$machine-param_test/*
     $CHEETAH create-campaign -e examples/param_test.py -m $machine \
         -a "$CHEETAH_DIR/examples/param_test/" \
-        -o test_output/$machine-param_test
+        -o "$OUTDIR"/$machine-param_test
 
     echo $machine-heat_transfer_node_layout
-    rm -rf test_output/$machine-heat_transfer_node_layout/*
+    rm -rf "$OUTDIR"/$machine-heat_transfer_node_layout/*
     $CHEETAH create-campaign -e examples/heat_transfer_node_layout.py \
         -m $machine \
         -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-        -o test_output/$machine-heat_transfer_node_layout
+        -o "$OUTDIR"/$machine-heat_transfer_node_layout
 done
 
 # run local param test and analyze results, to exercise report generator
 # and status subcommand
-cd test_output/local-param_test
+cd "$OUTDIR"/local-param_test
 $USER/run-all.sh
 $CHEETAH_DI$CHEETAH status . >status.log 2>&1
 $USER/test/wait.sh >/dev/null
@@ -69,10 +72,10 @@ fi
 cd $CHEETAH_DIR
 
 echo loal-heat-simple
-rm -rf test_output/local-heat-simple/*
+rm -rf "$OUTDIR"/local-heat-simple/*
 $CHEETAH create-campaign -e examples/heat_transfer_simple.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/local-heat-simple
+    -o "$OUTDIR"/local-heat-simple
 
 
 # ------------- per component subdirs and inputs -----------
@@ -83,35 +86,35 @@ $CHEETAH create-campaign -e examples/heat_transfer_simple.py -m local \
 # Temporary example only, waiting for xgc spec file.
 
 echo loal-heat-rc-subdirs-inputs
-rm -rf test_output/local-heat-rc-subdirs-inputs/*
+rm -rf "$OUTDIR"/local-heat-rc-subdirs-inputs/*
 $CHEETAH create-campaign \
     -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m local \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/local-heat-rc-subdirs-inputs
+    -o "$OUTDIR"/local-heat-rc-subdirs-inputs
 
 echo titan-heat-rc-subdirs-inputs
-rm -rf test_output/titan-heat-rc-subdirs-inputs/*
+rm -rf "$OUTDIR"/titan-heat-rc-subdirs-inputs/*
 $CHEETAH create-campaign \
     -e examples/heat_transfer_simple_rc_subdirs_inputs.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/titan-heat-rc-subdirs-inputs
+    -o "$OUTDIR"/titan-heat-rc-subdirs-inputs
 
 # End ------------- per component subdirs and inputs -----------
 
 echo titan-heat-simple
-rm -rf test_output/titan-heat-simple/*
+rm -rf "$OUTDIR"/titan-heat-simple/*
 $CHEETAH create-campaign -e examples/heat_transfer_simple.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/titan-heat-simple
+    -o "$OUTDIR"/titan-heat-simple
 
 echo titan-heat-sosflow
-rm -rf test_output/titan-heat-sosflow/*
+rm -rf "$OUTDIR"/titan-heat-sosflow/*
 $CHEETAH create-campaign -e examples/heat_transfer_sosflow.py -m titan \
     -a "$CODAR_APPDIR/Example-Heat_Transfer/" \
-    -o test_output/titan-heat-sosflow
+    -o "$OUTDIR"/titan-heat-sosflow
 
 echo titan-exaalt
-rm -rf test_output/titan-exaalt/*
+rm -rf "$OUTDIR"/titan-exaalt/*
 $CHEETAH create-campaign -e examples/exaalt.py -m titan \
     -a "$CODAR_APPDIR/Example-EXAALT/" \
-    -o test_output/titan-exaalt
+    -o "$OUTDIR"/titan-exaalt
