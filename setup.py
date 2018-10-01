@@ -24,4 +24,5 @@ setup(name='cheetah',
       packages=find_packages(),
       package_data={'codar.cheetah': cheetah_data},
       scripts=['bin/cheetah.py', 'bin/workflow.py'],
+      install_requires="numpy>=1.11.0",
       )

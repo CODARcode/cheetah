@@ -9,6 +9,7 @@ supercomputers (machines) are specified in other modules with the corresponding
 name.
 """
 import os
+import sys
 import stat
 import json
 import math
@@ -100,8 +101,11 @@ class Campaign(object):
     # script.
     post_process_script = None
 
-    # By default use python3 in PATH, but allow override
-    python_path = "python3"
+    # By default the workflow script running on compute nodes in the
+    # campaign will use the same executable (possibly in a virtualenv)
+    # as the cheetah.py command used to create the campaign. If needed,
+    # specs can override this.
+    python_path = sys.executable
 
     # A file that identifies a directory as a multi-user campaign
     _id_file = ".campaign"
