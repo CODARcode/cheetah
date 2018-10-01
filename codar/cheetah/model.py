@@ -100,6 +100,9 @@ class Campaign(object):
     # script.
     post_process_script = None
 
+    # By default use python3 in PATH, but allow override
+    python_path = "python3"
+
     # A file that identifies a directory as a multi-user campaign
     _id_file = ".campaign"
 
@@ -231,7 +234,8 @@ class Campaign(object):
             workflow_script_path=config.WORKFLOW_SCRIPT,
             workflow_runner=self.machine.runner_name,
             workflow_debug_level="DEBUG",
-            umask=(self.umask or "")
+            umask=(self.umask or ""),
+            codar_python=self.python_path,
         )
         campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
         with open(campaign_env_path, 'w') as f:

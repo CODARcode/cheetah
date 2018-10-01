@@ -8,15 +8,13 @@ from codar.cheetah import exc
 PACKAGE_PATH = os.path.realpath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(PACKAGE_PATH, "data")
 
-CHEETAH_PATH = os.path.realpath(os.path.join(
-                     os.path.dirname(__file__), "..", ".."))
+CODAR_PATH = os.path.realpath(os.path.join(PACKAGE_PATH, ".."))
 
 CHEETAH_PATH_SCHEDULER = os.path.join(DATA_PATH, "scheduler")
 
 CHEETAH_PATH_MACHINE_CONFIG = os.path.join(DATA_PATH, "machine_config")
 
-# TODO: this is not robust
-WORKFLOW_SCRIPT = os.path.join(CHEETAH_PATH, "bin", "workflow.py")
+WORKFLOW_SCRIPT = os.path.join(CODAR_PATH, "workflow", "main.py")
 
 
 def scheduler_path(scheduler_name):
