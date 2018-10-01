@@ -1,6 +1,7 @@
 import os.path
 
-from codar.cheetah.config import CHEETAH_PATH
+module_path = os.path.realpath(os.path.dirname(__file__))
+source_path = os.path.realpath(os.path.join(module_path, '..', '..', '..'))
 
-TEST_OUTPUT_DIR = os.path.join(CHEETAH_PATH, 'test_output', 'nose',
+TEST_OUTPUT_DIR = os.path.join(source_path, 'test_output', 'nose',
                                'test_cheetah')

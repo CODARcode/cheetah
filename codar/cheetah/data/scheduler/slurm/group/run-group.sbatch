@@ -20,7 +20,7 @@ fi
 start=$(date +%s)
 
 # Main application run
-"$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
+"$CODAR_PYTHON" "$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
  --max-nodes=$CODAR_CHEETAH_GROUP_NODES \
  --processes-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE \
  --producer-input-file=fobs.json \
