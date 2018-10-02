@@ -320,7 +320,7 @@ supported parameter types. For a complete list, see the examples and the
 
 ### v0.5.1
 
-- Refactor to better support installaction via pip and setuptools
+- Refactor to better support installation via pip and setuptools
 - Campaigns will use the same python executable as the
   `cheetah.py create-campaign` command used to generate them, which
   should automatically take care of using the correct virtualenv in most
