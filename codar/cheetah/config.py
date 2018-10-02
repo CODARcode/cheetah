@@ -5,18 +5,20 @@ import os.path
 import math
 from codar.cheetah import exc
 
-CHEETAH_PATH = os.path.realpath(os.path.join(
-                     os.path.dirname(__file__), "..", ".."))
+PACKAGE_PATH = os.path.realpath(os.path.dirname(__file__))
+DATA_PATH = os.path.join(PACKAGE_PATH, "data")
 
-CHEETAH_PATH_SCRIPTS = os.path.join(CHEETAH_PATH, "scripts")
+CODAR_PATH = os.path.realpath(os.path.join(PACKAGE_PATH, ".."))
 
-CHEETAH_PATH_MACHINE_CONFIG = os.path.join(CHEETAH_PATH, "machine_config")
+CHEETAH_PATH_SCHEDULER = os.path.join(DATA_PATH, "scheduler")
 
-WORKFLOW_SCRIPT = os.path.join(CHEETAH_PATH, "workflow.py")
+CHEETAH_PATH_MACHINE_CONFIG = os.path.join(DATA_PATH, "machine_config")
+
+WORKFLOW_SCRIPT = os.path.join(CODAR_PATH, "workflow", "main.py")
 
 
-def script_path(script_name):
-    return os.path.join(CHEETAH_PATH_SCRIPTS, script_name)
+def scheduler_path(scheduler_name):
+    return os.path.join(CHEETAH_PATH_SCRIPTS, scheduler_name)
 
 
 def machine_submit_env_path(machine_name):
@@ -25,7 +27,7 @@ def machine_submit_env_path(machine_name):
 
 
 def etc_path(conf_name):
-    return os.path.join(CHEETAH_PATH, "etc", conf_name)
+    return os.path.join(DATA_PATH, "etc", conf_name)
 
 
 def get_dataspaces_num_servers(num_dimes_clients, num_dataspaces_clients):

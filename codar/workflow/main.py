@@ -109,3 +109,9 @@ def get_job_id():
             return '%s:%s' % (name, val)
     # fall back to using pid
     return 'PID:%s' % os.getpid()
+
+
+# allow this module to be run as a script from within a pip/setuptools
+# installed distribution
+if __name__ == '__main__':
+    main()

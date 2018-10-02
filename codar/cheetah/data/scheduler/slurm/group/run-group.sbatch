@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd "$PBS_O_WORKDIR"
+# Note: slurm uses parent dir of sbatch script as working dir by default
 
 source ../campaign-env.sh
 source group-env.sh
@@ -20,7 +20,7 @@ fi
 start=$(date +%s)
 
 # Main application run
-"$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
+"$CODAR_PYTHON" "$CODAR_WORKFLOW_SCRIPT" --runner=$CODAR_WORKFLOW_RUNNER \
  --max-nodes=$CODAR_CHEETAH_GROUP_NODES \
  --processes-per-node=$CODAR_CHEETAH_GROUP_PROCESSES_PER_NODE \
  --producer-input-file=fobs.json \
