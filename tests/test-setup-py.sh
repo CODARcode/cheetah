@@ -11,7 +11,7 @@ rm -rf "$OUTDIR"/*
 ENVDIR="$OUTDIR"/env
 mkdir -p "$ENVDIR"
 
-virtualenv "$ENVDIR" > "$OUTDIR"/virtualenv.log 2>&1
+python -m venv "$ENVDIR" > "$OUTDIR"/virtualenv.log 2>&1
 PYTHON="$ENVDIR"/bin/python3
 
 cd ..
