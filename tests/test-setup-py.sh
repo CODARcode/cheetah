@@ -12,10 +12,21 @@ ENVDIR="$OUTDIR"/env
 mkdir -p "$ENVDIR"
 
 python3 -m venv "$ENVDIR" > "$OUTDIR"/virtualenv.log 2>&1
+if [ $? -ne 0 ]; then
+    echo "ERROR: failed to set up venv"
+    tail "$OUTDIR"/virtualenv.log
+    exit 1
+fi
 PYTHON="$ENVDIR"/bin/python3
+PIP="$ENVDIR"/bin/pip
 
 cd ..
-$PYTHON setup.py install >"$OUTDIR"/setup.log 2>&1
+$PIP install . >"$OUTDIR"/setup.log 2>&1
+if [ $? -ne 0 ]; then
+    echo "ERROR: failed to install cheetah and dependencies to venv"
+    tail "$OUTDIR"/setup.log
+    exit 1
+fi
 cd "$OUTDIR"
 
 ok=1
