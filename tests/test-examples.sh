@@ -9,6 +9,7 @@ CHEETAH_DIR=$(pwd)
 CHEETAH="$CHEETAH_DIR"/bin/cheetah.py
 OUTDIR="$TESTS_DIR"/output
 mkdir -p "$OUTDIR"
+rm -rf "$OUTDIR"/*
 
 if [ $# -gt 0 ]; then
     if [ "$1" == "-c" ]; then
@@ -22,6 +23,35 @@ fi
 if [ "x$CODAR_APPDIR" == "x" ]; then
     echo "Error: set CODAR_APPDIR"
     exit 1
+fi
+
+# Allow running tests using a fake temporary appdir, to avoid having to
+# compile the apps for doing basic testing.
+if [ "$CODAR_APPDIR" == "fake" ]; then
+    CODAR_APPDIR="$OUTDIR"/apps
+    mkdir -p "$CODAR_APPDIR"/Example-pi
+    touch    "$CODAR_APPDIR"/Example-pi/pi-gmp
+    chmod +x "$CODAR_APPDIR"/Example-pi/pi-gmp
+
+    mkdir    "$CODAR_APPDIR"/Example-Heat_Transfer
+    cp       "$TESTS_DIR"/{heat_transfer.xml,dataspaces.conf} \
+             "$CODAR_APPDIR"/Example-Heat_Transfer
+    touch    "$CODAR_APPDIR"/Example-Heat_Transfer/heat_transfer_adios2
+    touch    "$CODAR_APPDIR"/Example-Heat_Transfer/heat_transfer_adios2_tau
+    chmod +x "$CODAR_APPDIR"/Example-Heat_Transfer/heat_*_adios2*
+
+    mkdir    "$CODAR_APPDIR"/Example-Heat_Transfer/bin
+    touch    "$CODAR_APPDIR"/Example-Heat_Transfer/bin/dataspaces_server
+    chmod +x "$CODAR_APPDIR"/Example-Heat_Transfer/bin/*
+
+    mkdir -p "$CODAR_APPDIR"/Example-EXAALT
+    touch    "$CODAR_APPDIR"/Example-EXAALT/pt_producer_global
+    chmod +x "$CODAR_APPDIR"/Example-EXAALT/*
+
+    mkdir    "$CODAR_APPDIR"/Example-{EXAALT,Heat_Transfer}/stage_write
+    touch    "$CODAR_APPDIR"/Example-{EXAALT,Heat_Transfer}/stage_write/stage_write_tau
+    touch    "$CODAR_APPDIR"/Example-{EXAALT,Heat_Transfer}/stage_write/stage_write
+    chmod +x "$CODAR_APPDIR"/Example-{EXAALT,Heat_Transfer}/stage_write/*
 fi
 
 for machine in local titan cori theta; do

@@ -41,10 +41,10 @@ in the python environment without re-installing a new version.
 ```
 git clone https://github.com/CODARcode/cheetah.git
 cd cheetah
-# Recommended: create a virtualenv
-virtualenv venv-cheetah
+# Recommended: create a venv or virtualenv
+python3 -m venv venv-cheetah
 source venv-cheetah/bin/activate
-python setup.py develop
+pip install --editable .
 ```
 
 Note that any usage of cheetah will require using the python executable
@@ -65,19 +65,24 @@ cd /path/to/cheetah
 source venv-cheetah/bin/activate
 pip install nose
 ```
-A checkout of `Example-Heat_Transfer` is also required, with the
-`CODAR_APPDIR` environment variable set to it's parent directory:
+Some of the tests use real CODAR example applications - to avoid having
+to clone and build them for basic testing, you can have the test suite
+generate a fake directory hierarchy for you:
 ```
-cd /path/to/codar/apps
-git clone https://github.com/CODARcode/Example-Heat_Transfer
+export CODAR_APPDIR=fake
+```
+For more thorough testing, where you can submit the generated campaigns,
+download and build the examples in a common directory:
+```
 export CODAR_APPIDR=/path/to/codar/apps
+mkdir -p "$CODAR_APPDIR"
+cd "$CODAR_APPDIR"
+git clone https://github.com/CODARcode/Example-pi
+git clone https://github.com/CODARcode/Example-Heat_Transfer
+git clone https://github.com/CODARcode/Example-EXAALT
+# Build each app according to it's instructions, including versions
+# with and without tau for Heat_Transfer.
 ```
-The test suite generates sample heat transfer campaigns, but does not
-actually execute them. However creating campaigns checks that the
-executables exist - if you don't need to build heat transfer for other
-purposes, you can create dummy executables for `heat_transfer_adios2`
-and `stage_write/stage_write` to make the test suite run cleanly.
-
 To run the test suite (from the top level cheetah directory):
 ```
 tests/run-all.sh
@@ -90,23 +95,32 @@ tests/run-all.sh
    This tutorial will assume spack was used for the
    installation, and uses bash for environment setup examples.
 
-2. Download the Cheetah v0.5 release from github and unpack the release
-   [tarball](https://github.com/CODARcode/cheetah/archive/v0.5.tar.gz).
+2. Download the Cheetah v0.5.1 release from github and unpack the release
+   [tarball](https://github.com/CODARcode/cheetah/archive/v0.5.1.tar.gz).
 
-3. Set up the environment for cheetah (this can be added to your ~/.bashrc
+3. Install Cheetah to a venv or virtualenv:
+
+```
+cd /path/to/cheetah-0.5.1
+python3 -m venv venv-cheetah
+source venv-cheetah/bin/activate
+pip install .
+```
+
+4. Set up the environment for cheetah (this can be added to your ~/.bashrc
    file for convenience, after the spack environment is loaded):
 
 ```
 source <(spack module loads --dependencies adios)
 ```
 
-4. Make a directory for storing campaigns, for example:
+5. Make a directory for storing campaigns, for example:
 
 ```
 mkdir -p ~/codar/campaigns
 ```
 
-5. Generate a campaign from the example, which will run Heat\_Transfer
+6. Generate a campaign from the example, which will run Heat\_Transfer
    with stage\_write three times, once with no compression, once with
    zfp, and once with sz:
 
@@ -118,7 +132,7 @@ cd /path/to/cheetah
  -m local -o ~/codar/campaigns/heat
 ```
 
-6. Run the campaign:
+7. Run the campaign:
 
 ```
 cd ~/codar/campaigns/heat/$USER
