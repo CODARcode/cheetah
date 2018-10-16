@@ -5,6 +5,8 @@ of parameters. Used in the Experiment specification in the 'runs' variable.
 import itertools
 from collections import defaultdict
 
+from codar.cheetah.exc import CheetahException
+
 
 class SweepGroup(object):
     """
@@ -348,6 +350,53 @@ class ParamAdiosXML(Param):
         # if param_type is transform
         if len(parts) == 3:
             self.var_name = parts[2]
+
+
+class ParamADIOS2XML(Param):
+    """
+    Class to represent ADIOS2 XML file parameter options
+    """
+    def __init__(self, rc, io_name, operation_name, values):
+        """
+
+        :param rc: name of the run component
+        :param io_name: name of the io object in the xml file
+        :param operation_name: engine/transport/var_operation
+        :param values: a list of dicts of the type
+        [ { engine_name: {parameters} },
+          { engine_name: {parameters} },
+          { var_name: {operation_name: {parameters}}}
+        ]
+        Examples:
+        [ {"BPFile": {'Threads':1}},
+          {"BPFile": {"ProfileUnits": "Microseconds"}}
+        ]
+        [ { “T”: { “zfp”: {“rate”:18, “accuracy”: 0.01} } },
+          { “T”: { “zfp”: {“rate”:18, “accuracy”: 0.001} } },
+          { “T”: { “zfp”: {“rate”:18, “accuracy”: 0.0001} } },
+          { “T”: { “sz”:  {“rate”:18, “accuracy”: 0.01} } },
+        ]
+        """
+
+        Param.__init__(self, rc, io_name, values)
+        self.rc = rc
+        self.io_name = io_name
+        self.operation_name = operation_name
+        self.values = values
+
+        if operation_name not in ("engine", "transport", "var_operation"):
+            raise CheetahException("{0} not a valid adios xml "
+                                   "object".format(operation_name))
+
+        for key_dict in values:
+            assert (type(key_dict) == dict)
+            assert (len(key_dict) == 1)
+            vals_dict = key_dict.values()
+            assert len(vals_dict) == 1
+            vals = list(vals_dict)[0]
+            assert (type(vals) == dict)
+            if operation_name == 'var_operation':
+                assert(len(vals) == 1)
 
 
 class ParamConfig(Param):
