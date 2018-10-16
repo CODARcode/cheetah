@@ -12,10 +12,13 @@ import subprocess
 import math
 
 from codar.cheetah import adios_params, config, templates, exc
-from codar.cheetah.parameters import ParamAdiosXML, ParamConfig, ParamKeyValue
+from codar.cheetah.parameters import ParamAdiosXML, ParamADIOS2XML, \
+    ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size
 from codar.cheetah.parameters import SymLink
+from codar.cheetah.adios2_interface import get_adios_version
+from codar.cheetah import adios2_interface as adios2
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -80,63 +83,70 @@ class Launcher(object):
 
         fobs_path = os.path.join(self.output_directory, 'fobs.json')
         min_nodes = 1
-        with open(fobs_path, 'w') as f:
-            for i, run in enumerate(runs):
-                # TODO: abstract this to higher levels
-                os.makedirs(run.run_path, exist_ok=True)
 
-                # Create working dir for each component
-                for rc in run.run_components:
-                    os.makedirs(rc.working_dir, exist_ok=True)
+        f = open(fobs_path, 'w')
+        for i, run in enumerate(runs):
+            # TODO: abstract this to higher levels
+            os.makedirs(run.run_path, exist_ok=True)
 
-                if run.sosflow_profiling:
-                    run.insert_sosflow(sosd_path, sos_analysis_path,
-                                       run.run_path,
-                                       machine.processes_per_node)
+            # Create working dir for each component
+            for rc in run.run_components:
+                os.makedirs(rc.working_dir, exist_ok=True)
 
-                if tau_config is not None:
-                    copy_to_dir(tau_config, run.run_path)
+            if run.sosflow_profiling:
+                run.insert_sosflow(sosd_path, sos_analysis_path,
+                                   run.run_path,
+                                   machine.processes_per_node)
 
-                # Copy the global input files common to all components
-                for input_rpath in run.inputs:
-                    copy_to_dir(input_rpath, run.run_path)
+            if tau_config is not None:
+                copy_to_dir(tau_config, run.run_path)
 
-                # Copy input files requested by each component
-                # save working dirs for later use
-                working_dirs = {} # map component name to path
-                for rc in run.run_components:
-                    working_dirs[rc.name] = rc.working_dir
+            # Copy the global input files common to all components
+            for input_rpath in run.inputs:
+                copy_to_dir(input_rpath, run.run_path)
 
-                    # if rc has an adios xml file, copy it to working dir
-                    if rc.adios_xml_file:
-                        copy_to_dir(rc.adios_xml_file, rc.working_dir)
+            # Copy input files requested by each component
+            # save working dirs for later use
+            working_dirs = {} # map component name to path
+            for rc in run.run_components:
+                working_dirs[rc.name] = rc.working_dir
 
-                    # now copy other inputs marked under component_inputs
-                    if rc.component_inputs is not None:
-                        for input_file in rc.component_inputs:
-                            # input type is symlink
-                            if type(input_file) == SymLink:
-                                dest = os.path.join(rc.working_dir,
-                                                    os.path.basename(
-                                                        input_file))
-                                os.symlink(input_file, dest)
+                # if rc has an adios xml file, copy it to working dir
+                if rc.adios_xml_file:
+                    copy_to_dir(rc.adios_xml_file, rc.working_dir)
 
-                            # input type is a regular file
-                            else:
-                                copy_to_dir(input_file, rc.working_dir)
+                # now copy other inputs marked under component_inputs
+                if rc.component_inputs is not None:
+                    for input_file in rc.component_inputs:
+                        # input type is symlink
+                        if type(input_file) == SymLink:
+                            dest = os.path.join(rc.working_dir,
+                                                os.path.basename(
+                                                    input_file))
+                            os.symlink(input_file, dest)
 
-                # ADIOS XML param support
-                adios_xml_params = \
-                    run.instance.get_parameter_values_by_type(ParamAdiosXML)
-                for pv in adios_xml_params:
-                    working_dir = working_dirs[pv.target]
+                        # input type is a regular file
+                        else:
+                            copy_to_dir(input_file, rc.working_dir)
 
-                    # dirty way of getting the adios xml filename of the rc
-                    # that is represented by pv.target
-                    rc_adios_xml = self._get_rc_adios_xml_filename(
-                        run, pv.target)
-                    xml_filepath = os.path.join(working_dir,
-                                                os.path.basename(rc_adios_xml))
+            # ADIOS XML param support
+            adios_xml_params = \
+                run.instance.get_parameter_values_by_type(ParamAdiosXML) or \
+                run.instance.get_parameter_values_by_type(ParamADIOS2XML)
+            for pv in adios_xml_params:
+                working_dir = working_dirs[pv.target]
+
+                # dirty way of getting the adios xml filename of the rc
+                # that is represented by pv.target
+                rc_adios_xml = self._get_rc_adios_xml_filename(
+                    run, pv.target)
+                xml_filepath = os.path.join(working_dir,
+                                            os.path.basename(rc_adios_xml))
+
+                # Check if this is adios1 or adios2
+                adios_version = get_adios_version(rc_adios_xml)
+
+                if adios_version == 1:
                     if pv.param_type == "adios_transform":
                         adios_params.adios_xml_transform(
                             xml_filepath,pv.group_name, pv.var_name, pv.value)
@@ -157,121 +167,144 @@ class Launcher(object):
                     else:
                         raise exc.CheetahException("Unrecognized adios param")
 
-                # Insert dataspaces server instances if RCs will couple
-                # using dataspaces.
-                # This must be called after the ADIOS params are parsed and
-                # the final ADIOS XML is generated
-                run.add_dataspaces_support(machine)
+                else:   # adios version == 2
+                    operation_value = list(pv.value.keys())[0]
+                    if pv.operation_name in ('engine', 'transport'):
+                        parameters = pv.value.values()
+                        if pv.operation_name == 'engine':
+                            adios2.set_engine(xml_filepath, pv.io_name,
+                                              operation_value, parameters)
+                        else:
+                            adios2.set_transport(xml_filepath, pv.io_name,
+                                                 operation_value, parameters)
+                    else:   # operation_name == 'var_operation'
+                        var_name = list(pv.value.keys())[0]
+                        var_name_dict = list(pv.value.keys()[0])
+                        var_operation_value = list(var_name_dict.keys())[0]
+                        var_op_dict = list(var_name_dict.keys())[0]
+                        parameters = var_op_dict.values
+                        adios2.set_var_operation(xml_filepath, pv.io_name,
+                                                 var_name,
+                                                 var_operation_value,
+                                                 parameters)
 
-                # Calculate the no. of nodes required by this run.
-                # This must be done after dataspaces support is added.
-                if run.get_total_nodes() > min_nodes:
-                    min_nodes = run.get_total_nodes()
+            # Insert dataspaces server instances if RCs will couple
+            # using dataspaces.
+            # This must be called after the ADIOS params are parsed and
+            # the final ADIOS XML is generated
+            run.add_dataspaces_support(machine)
 
-                # Generic config file support. Note: slurps entire
-                # config file into memory, requires adding file to
-                # campaign 'inputs' option.
-                config_params = \
-                    run.instance.get_parameter_values_by_type(ParamConfig)
-                for pv in config_params:
-                    working_dir = working_dirs[pv.target]
-                    config_filepath = os.path.join(working_dir,
-                                                   pv.config_filename)
-                    lines = []
-                    # read and modify lines
-                    with open(config_filepath) as config_f:
-                        for line in config_f:
-                            line = line.replace(pv.match_string, pv.value)
-                            lines.append(line)
-                    # rewrite file with modified lines
-                    with open(config_filepath, 'w') as config_f:
-                        config_f.write("".join(lines))
+            # Calculate the no. of nodes required by this run.
+            # This must be done after dataspaces support is added.
+            if run.get_total_nodes() > min_nodes:
+                min_nodes = run.get_total_nodes()
 
-                # Key value config file support. Note: slurps entire
-                # config file into memory, requires adding file to
-                # campaign 'inputs' option.
-                kv_params = \
-                    run.instance.get_parameter_values_by_type(ParamKeyValue)
-                for pv in kv_params:
-                    working_dir = working_dirs[pv.target]
-                    kv_filepath = os.path.join(working_dir, pv.config_filename)
-                    lines = []
-                    # read and modify lines
-                    with open(kv_filepath) as kv_f:
-                        for line in kv_f:
-                            parts = line.split('=', 1)
-                            if len(parts) == 2:
-                                k = parts[0].strip()
-                                if k == pv.key_name:
-                                    # assume all k=v type formats will
-                                    # support no spaces around equals
-                                    line = k + '=' + str(pv.value) + '\n'
-                            lines.append(line)
-                    # rewrite file with modified lines
-                    with open(kv_filepath, 'w') as kv_f:
-                        kv_f.write("".join(lines))
+            # Generic config file support. Note: slurps entire
+            # config file into memory, requires adding file to
+            # campaign 'inputs' option.
+            config_params = \
+                run.instance.get_parameter_values_by_type(ParamConfig)
+            for pv in config_params:
+                working_dir = working_dirs[pv.target]
+                config_filepath = os.path.join(working_dir,
+                                               pv.config_filename)
+                lines = []
+                # read and modify lines
+                with open(config_filepath) as config_f:
+                    for line in config_f:
+                        line = line.replace(pv.match_string, pv.value)
+                        lines.append(line)
+                # rewrite file with modified lines
+                with open(config_filepath, 'w') as config_f:
+                    config_f.write("".join(lines))
 
-                # save code commands as text
-                params_path_txt = os.path.join(run.run_path,
-                                               self.run_command_name)
-                with open(params_path_txt, 'w') as params_f:
-                    for rc in run.run_components:
-                        params_f.write(' '.join(map(shlex.quote,
-                                                    [rc.exe] + rc.args)))
-                        params_f.write('\n')
+            # Key value config file support. Note: slurps entire
+            # config file into memory, requires adding file to
+            # campaign 'inputs' option.
+            kv_params = \
+                run.instance.get_parameter_values_by_type(ParamKeyValue)
+            for pv in kv_params:
+                working_dir = working_dirs[pv.target]
+                kv_filepath = os.path.join(working_dir, pv.config_filename)
+                lines = []
+                # read and modify lines
+                with open(kv_filepath) as kv_f:
+                    for line in kv_f:
+                        parts = line.split('=', 1)
+                        if len(parts) == 2:
+                            k = parts[0].strip()
+                            if k == pv.key_name:
+                                # assume all k=v type formats will
+                                # support no spaces around equals
+                                line = k + '=' + str(pv.value) + '\n'
+                        lines.append(line)
+                # rewrite file with modified lines
+                with open(kv_filepath, 'w') as kv_f:
+                    kv_f.write("".join(lines))
 
-                # save params as JSON for use in post-processing, more
-                # useful for post-processing scripts then the command
-                # text
-                params_path_json = os.path.join(run.run_path,
-                                                self.run_json_name)
-                run_data = run.get_app_param_dict()
-                with open(params_path_json, 'w') as params_f:
-                    json.dump(run_data, params_f, indent=2)
+            # save code commands as text
+            params_path_txt = os.path.join(run.run_path,
+                                           self.run_command_name)
+            with open(params_path_txt, 'w') as params_f:
+                for rc in run.run_components:
+                    params_f.write(' '.join(map(shlex.quote,
+                                                [rc.exe] + rc.args)))
+                    params_f.write('\n')
 
-                fob_runs = []
-                for j, rc in enumerate(run.run_components):
+            # save params as JSON for use in post-processing, more
+            # useful for post-processing scripts then the command
+            # text
+            params_path_json = os.path.join(run.run_path,
+                                            self.run_json_name)
+            run_data = run.get_app_param_dict()
+            with open(params_path_json, 'w') as params_f:
+                json.dump(run_data, params_f, indent=2)
 
-                    tau_profile_dir = os.path.join(run.run_path,
-                                TAU_PROFILE_PATTERN.format(code=rc.name))
-                    os.makedirs(tau_profile_dir)
+            fob_runs = []
+            for j, rc in enumerate(run.run_components):
 
-                    rc.env["PROFILEDIR"] = tau_profile_dir
-                    rc.env["TRACEDIR"] = tau_profile_dir
+                tau_profile_dir = os.path.join(run.run_path,
+                            TAU_PROFILE_PATTERN.format(code=rc.name))
+                os.makedirs(tau_profile_dir)
 
-                    if timeout is not None:
-                        rc.timeout = parse_timedelta_seconds(timeout)
+                rc.env["PROFILEDIR"] = tau_profile_dir
+                rc.env["TRACEDIR"] = tau_profile_dir
 
-                    fob_runs.append(rc.as_fob_data())
+                if timeout is not None:
+                    rc.timeout = parse_timedelta_seconds(timeout)
 
-                fob = dict(id=run.run_id, runs=fob_runs,
-                           working_dir=run.run_path,
-                           kill_on_partial_failure=kill_on_partial_failure,
-                           post_process_script=run_post_process_script,
-                           post_process_stop_on_failure=
-                                run_post_process_stop_on_failure,
-                           post_process_args=[params_path_json],
-                           node_layout=run.node_layout.as_data_list())
-                fob_s = json.dumps(fob)
+                fob_runs.append(rc.as_fob_data())
 
-                # write to file run dir
-                run_fob_path = os.path.join(run.run_path,
-                                            "codar.cheetah.fob.json")
-                with open(run_fob_path, "w") as runf:
-                    runf.write(fob_s)
-                    runf.write("\n")
+            fob = dict(id=run.run_id, runs=fob_runs,
+                       working_dir=run.run_path,
+                       kill_on_partial_failure=kill_on_partial_failure,
+                       post_process_script=run_post_process_script,
+                       post_process_stop_on_failure=
+                            run_post_process_stop_on_failure,
+                       post_process_args=[params_path_json],
+                       node_layout=run.node_layout.as_data_list())
+            fob_s = json.dumps(fob)
 
-                if run_dir_setup_script is not None:
-                    self._execute_run_dir_setup_script(run.run_path,
-                                                       run_dir_setup_script)
+            # write to file run dir
+            run_fob_path = os.path.join(run.run_path,
+                                        "codar.cheetah.fob.json")
+            with open(run_fob_path, "w") as runf:
+                runf.write(fob_s)
+                runf.write("\n")
 
-                # append to fob list file in group dir
-                f.write(fob_s)
-                f.write("\n")
+            if run_dir_setup_script is not None:
+                self._execute_run_dir_setup_script(run.run_path,
+                                                   run_dir_setup_script)
 
-                # Get the size of the run dir. This should be the last step
-                # in the creation of the run dir.
-                self._get_pre_submit_dir_size(run)
+            # append to fob list file in group dir
+            f.write(fob_s)
+            f.write("\n")
+
+            # Get the size of the run dir. This should be the last step
+            # in the creation of the run dir.
+            self._get_pre_submit_dir_size(run)
+
+        f.close()
 
         if nodes is None:
             nodes = min_nodes
