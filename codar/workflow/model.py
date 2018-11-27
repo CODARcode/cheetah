@@ -52,7 +52,7 @@ class Run(threading.Thread):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
-                 log_prefix=None, sleep_after=None):
+                 log_prefix=None, sleep_after=None, hostfile=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -94,6 +94,9 @@ class Run(threading.Thread):
         # calculated by Pipeline based on node layout
         self.nodes = None
         self.tasks_per_node = None
+
+        # mpi hostfile option
+        self.hostfile = hostfile
 
     def set_runner(self, runner):
         self.runner = runner
@@ -293,7 +296,8 @@ class Run(threading.Thread):
                 stderr_path=data.get('stderr_path'),
                 return_path=data.get('return_path'),
                 walltime_path=data.get('walltime_path'),
-                sleep_after=data.get('sleep_after'))
+                sleep_after=data.get('sleep_after'),
+                hostfile=data.get('hostfile'))
         return r
 
     def _popen(self, args):
@@ -637,11 +641,12 @@ class Runner(object):
 
 class MPIRunner(Runner):
     def __init__(self, exe, nprocs_arg, nodes_arg=None,
-                 tasks_per_node_arg=None):
+                 tasks_per_node_arg=None, hostfile=None):
         self.exe = exe
         self.nprocs_arg = nprocs_arg
         self.nodes_arg = nodes_arg
         self.tasks_per_node_arg = tasks_per_node_arg
+        self.hostfile = hostfile
 
     def wrap(self, run, find_in_path=True):
         if find_in_path:
@@ -656,9 +661,11 @@ class MPIRunner(Runner):
             runner_args += [self.nodes_arg, str(run.nodes)]
         if self.tasks_per_node_arg:
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
+        if run.hostfile is not None:
+            runner_args += [self.hostfile, str(run.hostfile)]
         return runner_args + [run.exe] + run.args
 
 
-mpiexec = MPIRunner('mpiexec', '-n')
-aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N')
-srun = MPIRunner('srun', '-n', nodes_arg='-N')
+mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
+aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
+srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')

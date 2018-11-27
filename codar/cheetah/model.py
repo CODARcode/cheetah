@@ -541,7 +541,8 @@ class Run(object):
                                 working_dir=working_dir,
                                 component_inputs=component_inputs,
                                 linked_with_sosflow=linked_with_sosflow,
-                                adios_xml_file=adios_xml_file)
+                                adios_xml_file=adios_xml_file,
+                                hostfile=self.instance.get_hostfile(target))
             comps.append(comp)
         return comps
 
@@ -841,7 +842,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None):
+                 env=None, timeout=None, hostfile=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -853,6 +854,7 @@ class RunComponent(object):
         self.component_inputs = component_inputs
         self.linked_with_sosflow = linked_with_sosflow
         self.adios_xml_file = adios_xml_file
+        self.hostfile = hostfile
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -862,9 +864,12 @@ class RunComponent(object):
                     working_dir=self.working_dir,
                     sleep_after=self.sleep_after,
                     linked_with_sosflow=self.linked_with_sosflow,
-                    adios_xml_file=self.adios_xml_file)
+                    adios_xml_file=self.adios_xml_file,
+                    hostfile=self.hostfile)
         if self.env:
             data['env'] = self.env
         if self.timeout:
             data['timeout'] = self.timeout
+        if self.hostfile:
+            data['hostfile'] = self.working_dir + "/" + self.hostfile
         return data

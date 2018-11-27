@@ -222,6 +222,12 @@ class Instance(object):
             return 1
         return pv.value
 
+    def get_hostfile(self, target):
+        pv = self.parameter_values[target].get('hostfile')
+        if pv:
+            return pv.value
+        return None
+
     def as_dict(self):
         """
         Produce dict (mainly for for JSON seriliazation) with keys based on
