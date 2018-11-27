@@ -35,7 +35,16 @@ def get_adios_version(xml_file):
     :param xml_file: Path to the adios xml file
     :return: 1 (adios version 1) or 2 (adios version 2)
     """
-    pass
+
+    # Get the root and then the first child node
+    # The 'tag' of that node should be 'io' for adios2, and
+    # 'adios-group' for adios1
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    first_child_node = root.getchildren()[0]
+    if first_child_node.tag == 'io':
+        return 2
+    return 1
 
 
 def set_engine(xmlfile, io_obj, engine_type, parameters=None):
