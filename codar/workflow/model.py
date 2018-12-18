@@ -300,6 +300,33 @@ class Run(threading.Thread):
                 hostfile=data.get('hostfile'))
         return r
 
+    @classmethod
+    def mpmd_run(cls, runs):
+        if len(runs) == 1:
+            return runs
+
+        name = '-'.join(run.name for run in runs)
+        mpmd_args = runs[0].args
+
+        for run in runs[1:]:
+            run_args = run.runner.wrap(run)
+            del run_args[0]
+            mpmd_args.extend(":")
+            mpmd_args.extend(run_args)
+
+        r = Run(name=name, exe=runs[0].exe, args=mpmd_args,
+                env=runs[0].env,
+                working_dir=runs[0].working_dir,
+                timeout=runs[0].timeout,
+                nprocs=runs[0].nprocs,
+                stdout_path=runs[0].stdout_path,
+                stderr_path=runs[0].stderr_path,
+                return_path=runs[0].return_path,
+                walltime_path=runs[0].walltime_path,
+                hostfile=runs[0].hostfile)
+
+        return r
+
     def _popen(self, args):
         out = open(self.stdout_path, 'w')
         err = open(self.stderr_path, 'w')
@@ -362,7 +389,8 @@ class Pipeline(object):
                  post_process_script=None,
                  post_process_args=None,
                  post_process_stop_on_failure=False,
-                 node_layout=None):
+                 node_layout=None,
+                 launch_mode=None):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
@@ -388,6 +416,7 @@ class Pipeline(object):
             run.log_prefix = "%s:%s" % (self.id, run.name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = None
+        self.launch_mode = launch_mode
 
     @classmethod
     def from_data(cls, data):
@@ -410,6 +439,7 @@ class Pipeline(object):
             raise ValueError("'runs' key must be a list of dictionaries")
         pipe_id = str(data["id"])
         runs = [Run.from_data(rd) for rd in runs_data]
+        launch_mode = data.get("launch_mode")
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
         post_process_script = data.get("post_process_script")
         post_process_args = data.get("post_process_args", [])
@@ -422,7 +452,7 @@ class Pipeline(object):
                     post_process_script=post_process_script,
                     post_process_args=post_process_args,
                     post_process_stop_on_failure=post_process_stop_on_failure,
-                    node_layout=node_layout)
+                    node_layout=node_layout, launch_mode=launch_mode)
 
     def start(self, consumer, runner=None):
         # Mark all runs as active before they are actually started
@@ -430,6 +460,13 @@ class Pipeline(object):
         self.add_done_callback(consumer.pipeline_finished)
         self.add_fatal_callback(consumer.pipeline_fatal)
         with self._state_lock:
+            for run in self.runs:
+                run.set_runner(runner)
+            if self.launch_mode:
+                if self.launch_mode.lower() == 'mpmd':
+                    mpmd_run = Run.mpmd_run(self.runs)
+                    mpmd_run.nodes = self.total_nodes
+                    self.runs = [mpmd_run]
             for run in self.runs:
                 run.set_runner(runner)
                 run.add_callback(consumer.run_finished)
