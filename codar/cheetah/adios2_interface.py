@@ -19,7 +19,8 @@ _engines={"BPFile":["Threads",
                     "MaxBufferSize",
                     "BufferGrowthFactor",
                     "FlushStepsCount"],
-          "SST":["MarshalMethod"]}
+          "SST":["MarshalMethod"],
+          "InSituMPI":[]}
 
 # A list of valid transports and their parameters
 _transports={"File":["Library"], "WAN":["Library"]}
@@ -160,7 +161,7 @@ def _replace_and_add_elem(parent, child, elem_tag):
 
 
 def _validate_engine(engine, parameters=None):
-    engine_exists = _engines.get(engine, False)
+    engine_exists = engine in _engines
     if not engine_exists:
         raise Exception("{0} is not a valid ADIOS2 engine".format(engine))
 
@@ -169,7 +170,7 @@ def _validate_engine(engine, parameters=None):
 
 
 def _validate_transport(transport, parameters=None):
-    transport_exists = _transports.get(transport, False)
+    transport_exists = transport in _transports
     if not transport_exists:
         raise Exception("{0} is not a valid ADIOS2 transport".format(
             transport))
@@ -179,7 +180,7 @@ def _validate_transport(transport, parameters=None):
 
 
 def _validate_var_operation(operation, parameters=None):
-    var_oper_exists = _var_operations.get(operation, False)
+    var_oper_exists = operation in _var_operations
     if not var_oper_exists:
         raise Exception("{0} is not a valid ADIOS2 variable "
                         "operation".format(operation))
