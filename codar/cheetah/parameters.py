@@ -22,7 +22,7 @@ class SweepGroup(object):
     def __init__(self, name, parameter_groups, component_subdirs=False,
                  component_inputs=None, walltime=3600, max_procs=None,
                  per_run_timeout=None, sosflow_profiling=False,
-                 sosflow_analysis=False, nodes=None):
+                 sosflow_analysis=False, nodes=None, launch_mode=None):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
@@ -34,6 +34,10 @@ class SweepGroup(object):
         self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analysis
         self.component_inputs = component_inputs
+        if launch_mode:
+            if launch_mode.lower() not in ('default', 'mpmd'):
+                raise CheetahException("launch mode must be None/default/mpmd")
+        self.launch_mode = launch_mode
 
 
 class Sweep(object):

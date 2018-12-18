@@ -58,7 +58,7 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, group_name, runs,
-                               max_nprocs, nodes,
+                               max_nprocs, nodes, launch_mode,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
                                sosd_path=None,
@@ -275,7 +275,7 @@ class Launcher(object):
 
                 fob_runs.append(rc.as_fob_data())
 
-            fob = dict(id=run.run_id, runs=fob_runs,
+            fob = dict(id=run.run_id, launch_mode=launch_mode, runs=fob_runs,
                        working_dir=run.run_path,
                        kill_on_partial_failure=kill_on_partial_failure,
                        post_process_script=run_post_process_script,
