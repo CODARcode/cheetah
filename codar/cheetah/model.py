@@ -318,6 +318,7 @@ class Campaign(object):
                 group_runs,
                 max_procs,
                 nodes=group.nodes,
+                launch_mode=group.launch_mode,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
