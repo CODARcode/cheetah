@@ -87,6 +87,7 @@ class HeatTransfer(Campaign):
         # ParamRunner passes an argument to launch_multi_swift
         # nprocs: Number of processors (aka process) to use
         p.ParamRunner("stage", "nprocs", [2]),
+        p.ParamRunner("stage", "hostfile", "mpi_hostfile.txt"),
 
         # ParamCmdLineArg passes a positional argument to the application
         # Arguments are:
