@@ -314,16 +314,19 @@ class Run(threading.Thread):
             mpmd_args.extend(":")
             mpmd_args.extend(run_args)
 
-        r = Run(name=name, exe=runs[0].exe, args=mpmd_args,
-                env=runs[0].env,
-                working_dir=runs[0].working_dir,
-                timeout=runs[0].timeout,
-                nprocs=runs[0].nprocs,
-                stdout_path=runs[0].stdout_path,
-                stderr_path=runs[0].stderr_path,
-                return_path=runs[0].return_path,
-                walltime_path=runs[0].walltime_path,
-                hostfile=runs[0].hostfile)
+        r = runs[0]
+        r.args = mpmd_args
+
+        # r = Run(name=name, exe=runs[0].exe, args=mpmd_args,
+        #         env=runs[0].env,
+        #         working_dir=runs[0].working_dir,
+        #         timeout=runs[0].timeout,
+        #         nprocs=runs[0].nprocs,
+        #         stdout_path=runs[0].stdout_path,
+        #         stderr_path=runs[0].stderr_path,
+        #         return_path=runs[0].return_path,
+        #         walltime_path=runs[0].walltime_path,
+        #         hostfile=runs[0].hostfile)
 
         return r
 
