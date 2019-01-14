@@ -706,6 +706,10 @@ class MPIRunner(Runner):
         return runner_args + [run.exe] + run.args
 
 
+class SummitRunner(Runner):
+    def __init__(self):
+        pass
+
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
 srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
