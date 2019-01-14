@@ -15,7 +15,8 @@ from codar.cheetah import adios_params, config, templates, exc
 from codar.cheetah.parameters import ParamAdiosXML, ParamADIOS2XML, \
     ParamConfig, ParamKeyValue
 from codar.cheetah.helpers import parse_timedelta_seconds
-from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size
+from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
+    json_config_set_option
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
@@ -210,13 +211,19 @@ class Launcher(object):
                                                pv.config_filename)
                 lines = []
                 # read and modify lines
-                with open(config_filepath) as config_f:
-                    for line in config_f:
-                        line = line.replace(pv.match_string, pv.value)
-                        lines.append(line)
-                # rewrite file with modified lines
-                with open(config_filepath, 'w') as config_f:
-                    config_f.write("".join(lines))
+                # hack: handle json files. currently works only on singly
+                # nested json files
+                if config_filepath.endswith(".json"):
+                    json_config_set_option(config_filepath, pv.match_string,
+                                           pv.value)
+                else:  # handle other file types
+                    with open(config_filepath) as config_f:
+                        for line in config_f:
+                            line = line.replace(pv.match_string, pv.value)
+                            lines.append(line)
+                    # rewrite file with modified lines
+                    with open(config_filepath, 'w') as config_f:
+                        config_f.write("".join(lines))
 
             # Key value config file support. Note: slurps entire
             # config file into memory, requires adding file to
