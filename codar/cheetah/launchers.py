@@ -180,10 +180,10 @@ class Launcher(object):
                                                  operation_value, parameters)
                     else:   # operation_name == 'var_operation'
                         var_name = list(pv.value.keys())[0]
-                        var_name_dict = list(pv.value.keys()[0])
+                        var_name_dict = pv.value[var_name]
                         var_operation_value = list(var_name_dict.keys())[0]
-                        var_op_dict = list(var_name_dict.keys())[0]
-                        parameters = var_op_dict.values
+                        var_op_dict = var_name_dict[var_operation_value]
+                        parameters = var_op_dict.values()
                         adios2.set_var_operation(xml_filepath, pv.io_name,
                                                  var_name,
                                                  var_operation_value,

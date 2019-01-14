@@ -113,7 +113,7 @@ def set_var_operation(xmlfile, io_obj, var_name, operation, parameters=None):
     io_node = _get_io_node(tree, io_obj)
     _validate_var_operation(operation, parameters)
 
-    oper_child = ET.Element("operation")
+    oper_child = ET.Element("transport")
     oper_child.set('type', operation)
     _add_parameters(oper_child, parameters)
 
@@ -144,7 +144,7 @@ def _get_io_node(tree, io_obj):
 
 
 def _add_parameters(node, parameters):
-    if parameters is None:
+    if len(parameters) is 0:
         return
 
     for key, value in list(list(parameters)[0].items()):
