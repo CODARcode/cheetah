@@ -4,6 +4,7 @@ import numbers
 import shutil
 import stat
 import glob
+import json
 from pathlib import Path
 
 
@@ -191,3 +192,13 @@ def require_campaign_directory(path):
     if not is_campaign_directory(path):
         raise exc.CheetahException("Path '%s' is not a " \
                                    "top-level campaign directory" % path)
+
+
+def json_config_set_option (filename, key, value):
+    with open(filename, "r") as f:
+        json_dict = json.load(f)
+    assert(key in json_dict)
+    json_dict[key] = value
+
+    with open(filename, 'w') as f:
+        json.dump(json_dict, f, indent=4)
