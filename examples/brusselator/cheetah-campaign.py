@@ -83,6 +83,6 @@ class Brusselator(Campaign):
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
                                 )
 
-    # A list of all sweep groups
+    # Sweep groups to be activated
     sweeps = [sweepGroup1]
 
