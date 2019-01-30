@@ -19,6 +19,7 @@ import getpass
 from pathlib import Path
 from collections import OrderedDict
 import warnings
+import pdb
 
 from codar.cheetah import machines, parameters, config, templates, exc
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
@@ -491,6 +492,7 @@ class Run(object):
         self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
+        self.total_nodes = 0
         self.run_components = self._get_run_components()
 
         # Filename in the run dir that will store the size of the run dir
@@ -568,17 +570,60 @@ class Run(object):
     def get_total_nprocs(self):
         return sum(rc.nprocs for rc in self.run_components)
 
+    def _get_rc_by_name(self, name):
+        for rc in self.run_components:
+            if rc.name == name:
+                return rc
+
     def get_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
         NOTE: if run after insert_sosflow, then this WILL include the sosflow
         nodes, otherwise it will not. Node-sharing not supported yet."""
-        num_nodes = 0
+
+        num_nodes_rc = {}
         for rc in self.run_components:
             code_node = self.node_layout.get_node_containing_code(rc.name)
             code_procs_per_node = code_node[rc.name]
-            num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
+            num_nodes_rc[rc.name] = int(math.ceil(rc.nprocs /
+                                               code_procs_per_node))
 
-        return num_nodes
+        run_order = []
+
+        def custom_insert(rc1, rc2):
+            found = False
+            for tmp_rc_list in run_order:
+                rc_names = [inrc.name for inrc in tmp_rc_list]
+                if rc1.name in rc_names:
+                    if rc2 not in tmp_rc_list:
+                        tmp_rc_list.append(rc2)
+                    found = True
+                    break
+
+            if not found:
+                run_order.append([rc1, rc2])
+
+        def insert_remaining(rc):
+            for rc_list in run_order:
+                if rc in rc_list:
+                    return
+            run_order.append([rc])
+
+        for rc in self.run_components:
+            if rc.after_rc_done is not None:
+                for deprc in rc.after_rc_done:
+                    deprc_obj = self._get_rc_by_name(deprc)
+                    custom_insert(deprc_obj, rc)
+
+        for rc in self.run_components:
+            insert_remaining(rc)
+
+        total_nodes = 0
+        for rc_list in run_order:
+            max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
+            total_nodes += max_nodes
+
+        self.total_nodes = total_nodes
+        return total_nodes
 
     def _get_total_sosflow_component_nodes(self):
         """Get the total number of nodes that will be required by the components

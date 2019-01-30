@@ -385,13 +385,12 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir,
+    def __init__(self, pipe_id, runs, working_dir, total_nodes,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
                  post_process_stop_on_failure=False,
-                 node_layout=None,
-                 launch_mode=None):
+                 node_layout=None, launch_mode=None):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
@@ -416,7 +415,7 @@ class Pipeline(object):
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
         # requires ppn to determine, in case node layout is not specified
-        self.total_nodes = None
+        self.total_nodes = total_nodes
         self.launch_mode = launch_mode
 
     @classmethod
@@ -464,12 +463,14 @@ class Pipeline(object):
             raise ValueError("'post_process_args' must be a list")
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         node_layout = data.get("node_layout")
+        total_nodes = data.get("total_nodes")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
                     kill_on_partial_failure=kill_on_partial_failure,
                     post_process_script=post_process_script,
                     post_process_args=post_process_args,
                     post_process_stop_on_failure=post_process_stop_on_failure,
-                    node_layout=node_layout, launch_mode=launch_mode)
+                    node_layout=node_layout, launch_mode=launch_mode,
+                        total_nodes = total_nodes)
 
     def start(self, consumer, runner=None):
         # Mark all runs as active before they are actually started
@@ -627,7 +628,10 @@ class Pipeline(object):
             self.total_nodes += run.nodes
 
     def set_total_nodes(self):
-        self.total_nodes = sum(run.nodes for run in self.runs)
+        """
+        """
+        print("print total nodes")
+        print(self.total_nodes)
 
     def get_state(self):
         with self._state_lock:

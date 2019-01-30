@@ -195,6 +195,13 @@ class Launcher(object):
             # the final ADIOS XML is generated
             run.add_dataspaces_support(machine)
 
+            # Get the RCs that this rc depends on
+            # This must be done before the total no. of nodes are calculated
+            # below
+            for rc in run.run_components:
+                if rc_dependency is not None:
+                    rc.after_rc_done = rc_dependency.get(rc.name, None)
+
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
             if run.get_total_nodes() > min_nodes:
@@ -280,10 +287,6 @@ class Launcher(object):
                 if timeout is not None:
                     rc.timeout = parse_timedelta_seconds(timeout)
 
-                # Get the RCs that this rc depends on
-                if rc_dependency is not None:
-                    rc.after_rc_done = rc_dependency.get(rc.name, None)
-
                 fob_runs.append(rc.as_fob_data())
 
             fob = dict(id=run.run_id, launch_mode=launch_mode, runs=fob_runs,
@@ -293,7 +296,8 @@ class Launcher(object):
                        post_process_stop_on_failure=
                             run_post_process_stop_on_failure,
                        post_process_args=[params_path_json],
-                       node_layout=run.node_layout.as_data_list())
+                       node_layout=run.node_layout.as_data_list(),
+                       total_nodes=run.total_nodes)
             fob_s = json.dumps(fob)
 
             # write to file run dir
