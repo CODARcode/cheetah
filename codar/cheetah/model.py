@@ -319,6 +319,7 @@ class Campaign(object):
                 max_procs,
                 nodes=group.nodes,
                 launch_mode=group.launch_mode,
+                rc_dependency=group.rc_dependency,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
@@ -843,7 +844,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None):
+                 env=None, timeout=None, hostfile=None, after_rc_done=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -856,6 +857,7 @@ class RunComponent(object):
         self.linked_with_sosflow = linked_with_sosflow
         self.adios_xml_file = adios_xml_file
         self.hostfile = hostfile
+        self.after_rc_done = after_rc_done
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -866,7 +868,8 @@ class RunComponent(object):
                     sleep_after=self.sleep_after,
                     linked_with_sosflow=self.linked_with_sosflow,
                     adios_xml_file=self.adios_xml_file,
-                    hostfile=self.hostfile)
+                    hostfile=self.hostfile,
+                    after_rc_done=self.after_rc_done)
         if self.env:
             data['env'] = self.env
         if self.timeout:

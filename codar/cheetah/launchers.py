@@ -59,7 +59,7 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, group_name, runs,
-                               max_nprocs, nodes, launch_mode,
+                               max_nprocs, nodes, launch_mode, rc_dependency,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
                                sosd_path=None,
@@ -280,6 +280,10 @@ class Launcher(object):
                 if timeout is not None:
                     rc.timeout = parse_timedelta_seconds(timeout)
 
+                # Get the RCs that this rc depends on
+                if rc_dependency is not None:
+                    rc.after_rc_done = rc_dependency.get(rc.name, None)
+
                 fob_runs.append(rc.as_fob_data())
 
             fob = dict(id=run.run_id, launch_mode=launch_mode, runs=fob_runs,
@@ -346,7 +350,6 @@ class Launcher(object):
             f.write(group_env)
 
         return nodes
-
 
     def _get_pre_submit_dir_size(self, run):
         """

@@ -63,6 +63,7 @@ class PipelineRunner(object):
                 raise ValueError("duplicate pipeline id: %s" % p.id)
             self._pipeline_ids.add(p.id)
             p.set_ppn(self.ppn)
+            p.set_total_nodes()
             if p.get_nodes_used() > self.max_nodes:
                 _log.error(
                     "pipeline '%s' requires %d nodes > max %d, skipping",
