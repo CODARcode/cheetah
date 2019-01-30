@@ -40,7 +40,7 @@ class Brusselator(Campaign):
 
     # Create the sweep parameters for a sweep 
     sweep1_parameters = [
-            p.ParamRunner        ('simulation', 'nprocs', [4,8]), # <-- how to sweep over values
+            p.ParamRunner        ('simulation', 'nprocs', [4,]), # <-- how to sweep over values
             p.ParamCmdLineArg    ('simulation', 'output', 1, ['bru.bp']),
             p.ParamCmdLineArg    ('simulation', 'nx', 2, [32]),
             p.ParamCmdLineArg    ('simulation', 'ny', 3, [32]),
