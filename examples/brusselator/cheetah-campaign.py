@@ -9,9 +9,9 @@ class Brusselator(Campaign):
 
     # A list of the codes that will be part of the workflow
     # If there is an adios xml file associated with the codes, list it here
-    # sleep_after represents the time gap after which the next code is spawned
-    codes = [ ("simulation", dict(exe="simulation/Brusselator", adios_xml_file='adios2_config.xml'), sleep_after=None),
-              ("norm_calc",  dict(exe="analysis/norm_calc",     adios_xml_file='adios2_config.xml'))
+    # 'sleep_after' represents the time gap after which the next code is spawned
+    codes = [ ("simulation", dict(exe="simulation/Brusselator", adios_xml_file='adios2_config.xml', sleep_after=None)),
+              ("norm_calc",  dict(exe="analysis/norm_calc",     adios_xml_file='adios2_config.xml', ))
             ]
 
     # A list of machines that this campaign must be supported on
@@ -53,7 +53,8 @@ class Brusselator(Campaign):
             p.ParamCmdLineArg    ('norm_calc', 'outfile', 2, ['norm_calc.out.bp']),
             p.ParamCmdLineArg    ('norm_calc', 'write_norms_only', 3, [1]),
             
-            p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"InSituMPI": {}} ]),
+            # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"InSituMPI": {}} ]),
+            p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {}} ]),
             # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}},
             # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}}, {"BPFile": {"ProfileUnits": "Microseconds"}} ]),
             
@@ -72,10 +73,11 @@ class Brusselator(Campaign):
     # Create a sweep group from the above sweep. You can place multiple sweeps in the group.
     # Each group is submitted as a separate job.
     sweepGroup1 = p.SweepGroup ("sg-tmp",
-                                walltime=60,
+                                walltime=300,
                                 per_run_timeout=60,
                                 parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
+                                rc_dependency={'norm_calc':['simulation']},
                                 # optional:
                                 # nodes=10,
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
