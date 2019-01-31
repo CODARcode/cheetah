@@ -297,7 +297,8 @@ class Launcher(object):
                             run_post_process_stop_on_failure,
                        post_process_args=[params_path_json],
                        node_layout=run.node_layout.as_data_list(),
-                       total_nodes=run.total_nodes)
+                       total_nodes=run.total_nodes,
+                       machine=machine.name)
             fob_s = json.dumps(fob, sort_keys=True, indent=4)
 
             # write to file run dir
