@@ -204,8 +204,8 @@ class Launcher(object):
 
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
-            if run.get_total_nodes() > min_nodes:
-                min_nodes = run.get_total_nodes()
+            if run.total_nodes > min_nodes:
+                min_nodes = run.total_nodes
 
             # Generic config file support. Note: slurps entire
             # config file into memory, requires adding file to
