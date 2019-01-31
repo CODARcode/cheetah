@@ -496,7 +496,7 @@ class Run(object):
         self.run_components = self._get_run_components()
 
         # Set the total nodes after the run components are initialized above
-        self.total_nodes = self._set_total_nodes()
+        self._set_total_nodes()
 
         # Filename in the run dir that will store the size of the run dir
         # prior to submitting the campaign
