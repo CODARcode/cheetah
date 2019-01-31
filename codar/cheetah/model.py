@@ -495,6 +495,9 @@ class Run(object):
         self.total_nodes = 0
         self.run_components = self._get_run_components()
 
+        # Set the total nodes after the run components are initialized above
+        self.total_nodes = self._set_total_nodes()
+
         # Filename in the run dir that will store the size of the run dir
         # prior to submitting the campaign
         self._pre_submit_dir_size_fname = \
@@ -575,7 +578,7 @@ class Run(object):
             if rc.name == name:
                 return rc
 
-    def get_total_nodes(self):
+    def _set_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
         NOTE: if run after insert_sosflow, then this WILL include the sosflow
         nodes, otherwise it will not. Node-sharing not supported yet."""
@@ -623,7 +626,6 @@ class Run(object):
             total_nodes += max_nodes
 
         self.total_nodes = total_nodes
-        return total_nodes
 
     def _get_total_sosflow_component_nodes(self):
         """Get the total number of nodes that will be required by the components
