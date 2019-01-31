@@ -59,7 +59,7 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, group_name, runs,
-                               max_nprocs, nodes, launch_mode,
+                               max_nprocs, nodes, launch_mode, rc_dependency,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
                                sosd_path=None,
@@ -195,10 +195,17 @@ class Launcher(object):
             # the final ADIOS XML is generated
             run.add_dataspaces_support(machine)
 
+            # Get the RCs that this rc depends on
+            # This must be done before the total no. of nodes are calculated
+            # below
+            for rc in run.run_components:
+                if rc_dependency is not None:
+                    rc.after_rc_done = rc_dependency.get(rc.name, None)
+
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
-            if run.get_total_nodes() > min_nodes:
-                min_nodes = run.get_total_nodes()
+            if run.total_nodes > min_nodes:
+                min_nodes = run.total_nodes
 
             # Generic config file support. Note: slurps entire
             # config file into memory, requires adding file to
@@ -289,7 +296,8 @@ class Launcher(object):
                        post_process_stop_on_failure=
                             run_post_process_stop_on_failure,
                        post_process_args=[params_path_json],
-                       node_layout=run.node_layout.as_data_list())
+                       node_layout=run.node_layout.as_data_list(),
+                       total_nodes=run.total_nodes)
             fob_s = json.dumps(fob)
 
             # write to file run dir
@@ -346,7 +354,6 @@ class Launcher(object):
             f.write(group_env)
 
         return nodes
-
 
     def _get_pre_submit_dir_size(self, run):
         """

@@ -52,7 +52,8 @@ class Run(threading.Thread):
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
-                 log_prefix=None, sleep_after=None, hostfile=None):
+                 log_prefix=None, sleep_after=None,
+                 depends_on_runs=None, hostfile=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -95,8 +96,50 @@ class Run(threading.Thread):
         self.nodes = None
         self.tasks_per_node = None
 
+        # Get a list of runs that self depends on
+        self.depends_on_runs = depends_on_runs
+
         # mpi hostfile option
         self.hostfile = hostfile
+
+    @classmethod
+    def from_data(cls, data):
+        """Create Run instance from nested dictionary data structure, e.g.
+        parsed from JSON. The keys 'name', 'exe', 'args' are required, all the
+        other keys are optional and have the same names as the constructor
+        args. Raises KeyError if a required key is missing."""
+        # TODO: deeper validation
+        r = Run(name=data['name'], exe=data['exe'], args=data['args'],
+                env=data.get('env'),  # dictionary of varname/varvalue
+                working_dir=data['working_dir'],
+                timeout=data.get('timeout'),
+                nprocs=data.get('nprocs', 1),
+                stdout_path=data.get('stdout_path'),
+                stderr_path=data.get('stderr_path'),
+                return_path=data.get('return_path'),
+                walltime_path=data.get('walltime_path'),
+                sleep_after=data.get('sleep_after'),
+                depends_on_runs=data.get('after_rc_done'),
+                hostfile=data.get('hostfile'))
+        return r
+
+    @classmethod
+    def mpmd_run(cls, runs):
+        if len(runs) == 1:
+            return runs
+
+        name = '-'.join(run.name for run in runs)
+        mpmd_args = runs[0].args
+
+        for run in runs[1:]:
+            run_args = run.runner.wrap(run)
+            del run_args[0]
+            mpmd_args.extend(":")
+            mpmd_args.extend(run_args)
+
+        r = runs[0]
+        r.args = mpmd_args
+        return r
 
     def set_runner(self, runner):
         self.runner = runner
@@ -165,6 +208,11 @@ class Run(threading.Thread):
                        'exception in Run callbacks after Run thread exception')
 
     def _run(self):
+        # Wait for runs that self depends on to finish
+        if self.depends_on_runs is not None:
+            for run_r in self.depends_on_runs:
+                threading.Thread.join(run_r)
+
         if self.runner is not None:
             args = self.runner.wrap(self)
         else:
@@ -280,56 +328,6 @@ class Run(threading.Thread):
                 _log.error('%s pgroup did not exit', self.log_prefix)
                 break
 
-    @classmethod
-    def from_data(cls, data):
-        """Create Run instance from nested dictionary data structure, e.g.
-        parsed from JSON. The keys 'name', 'exe', 'args' are required, all the
-        other keys are optional and have the same names as the constructor
-        args. Raises KeyError if a required key is missing."""
-        # TODO: deeper validation
-        r = Run(name=data['name'], exe=data['exe'], args=data['args'],
-                env=data.get('env'), # dictionary of varname/varvalue
-                working_dir=data['working_dir'],
-                timeout=data.get('timeout'),
-                nprocs=data.get('nprocs', 1),
-                stdout_path=data.get('stdout_path'),
-                stderr_path=data.get('stderr_path'),
-                return_path=data.get('return_path'),
-                walltime_path=data.get('walltime_path'),
-                sleep_after=data.get('sleep_after'),
-                hostfile=data.get('hostfile'))
-        return r
-
-    @classmethod
-    def mpmd_run(cls, runs):
-        if len(runs) == 1:
-            return runs
-
-        name = '-'.join(run.name for run in runs)
-        mpmd_args = runs[0].args
-
-        for run in runs[1:]:
-            run_args = run.runner.wrap(run)
-            del run_args[0]
-            mpmd_args.extend(":")
-            mpmd_args.extend(run_args)
-
-        r = runs[0]
-        r.args = mpmd_args
-
-        # r = Run(name=name, exe=runs[0].exe, args=mpmd_args,
-        #         env=runs[0].env,
-        #         working_dir=runs[0].working_dir,
-        #         timeout=runs[0].timeout,
-        #         nprocs=runs[0].nprocs,
-        #         stdout_path=runs[0].stdout_path,
-        #         stderr_path=runs[0].stderr_path,
-        #         return_path=runs[0].return_path,
-        #         walltime_path=runs[0].walltime_path,
-        #         hostfile=runs[0].hostfile)
-
-        return r
-
     def _popen(self, args):
         out = open(self.stdout_path, 'w')
         err = open(self.stderr_path, 'w')
@@ -387,13 +385,12 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir,
+    def __init__(self, pipe_id, runs, working_dir, total_nodes,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
                  post_process_stop_on_failure=False,
-                 node_layout=None,
-                 launch_mode=None):
+                 node_layout=None, launch_mode=None):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
@@ -418,7 +415,7 @@ class Pipeline(object):
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
         # requires ppn to determine, in case node layout is not specified
-        self.total_nodes = None
+        self.total_nodes = total_nodes
         self.launch_mode = launch_mode
 
     @classmethod
@@ -442,6 +439,22 @@ class Pipeline(object):
             raise ValueError("'runs' key must be a list of dictionaries")
         pipe_id = str(data["id"])
         runs = [Run.from_data(rd) for rd in runs_data]
+
+        # Get run objects on which each run depends
+        # Replace run names in depends_on_runs with object references
+        for run in runs:
+            if run.depends_on_runs is not None:
+                tmp_run_depends_on_l = []
+                for target_run_name in run.depends_on_runs:
+                    for tmp_run in runs:
+                        if target_run_name == tmp_run.name:
+                            tmp_run_depends_on_l.append(tmp_run)
+                            break
+                assert (len(tmp_run_depends_on_l) ==
+                        len(run.depends_on_runs)), "Could not get a run " \
+                                                   "dependency"
+                run.depends_on_runs = tmp_run_depends_on_l
+
         launch_mode = data.get("launch_mode")
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
         post_process_script = data.get("post_process_script")
@@ -450,12 +463,14 @@ class Pipeline(object):
             raise ValueError("'post_process_args' must be a list")
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         node_layout = data.get("node_layout")
+        total_nodes = data.get("total_nodes")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
                     kill_on_partial_failure=kill_on_partial_failure,
                     post_process_script=post_process_script,
                     post_process_args=post_process_args,
                     post_process_stop_on_failure=post_process_stop_on_failure,
-                    node_layout=node_layout, launch_mode=launch_mode)
+                    node_layout=node_layout, launch_mode=launch_mode,
+                        total_nodes = total_nodes)
 
     def start(self, consumer, runner=None):
         # Mark all runs as active before they are actually started
@@ -486,6 +501,7 @@ class Pipeline(object):
         """Start all runs in the pipeline, along with threads that monitor
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
+
         for run in self.runs:
             run.start()
             if run.sleep_after:
@@ -610,6 +626,12 @@ class Pipeline(object):
                 run.tasks_per_node = run.nprocs
             run.nodes = int(math.ceil(run.nprocs / run.tasks_per_node))
             self.total_nodes += run.nodes
+
+    def set_total_nodes(self):
+        """
+        """
+        print("print total nodes")
+        print(self.total_nodes)
 
     def get_state(self):
         with self._state_lock:

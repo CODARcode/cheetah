@@ -19,6 +19,7 @@ import getpass
 from pathlib import Path
 from collections import OrderedDict
 import warnings
+import pdb
 
 from codar.cheetah import machines, parameters, config, templates, exc
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
@@ -319,6 +320,7 @@ class Campaign(object):
                 max_procs,
                 nodes=group.nodes,
                 launch_mode=group.launch_mode,
+                rc_dependency=group.rc_dependency,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
@@ -490,7 +492,11 @@ class Run(object):
         self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
+        self.total_nodes = 0
         self.run_components = self._get_run_components()
+
+        # Set the total nodes after the run components are initialized above
+        self._set_total_nodes()
 
         # Filename in the run dir that will store the size of the run dir
         # prior to submitting the campaign
@@ -567,17 +573,59 @@ class Run(object):
     def get_total_nprocs(self):
         return sum(rc.nprocs for rc in self.run_components)
 
-    def get_total_nodes(self):
+    def _get_rc_by_name(self, name):
+        for rc in self.run_components:
+            if rc.name == name:
+                return rc
+
+    def _set_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
         NOTE: if run after insert_sosflow, then this WILL include the sosflow
         nodes, otherwise it will not. Node-sharing not supported yet."""
-        num_nodes = 0
+
+        num_nodes_rc = {}
         for rc in self.run_components:
             code_node = self.node_layout.get_node_containing_code(rc.name)
             code_procs_per_node = code_node[rc.name]
-            num_nodes += int(math.ceil(rc.nprocs / code_procs_per_node))
+            num_nodes_rc[rc.name] = int(math.ceil(rc.nprocs /
+                                               code_procs_per_node))
 
-        return num_nodes
+        run_order = []
+
+        def custom_insert(rc1, rc2):
+            found = False
+            for tmp_rc_list in run_order:
+                rc_names = [inrc.name for inrc in tmp_rc_list]
+                if rc1.name in rc_names:
+                    if rc2 not in tmp_rc_list:
+                        tmp_rc_list.append(rc2)
+                    found = True
+                    break
+
+            if not found:
+                run_order.append([rc1, rc2])
+
+        def insert_remaining(rc):
+            for rc_list in run_order:
+                if rc in rc_list:
+                    return
+            run_order.append([rc])
+
+        for rc in self.run_components:
+            if rc.after_rc_done is not None:
+                for deprc in rc.after_rc_done:
+                    deprc_obj = self._get_rc_by_name(deprc)
+                    custom_insert(deprc_obj, rc)
+
+        for rc in self.run_components:
+            insert_remaining(rc)
+
+        total_nodes = 0
+        for rc_list in run_order:
+            max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
+            total_nodes += max_nodes
+
+        self.total_nodes = total_nodes
 
     def _get_total_sosflow_component_nodes(self):
         """Get the total number of nodes that will be required by the components
@@ -843,7 +891,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None):
+                 env=None, timeout=None, hostfile=None, after_rc_done=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -856,6 +904,7 @@ class RunComponent(object):
         self.linked_with_sosflow = linked_with_sosflow
         self.adios_xml_file = adios_xml_file
         self.hostfile = hostfile
+        self.after_rc_done = after_rc_done
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -866,7 +915,8 @@ class RunComponent(object):
                     sleep_after=self.sleep_after,
                     linked_with_sosflow=self.linked_with_sosflow,
                     adios_xml_file=self.adios_xml_file,
-                    hostfile=self.hostfile)
+                    hostfile=self.hostfile,
+                    after_rc_done=self.after_rc_done)
         if self.env:
             data['env'] = self.env
         if self.timeout:
