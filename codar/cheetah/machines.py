@@ -91,7 +91,7 @@ theta=Machine('theta', launchers.Launcher, "cobalt", "aprun",
 
 
 summit=Machine('summit', launchers.Launcher, "ibm_lsf", "jsrun",
-               processes_per_node=40, node_exclusive=False)
+               processes_per_node=42, node_exclusive=False)
 
 def get_by_name(name):
     assert name == name.lower()
