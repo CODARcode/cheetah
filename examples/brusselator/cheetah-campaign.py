@@ -1,6 +1,7 @@
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 from codar.cheetah.parameters import SymLink
+import copy
 
 class Brusselator(Campaign):
 
@@ -85,6 +86,9 @@ class Brusselator(Campaign):
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
                                 )
 
+    sweepGroup2 = copy.deepcopy(sweepGroup1)
+    sweepGroup2.name = 'sg-2'
+    
     # Sweep groups to be activated
-    sweeps = [sweepGroup1]
+    sweeps = [sweepGroup1, sweepGroup2]
 

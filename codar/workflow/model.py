@@ -49,7 +49,8 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, env, working_dir, timeout=None,
+    def __init__(self, name, exe, args, env, working_dir,
+                 machine_name, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -60,6 +61,7 @@ class Run(threading.Thread):
         self.args = args
         self.env = env or {}
         self.working_dir = working_dir
+        self.machine_name = machine_name
         self.timeout = timeout
         self.nprocs = nprocs
         self.stdout_path = _get_path(working_dir, STDOUT_NAME + "." + name,
@@ -102,6 +104,9 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
+        # Dict to hold jsrun params
+        self.summit_params = None
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -112,6 +117,7 @@ class Run(threading.Thread):
         r = Run(name=data['name'], exe=data['exe'], args=data['args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
+                machine_name=data['machine_name'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 stdout_path=data.get('stdout_path'),
@@ -121,6 +127,11 @@ class Run(threading.Thread):
                 sleep_after=data.get('sleep_after'),
                 depends_on_runs=data.get('after_rc_done'),
                 hostfile=data.get('hostfile'))
+
+        # Read jsrun params if running on Summit
+        if data['machine'].lower() == 'summit':
+            r._init_summit_params(data)
+
         return r
 
     @classmethod
@@ -140,6 +151,16 @@ class Run(threading.Thread):
         r = runs[0]
         r.args = mpmd_args
         return r
+
+    def _init_summit_params(self, data):
+        self.summit_params = {}
+        self.summit_params['nrs'] = data['nrs']
+        self.summit_params['rs_per_host'] = data['rs_per_host']
+        self.summit_params['cpus_per_rs'] = data['cpus_per_rs']
+        self.summit_params['gpus_per_rs'] = data['gpus_per_rs']
+        self.summit_params['tasks_per_rs'] = data['tasks_per_rs']
+        self.summit_params['launch_distribution'] = data['launch_distribution']
+        self.summit_params['bind'] = data['bind']
 
     def set_runner(self, runner):
         self.runner = runner
@@ -629,9 +650,9 @@ class Pipeline(object):
 
     def set_total_nodes(self):
         """
+        To be deprecated
         """
-        print("print total nodes")
-        print(self.total_nodes)
+        pass
 
     def get_state(self):
         with self._state_lock:
@@ -730,8 +751,43 @@ class MPIRunner(Runner):
 
 class SummitRunner(Runner):
     def __init__(self):
-        pass
+        self.exe = 'jsrun'
+        self.nrs_arg = '-n'
+        self.tasks_per_rs_arg = '-a'
+        self.cpus_per_rs_arg = '-c'
+        self.gpus_per_rs_arg = '-g'
+        self.rs_per_host_arg = '-r'
+        self.launch_distribution_arg = '-d'
+        self.bind_arg = '-b'
+
+    def wrap(self, run, find_in_path=True):
+        if find_in_path:
+            exe_path = shutil.which(self.exe)
+        else:
+            # for test cases
+            exe_path = self.exe
+        if exe_path is None:
+            raise ValueError('Could not find "%s" in path' % self.exe)
+
+        runner_args = [exe_path,
+                       self.nrs_arg,
+                       str(run.summit_params['nrs']),
+                       self.tasks_per_rs_arg,
+                       str(run.summit_params['tasks_per_rs']),
+                       self.cpus_per_rs_arg,
+                       str(run.summit_params['cpus_per_rs']),
+                       self.gpus_per_rs_arg,
+                       str(run.summit_params['gpus_per_rs']),
+                       self.rs_per_host_arg,
+                       str(run.summit_params['rs_per_host']),
+                       self.launch_distribution_arg,
+                       run.summit_params['launch_distribution'],
+                       self.bind_arg, run.summit_params['bind']]
+
+        return runner_args + [run.exe] + run.args
+
 
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
 srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
+jsrun = SummitRunner()
