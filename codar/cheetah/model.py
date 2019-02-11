@@ -19,7 +19,6 @@ import getpass
 from pathlib import Path
 from collections import OrderedDict
 import warnings
-import pdb
 
 from codar.cheetah import machines, parameters, config, templates, exc
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
@@ -28,6 +27,7 @@ from codar.cheetah.helpers import relative_or_absolute_path, \
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios_params import xml_has_transport
 from codar.cheetah.parameters import ParamCmdLineArg
+from codar.cheetah.exc import CheetahException
 
 
 RESERVED_CODE_NAMES = set(['post-process'])
@@ -279,6 +279,7 @@ class Campaign(object):
                                       'run-%03d' % (group_run_offset + i)),
                                   self.inputs,
                                   node_layout,
+                                  group.rc_dependency,
                                   group.component_subdirs,
                                   group.sosflow_profiling,
                                   group.sosflow_analysis,
@@ -477,8 +478,8 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, component_subdirs, sosflow_profiling,
-                 sosflow_analyis, component_inputs=None):
+                 node_layout, rc_dependency, component_subdirs,
+                 sosflow_profiling, sosflow_analyis, component_inputs=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path
@@ -494,6 +495,11 @@ class Run(object):
         self.component_inputs = component_inputs
         self.total_nodes = 0
         self.run_components = self._get_run_components()
+
+        # Get the RCs that this rc depends on
+        # This must be done before the total no. of nodes are calculated
+        # below
+        self._populate_rc_dependency(rc_dependency)
 
         # Set the total nodes after the run components are initialized above
         self._set_total_nodes()
@@ -553,6 +559,28 @@ class Run(object):
             comps.append(comp)
         return comps
 
+    def _populate_rc_dependency(self, rc_dependency):
+        """
+        Populate the after_rc_done field for every RC with object references
+        depending on the rc_dependency group parameter
+        """
+        if rc_dependency is not None:
+            for k,v in rc_dependency.items():
+                assert type(k) is str, "rc_dependency dictionary key must " \
+                                        "be code name"
+                assert v is not None, "Dict value cannot be None"
+                assert type(v) is str, "rc_dependency dictionary value must " \
+                                       "be a string"
+
+                k_rc = self._get_rc_by_name(k)
+                k_rc.after_rc_done = v
+
+                # k_rc = self._get_rc_by_name(k)
+                # assert k_rc is not None, "RC {0} not found".format(k)
+                # v_rc = self._get_rc_by_name(v)
+                # assert v_rc is not None, "RC {0} not found".format(v)
+                # k_rc.after_rc_done = v_rc
+
     def get_fob_data_list(self):
         return [comp.as_fob_data() for comp in self.run_components]
 
@@ -578,6 +606,9 @@ class Run(object):
             if rc.name == name:
                 return rc
 
+        raise CheetahException ("Did not find run component with name {"
+                              "0}".format(name))
+
     def _set_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
         NOTE: if run after insert_sosflow, then this WILL include the sosflow
@@ -588,40 +619,32 @@ class Run(object):
             code_node = self.node_layout.get_node_containing_code(rc.name)
             code_procs_per_node = code_node[rc.name]
             num_nodes_rc[rc.name] = int(math.ceil(rc.nprocs /
-                                               code_procs_per_node))
+                                                  code_procs_per_node))
 
-        run_order = []
+        # RC dependency handling
+        top_rc = [[rc] for rc in self.run_components if rc.after_rc_done is
+                  None]
+        assert len(top_rc) > 0, "Circular task dependency found"
 
-        def custom_insert(rc1, rc2):
-            found = False
-            for tmp_rc_list in run_order:
-                rc_names = [inrc.name for inrc in tmp_rc_list]
-                if rc1.name in rc_names:
-                    if rc2 not in tmp_rc_list:
-                        tmp_rc_list.append(rc2)
-                    found = True
-                    break
-
-            if not found:
-                run_order.append([rc1, rc2])
-
-        def insert_remaining(rc):
-            for rc_list in run_order:
-                if rc in rc_list:
-                    return
-            run_order.append([rc])
+        def add_to_top_rc(tmprc):
+            if type(tmprc) is str:
+                tmprc = self._get_rc_by_name(tmprc)
+            top_rc_serialized = [r for l in top_rc for r in l]
+            after_rc_done_obj = self._get_rc_by_name(tmprc.after_rc_done)
+            if after_rc_done_obj not in top_rc_serialized:
+                add_to_top_rc(after_rc_done_obj.after_rc_done)
+            for l in top_rc:
+                if after_rc_done_obj in l:
+                    if tmprc not in l:
+                        l.append(tmprc)
+                        break
 
         for rc in self.run_components:
             if rc.after_rc_done is not None:
-                for deprc in rc.after_rc_done:
-                    deprc_obj = self._get_rc_by_name(deprc)
-                    custom_insert(deprc_obj, rc)
-
-        for rc in self.run_components:
-            insert_remaining(rc)
+                add_to_top_rc(rc)
 
         total_nodes = 0
-        for rc_list in run_order:
+        for rc_list in top_rc:
             max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
             total_nodes += max_nodes
 
@@ -891,7 +914,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None, after_rc_done=None):
+                 env=None, timeout=None, hostfile=None):
         self.name = name
         self.exe = exe
         self.args = args
@@ -904,7 +927,7 @@ class RunComponent(object):
         self.linked_with_sosflow = linked_with_sosflow
         self.adios_xml_file = adios_xml_file
         self.hostfile = hostfile
-        self.after_rc_done = after_rc_done
+        self.after_rc_done = None
 
     def as_fob_data(self):
         data = dict(name=self.name,
