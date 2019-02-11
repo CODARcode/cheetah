@@ -20,6 +20,7 @@ import math
 import threading
 import signal
 import logging
+import pdb
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
@@ -630,8 +631,7 @@ class Pipeline(object):
     def set_total_nodes(self):
         """
         """
-        print("print total nodes")
-        print(self.total_nodes)
+        pass
 
     def get_state(self):
         with self._state_lock:
