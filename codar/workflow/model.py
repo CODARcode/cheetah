@@ -20,6 +20,7 @@ import math
 import threading
 import signal
 import logging
+import pdb
 
 from codar.workflow import status
 from codar.cheetah.model import NodeLayout
