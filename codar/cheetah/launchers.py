@@ -193,14 +193,7 @@ class Launcher(object):
             # using dataspaces.
             # This must be called after the ADIOS params are parsed and
             # the final ADIOS XML is generated
-            run.add_dataspaces_support(machine)
-
-            # Get the RCs that this rc depends on
-            # This must be done before the total no. of nodes are calculated
-            # below
-            for rc in run.run_components:
-                if rc_dependency is not None:
-                    rc.after_rc_done = rc_dependency.get(rc.name, None)
+            run.add_dataspaces_support(machine)\
 
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
