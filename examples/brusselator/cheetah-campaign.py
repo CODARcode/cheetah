@@ -77,7 +77,7 @@ class Brusselator(Campaign):
                                 per_run_timeout=60,
                                 parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
-                                rc_dependency={'norm_calc':['simulation']},
+                                rc_dependency={'norm_calc':'simulation'},
                                 # optional:
                                 # nodes=10,
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
