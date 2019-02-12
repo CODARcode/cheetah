@@ -154,7 +154,7 @@ class Run(threading.Thread):
         return r
 
     def _init_summit_params(self, data):
-        self.summit_params = {}
+        self.summit_params = dict
         self.summit_params['nrs'] = data['nrs']
         self.summit_params['rs_per_host'] = data['rs_per_host']
         self.summit_params['cpus_per_rs'] = data['cpus_per_rs']
