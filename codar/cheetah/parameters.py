@@ -461,6 +461,11 @@ class ParamRunner(Param):
         Param.__init__(self, target, name, values)
 
 
+class SummitOpts():
+    def __init__(self):
+        pass
+
+
 class SymLink(str):
     """
     Class to represent symbolic links as an input type for a run component
