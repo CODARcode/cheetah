@@ -709,6 +709,11 @@ class MPIRunner(Runner):
         self.nodes_arg = nodes_arg
         self.tasks_per_node_arg = tasks_per_node_arg
         self.hostfile = hostfile
+        self.runner_extra = []
+
+    def AddExtra(self, runner_extra=""):
+        self.runner_extra += runner_extra.strip().split()
+
 
     def wrap(self, run, find_in_path=True):
         if find_in_path:
@@ -725,7 +730,12 @@ class MPIRunner(Runner):
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
         if run.hostfile is not None:
             runner_args += [self.hostfile, str(run.hostfile)]
-        return runner_args + [run.exe] + run.args
+
+        runner_args += self.runner_extra
+        runner_args += [run.exe]
+        runner_args += run.args
+        return runner_args
+
 
 
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
