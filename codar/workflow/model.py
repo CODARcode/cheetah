@@ -50,8 +50,7 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, env, working_dir,
-                 machine_name, timeout=None,
+    def __init__(self, name, exe, args, env, working_dir, timeout=None,
                  nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -62,7 +61,6 @@ class Run(threading.Thread):
         self.args = args
         self.env = env or {}
         self.working_dir = working_dir
-        self.machine_name = machine_name
         self.timeout = timeout
         self.nprocs = nprocs
         self.stdout_path = _get_path(working_dir, STDOUT_NAME + "." + name,
@@ -115,7 +113,6 @@ class Run(threading.Thread):
         r = Run(name=data['name'], exe=data['exe'], args=data['args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
-                machine_name=data['machine_name'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 stdout_path=data.get('stdout_path'),
