@@ -212,8 +212,7 @@ class Run(threading.Thread):
     def _run(self):
         # Wait for runs that self depends on to finish
         if self.depends_on_runs is not None:
-            for run_r in self.depends_on_runs:
-                threading.Thread.join(run_r)
+            threading.Thread.join(self.depends_on_runs)
 
         if self.runner is not None:
             args = self.runner.wrap(self)
@@ -446,16 +445,12 @@ class Pipeline(object):
         # Replace run names in depends_on_runs with object references
         for run in runs:
             if run.depends_on_runs is not None:
-                tmp_run_depends_on_l = []
-                for target_run_name in run.depends_on_runs:
-                    for tmp_run in runs:
-                        if target_run_name == tmp_run.name:
-                            tmp_run_depends_on_l.append(tmp_run)
-                            break
-                assert (len(tmp_run_depends_on_l) ==
-                        len(run.depends_on_runs)), "Could not get a run " \
-                                                   "dependency"
-                run.depends_on_runs = tmp_run_depends_on_l
+                for tmp_run in runs:
+                    if run.depends_on_runs == tmp_run.name:
+                        run.depends_on_runs = tmp_run
+                        break
+                assert run.depends_on_runs is not None, \
+                    "Internal failure in dependency management"
 
         launch_mode = data.get("launch_mode")
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
