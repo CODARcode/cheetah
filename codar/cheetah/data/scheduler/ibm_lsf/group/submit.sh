@@ -22,14 +22,14 @@ alloc_flags=
 
 # convert walltime from seconds to HH:MM format needed by LSF
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
-LSF=$(printf '%02d:%02d\n' $(($secs/3600)) $(($secs%3600/60)))
+LSF_WALLTIME=$(printf '%02d:%02d\n' $(($secs/3600)) $(($secs%3600/60)))
 
 OUTPUT=$(bsub \
         -P $CODAR_CHEETAH_SCHEDULER_ACCOUNT \
         -J "$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
-        -nnodes nodes=$CODAR_CHEETAH_GROUP_NODES \
-        -W walltime=$LSF_WALLTIME \
-        $alloc_flags
+        -nnodes $CODAR_CHEETAH_GROUP_NODES \
+        -W $LSF_WALLTIME \
+        -alloc_flags "gpudefault" \
         run-group.lsf)
 
 rval=$?
