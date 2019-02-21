@@ -291,8 +291,8 @@ class Launcher(object):
                        post_process_args=[params_path_json],
                        node_layout=run.node_layout.as_data_list(),
                        total_nodes=run.total_nodes,
-                       machine=machine.name)
-            fob_s = json.dumps(fob, sort_keys=True, indent=4)
+                       machine_name=machine.name)
+            fob_s = json.dumps(fob, sort_keys=True)
 
             # write to file run dir
             run_fob_path = os.path.join(run.run_path,
