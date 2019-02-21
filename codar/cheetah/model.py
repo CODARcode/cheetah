@@ -275,9 +275,10 @@ class Campaign(object):
 
                 # Summit override. Don't support MPMD yet.
                 if self.machine.name.lower() == "summit":
-                    print("MPMD not supported on Summit yet. Changing to "
-                          "default launch mode.")
-                    group.launch_mode = 'default'
+                    if group.launch_mode.lower() == 'mpmd':
+                        print("MPMD not supported on Summit yet. Changing to "
+                              "default launch mode.")
+                        group.launch_mode = 'default'
 
                 sweep_runs = [Run(inst, self.codes, self.app_dir,
                                   os.path.join(
