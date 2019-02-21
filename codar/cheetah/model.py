@@ -273,6 +273,12 @@ class Campaign(object):
 
                 # TODO: validate node layout against machine model
 
+                # Summit override. Don't support MPMD yet.
+                if self.machine.name.lower() == "summit":
+                    print("MPMD not supported on Summit yet. Changing to "
+                          "default launch mode.")
+                    group.launch_mode = 'default'
+
                 sweep_runs = [Run(inst, self.codes, self.app_dir,
                                   os.path.join(
                                       group_output_dir,
@@ -606,8 +612,8 @@ class Run(object):
             if rc.name == name:
                 return rc
 
-        raise CheetahException ("Did not find run component with name {"
-                              "0}".format(name))
+        raise CheetahException("Did not find run component with name {0}"
+                               .format(name))
 
     def _set_total_nodes(self):
         """Get the total number of nodes that will be required by the Run.
@@ -622,6 +628,7 @@ class Run(object):
                                                   code_procs_per_node))
 
         # RC dependency handling
+        # @TODO need better algorithm to do this
         top_rc = [[rc] for rc in self.run_components if rc.after_rc_done is
                   None]
         assert len(top_rc) > 0, "Circular task dependency found"

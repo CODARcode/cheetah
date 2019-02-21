@@ -105,9 +105,6 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
-        # Dict to hold jsrun params
-        self.summit_params = None
-
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -129,10 +126,6 @@ class Run(threading.Thread):
                 depends_on_runs=data.get('after_rc_done'),
                 hostfile=data.get('hostfile'))
 
-        # Read jsrun params if running on Summit
-        if data['machine'].lower() == 'summit':
-            r._init_summit_params(data)
-
         return r
 
     @classmethod
@@ -152,16 +145,6 @@ class Run(threading.Thread):
         r = runs[0]
         r.args = mpmd_args
         return r
-
-    def _init_summit_params(self, data):
-        self.summit_params = dict
-        self.summit_params['nrs'] = data['nrs']
-        self.summit_params['rs_per_host'] = data['rs_per_host']
-        self.summit_params['cpus_per_rs'] = data['cpus_per_rs']
-        self.summit_params['gpus_per_rs'] = data['gpus_per_rs']
-        self.summit_params['tasks_per_rs'] = data['tasks_per_rs']
-        self.summit_params['launch_distribution'] = data['launch_distribution']
-        self.summit_params['bind'] = data['bind']
 
     def set_runner(self, runner):
         self.runner = runner
@@ -770,20 +753,24 @@ class SummitRunner(Runner):
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
 
+        nrs = run.nprocs/run.tasks_per_node
+        tasks_per_rs = run.tasks_per_node
+        cpus_per_rs = tasks_per_rs
+        gpus_per_rs = 6
+        rs_per_host = 1
+
         runner_args = [exe_path,
-                       self.nrs_arg,
-                       str(run.summit_params['nrs']),
-                       self.tasks_per_rs_arg,
-                       str(run.summit_params['tasks_per_rs']),
-                       self.cpus_per_rs_arg,
-                       str(run.summit_params['cpus_per_rs']),
-                       self.gpus_per_rs_arg,
-                       str(run.summit_params['gpus_per_rs']),
-                       self.rs_per_host_arg,
-                       str(run.summit_params['rs_per_host']),
-                       self.launch_distribution_arg,
-                       run.summit_params['launch_distribution'],
-                       self.bind_arg, run.summit_params['bind']]
+                       self.nrs_arg, str(nrs),
+                       self.tasks_per_rs_arg, str(tasks_per_rs),
+                       self.cpus_per_rs_arg, str(cpus_per_rs),
+                       self.gpus_per_rs_arg, str(gpus_per_rs),
+                       self.rs_per_host_arg, str(rs_per_host),
+
+                       # Omit for now
+                       # self.launch_distribution_arg,
+                       # run.summit_params['launch_distribution'],
+                       # self.bind_arg, run.summit_params['bind']
+                       ]
 
         return runner_args + [run.exe] + run.args
 
