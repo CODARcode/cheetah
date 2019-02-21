@@ -84,6 +84,8 @@ def copy_to_dir(source_file, dest_dir, follow_symlinks=True):
     # source_file could contain a wildcard. e.g. '*.in' 
     # glob to fetch individual files
     source_files = glob.glob(source_file)
+    assert len(source_files) > 0, "Could not find required input file " \
+                                  "{0}".format(source_file)
     for file in source_files:
         dest_file = os.path.join(dest_dir, os.path.basename(file))
         copy_to_path(file, dest_file, follow_symlinks)
@@ -92,6 +94,8 @@ def copy_to_dir(source_file, dest_dir, follow_symlinks=True):
 def copy_to_path(source_file, dest_file, follow_symlinks=True):
     """Wrapper around copyfile that respects umask and preserves
     executability."""
+    assert os.path.exists(source_file), "Required input file {0} does not " \
+                                        "exist".format(source_file)
     shutil.copyfile(source_file, dest_file, follow_symlinks=follow_symlinks)
     if is_executable(source_file):
         umask = os.umask(0)
