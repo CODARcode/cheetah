@@ -19,9 +19,9 @@ def parse_args():
     parser = argparse.ArgumentParser(description='HPC Worflow script')
     parser.add_argument('--max-nodes', type=int, required=True)
     parser.add_argument('--processes-per-node', type=int, required=True)
-    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun',
-                                             'jsrun','none'],
-                        required=True)
+    parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun', 'jsrun','none'], required=True)
+    parser.add_argument('--runner_extra', default="")
+
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
     parser.add_argument('--log-file')
@@ -54,6 +54,7 @@ def main():
         # Note: arg parser should have caught this already
         raise ValueError('Unknown runner: %s' % args.runner)
 
+    runner.AddExtra(args.runner_extra)
     logger = logging.getLogger('codar.savanna')
     if args.log_file:
         handler = logging.FileHandler(args.log_file)

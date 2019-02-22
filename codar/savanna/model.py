@@ -695,3 +695,4 @@ class Pipeline(object):
         # has been configured and force kill was not called.
         if self._post_thread is not None:
             self._post_thread.join()
+
