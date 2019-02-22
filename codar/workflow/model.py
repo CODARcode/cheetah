@@ -743,7 +743,7 @@ class SummitRunner(Runner):
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
 
-        nrs = run.nprocs/run.tasks_per_node
+        nrs = math.ceil(run.nprocs/run.tasks_per_node)
         tasks_per_rs = run.tasks_per_node
         cpus_per_rs = tasks_per_rs
         gpus_per_rs = 6
