@@ -611,7 +611,6 @@ class Pipeline(object):
         else:
             node_layout = NodeLayout(self.node_layout)
 
-        self.total_nodes = 0
         for run in self.runs:
             run_node = node_layout.get_node_containing_code(run.name)
 
@@ -622,7 +621,6 @@ class Pipeline(object):
             if run.tasks_per_node > run.nprocs:
                 run.tasks_per_node = run.nprocs
             run.nodes = int(math.ceil(run.nprocs / run.tasks_per_node))
-            self.total_nodes += run.nodes
 
     def set_total_nodes(self):
         """
