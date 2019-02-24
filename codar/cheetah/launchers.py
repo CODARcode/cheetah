@@ -13,7 +13,7 @@ import math
 
 from codar.cheetah import adios_params, config, templates, exc
 from codar.cheetah.parameters import ParamAdiosXML, ParamADIOS2XML, \
-    ParamConfig, ParamKeyValue
+    ParamConfig, ParamKeyValue, ParamEnvVar
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
     json_config_set_option
@@ -248,6 +248,12 @@ class Launcher(object):
                 # rewrite file with modified lines
                 with open(kv_filepath, 'w') as kv_f:
                     kv_f.write("".join(lines))
+
+            # Env var parameter values
+            kv_params = run.instance.get_parameter_values_by_type(ParamEnvVar)
+            for pv in kv_params:
+                rc = run._get_rc_by_name(pv.target)
+                rc.env[pv.option] = str(pv.value)
 
             # save code commands as text
             params_path_txt = os.path.join(run.run_path,

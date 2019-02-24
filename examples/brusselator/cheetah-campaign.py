@@ -64,6 +64,9 @@ class Brusselator(Campaign):
 
             # How to set options in a key-value configuration file. Input file can be a json file.
             # p.ParamKeyValue   ('simulation', 'feed_rate', 'input.conf', 'key', ['value']),
+
+            # Sweep over environment variables
+            # p.ParamEnvVar     ('simulation', 'openmp_stuff', 'OMP_NUM_THREADS', [4,8]),
     ]
 
     # Create a sweep
