@@ -453,6 +453,12 @@ class ParamCmdLineOption(Param):
         self.option = option
 
 
+class ParamEnvVar(Param):
+    def __init__(self, target, name, option, values):
+        Param.__init__(self, target, name, values)
+        self.option = option
+
+
 class ParamRunner(Param):
     """Specification for parameters that are passed to the runner, e.g.
     mpirun, mpilaunch, srun, apirun, but usually still associated with a
