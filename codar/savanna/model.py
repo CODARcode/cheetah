@@ -22,7 +22,7 @@ import signal
 import logging
 import pdb
 
-from codar.workflow import status
+from codar.savanna import status
 from codar.cheetah.model import NodeLayout
 
 

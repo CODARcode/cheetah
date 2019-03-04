@@ -7,8 +7,8 @@ import json
 import logging
 
 from codar.cheetah.helpers import get_file_size
-from codar.workflow import status
-from codar.workflow.scheduler import JobList
+from codar.savanna import status
+from codar.savanna.scheduler import JobList
 
 
 _log = logging.getLogger('codar.workflow.consumer')

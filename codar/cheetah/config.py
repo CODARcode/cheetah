@@ -14,7 +14,7 @@ CHEETAH_PATH_SCHEDULER = os.path.join(DATA_PATH, "scheduler")
 
 CHEETAH_PATH_MACHINE_CONFIG = os.path.join(DATA_PATH, "machine_config")
 
-WORKFLOW_SCRIPT = os.path.join(CODAR_PATH, "workflow", "main.py")
+WORKFLOW_SCRIPT = os.path.join(CODAR_PATH, "savanna", "main.py")
 
 
 def scheduler_path(scheduler_name):
