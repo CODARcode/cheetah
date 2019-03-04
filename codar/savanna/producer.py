@@ -3,8 +3,8 @@
 import json
 import os
 import logging
-from codar.workflow.model import Pipeline
-from codar.workflow.status import DONE, NOT_STARTED
+from codar.savanna.model import Pipeline
+from codar.savanna.status import DONE, NOT_STARTED
 
 _log = logging.getLogger('codar.workflow.producer')
 

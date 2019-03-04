@@ -7,9 +7,9 @@ import logging
 import signal
 import os
 
-from codar.workflow.producer import JSONFilePipelineReader
-from codar.workflow.consumer import PipelineRunner
-from codar.workflow.model import mpiexec, aprun, srun, jsrun
+from codar.savanna.producer import JSONFilePipelineReader
+from codar.savanna.consumer import PipelineRunner
+from codar.savanna.model import mpiexec, aprun, srun, jsrun
 
 
 consumer = None
