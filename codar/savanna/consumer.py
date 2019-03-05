@@ -11,7 +11,7 @@ from codar.savanna import status
 from codar.savanna.scheduler import JobList
 
 
-_log = logging.getLogger('codar.workflow.consumer')
+_log = logging.getLogger('codar.savanna.consumer')
 
 
 class PipelineRunner(object):
@@ -115,17 +115,35 @@ class PipelineRunner(object):
         # to block can call join on the consumer thread.
 
     def run_finished(self, run):
-        """Monitor thread(s) should call this as runs complete."""
-        with self.free_cv:
-            _log.debug("finished run, free nodes %d -> %d",
-                       self.free_nodes, self.free_nodes + run.get_nodes_used())
-            self.free_nodes += run.get_nodes_used()
-            self.free_cv.notify()
+        """TO BE DEPRECATED.
+        Monitor thread(s) should call this as runs
+        complete. To be deprecated, as the functionality fails when
+        node_layout is set to node-sharing.
+
+        This means that for node_exclusive, resources held by a run are not
+        released when the run terminates. For kill_on_partial_failure=False,
+        this could lead to unused resources, which is ok."""
+        # with self.free_cv:
+        #     _log.debug("finished run, free nodes %d -> %d",
+        #                self.free_nodes, self.free_nodes + run.get_nodes_used())
+        #     self.free_nodes += run.get_nodes_used()
+        #     self.free_cv.notify()
+        pass
 
     def pipeline_finished(self, pipeline):
         """Monitor thread(s) should call this as pipelines complete."""
 
+        # Get the sizes of all output adios files
         self._get_adios_file_sizes(pipeline)
+
+        # Free resources used by the pipeline
+        with self.free_cv:
+            _log.debug("finished pipeline, free nodes %d -> %d",
+                       self.free_nodes, self.free_nodes + pipeline.total_nodes)
+            self.free_nodes += pipeline.total_nodes
+            self.free_cv.notify()
+
+        # Remove pipeline from list of running pipelines
         with self.pipelines_lock:
             self._running_pipelines.remove(pipeline)
             if self._status is not None:

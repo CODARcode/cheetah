@@ -6,7 +6,7 @@ import logging
 from codar.savanna.model import Pipeline
 from codar.savanna.status import DONE, NOT_STARTED
 
-_log = logging.getLogger('codar.workflow.producer')
+_log = logging.getLogger('codar.savanna.producer')
 
 
 class JSONFilePipelineReader(object):

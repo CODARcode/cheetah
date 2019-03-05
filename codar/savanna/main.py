@@ -9,7 +9,7 @@ import os
 
 from codar.savanna.producer import JSONFilePipelineReader
 from codar.savanna.consumer import PipelineRunner
-from codar.savanna.model import mpiexec, aprun, srun, jsrun
+from codar.savanna.runners import mpiexec, aprun, srun, jsrun
 
 
 consumer = None
@@ -54,7 +54,7 @@ def main():
         # Note: arg parser should have caught this already
         raise ValueError('Unknown runner: %s' % args.runner)
 
-    logger = logging.getLogger('codar.workflow')
+    logger = logging.getLogger('codar.savanna')
     if args.log_file:
         handler = logging.FileHandler(args.log_file)
         formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
@@ -64,7 +64,7 @@ def main():
     else:
         logger.addHandler(logging.NullHandler())
 
-    logger.info('starting workflow job %s', get_job_id())
+    logger.info('starting savanna job %s', get_job_id())
 
     consumer = PipelineRunner(runner=runner,
                               max_nodes=args.max_nodes,
