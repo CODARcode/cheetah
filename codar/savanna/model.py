@@ -557,7 +557,7 @@ class Pipeline(object):
             outf = open(stdout_path, 'w')
             errf = open(stderr_path, 'w')
             rval = subprocess.call(args, stdout=outf, stderr=errf,
-                                   cwd=self.working_dir)
+                                   cwd=self.working_dir, timeout=120)
         except subprocess.SubprocessError as e:
             _log.warn("pipe '%s' failed to run post process script: %s",
                       self.id, str(e))
