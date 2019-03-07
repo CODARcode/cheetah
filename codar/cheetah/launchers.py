@@ -300,28 +300,23 @@ class Launcher(object):
                        total_nodes=run.total_nodes,
                        machine_name=machine.name)
             fob_list.append(fob)
-            fob_s = json.dumps(fob, sort_keys=True, indent=4)
 
             # write to file run dir
             run_fob_path = os.path.join(run.run_path,
                                         "codar.cheetah.fob.json")
             with open(run_fob_path, "w") as runf:
-                runf.write(fob_s)
+                runf.write(json.dumps(fob, sort_keys=True, indent=4))
                 runf.write("\n")
 
             if run_dir_setup_script is not None:
                 self._execute_run_dir_setup_script(run.run_path,
                                                    run_dir_setup_script)
 
-            # append to fob list file in group dir
-            # f.write(fob_s)
-            # f.write("\n")
-
             # Get the size of the run dir. This should be the last step
             # in the creation of the run dir.
             self._get_pre_submit_dir_size(run)
 
-        # json.dumps(fob_list, sort_keys=True, indent=4)
+        # Write fob_list to group-level json file
         f.write(json.dumps(fob_list, sort_keys=True, indent=4))
         f.close()
 
