@@ -484,8 +484,9 @@ class Pipeline(object):
             for run in self.runs:
                 run.set_runner(runner)
 
-                # Removing this callback that release the nodes held by a run.
+                # Removing this callback that releases the nodes held by a run.
                 # Now this is done when the pipeline finishes
+
                 # run.add_callback(consumer.run_finished)
 
                 run.add_callback(self.run_finished)
