@@ -30,18 +30,18 @@ class JSONFilePipelineReader(object):
             pipelines_status = {}
 
         with open(self.file_path) as f:
-            for line in f.readlines():
-                pipeline_data = json.loads(line)
+            all_pipelines = json.load(f)
 
-                # Check if this pipeline has already been run
-                pipe_id = pipeline_data['id']
-                status_d = pipelines_status.get(pipe_id, {})
-                status = status_d.get('state', NOT_STARTED)
+        for pipeline_data in all_pipelines:
+            # Check if this pipeline has already been run
+            pipe_id = pipeline_data['id']
+            status_d = pipelines_status.get(pipe_id, {})
+            status = status_d.get('state', NOT_STARTED)
 
-                # Add pipeline if not done
-                if status == DONE:
-                    _log.info("pipeline %s already done, skipping", pipe_id)
-                else:
-                    pipeline = Pipeline.from_data(pipeline_data)
-                    _log.debug("adding pipeline %s to run queue", pipe_id)
-                    yield pipeline
+            # Add pipeline if not done
+            if status == DONE:
+                _log.info("pipeline %s already done, skipping", pipe_id)
+            else:
+                pipeline = Pipeline.from_data(pipeline_data)
+                _log.debug("adding pipeline %s to run queue", pipe_id)
+                yield pipeline

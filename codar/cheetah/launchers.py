@@ -86,6 +86,7 @@ class Launcher(object):
         min_nodes = 1
 
         f = open(fobs_path, 'w')
+        fob_list = []
         for i, run in enumerate(runs):
             # TODO: abstract this to higher levels
             os.makedirs(run.run_path, exist_ok=True)
@@ -298,7 +299,8 @@ class Launcher(object):
                        node_layout=run.node_layout.as_data_list(),
                        total_nodes=run.total_nodes,
                        machine_name=machine.name)
-            fob_s = json.dumps(fob, sort_keys=True)
+            fob_list.append(fob)
+            fob_s = json.dumps(fob, sort_keys=True, indent=4)
 
             # write to file run dir
             run_fob_path = os.path.join(run.run_path,
@@ -312,13 +314,15 @@ class Launcher(object):
                                                    run_dir_setup_script)
 
             # append to fob list file in group dir
-            f.write(fob_s)
-            f.write("\n")
+            # f.write(fob_s)
+            # f.write("\n")
 
             # Get the size of the run dir. This should be the last step
             # in the creation of the run dir.
             self._get_pre_submit_dir_size(run)
 
+        # json.dumps(fob_list, sort_keys=True, indent=4)
+        f.write(json.dumps(fob_list, sort_keys=True, indent=4))
         f.close()
 
         if nodes is None:
