@@ -23,7 +23,7 @@ class SweepGroup(object):
                  component_inputs=None, walltime=3600, max_procs=None,
                  per_run_timeout=None, sosflow_profiling=False,
                  sosflow_analysis=False, nodes=None, launch_mode=None,
-                 rc_dependency=None):
+                 rc_dependency=None, run_repetitions=0):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
@@ -40,6 +40,7 @@ class SweepGroup(object):
                 raise CheetahException("launch mode must be None/default/mpmd")
         self.launch_mode = launch_mode
         self.rc_dependency = rc_dependency
+        self.run_repetitions = run_repetitions
 
 
 class Sweep(object):
