@@ -256,44 +256,49 @@ class Campaign(object):
                                                           len(self.codes))
             group_runs = []
             group_run_offset = 0
-            for sweep in group.parameter_groups:
-                # node layout is map of machine names to layout for each
-                # machine. If unspecified, or certain machine is
-                # unspecified, use default.
-                if sweep.node_layout is None:
-                    node_layout = None
-                else:
-                    node_layout = sweep.node_layout.get(self.machine.name)
-                if node_layout is None:
-                    node_layout = NodeLayout.default_no_share_layout(
-                                        self.machine.processes_per_node,
-                                        self.codes.keys())
-                else:
-                    node_layout = NodeLayout(node_layout)
+            for repeat_index in range(0, group.run_repetitions+1):
+                group_run_offset = 0
+                for sweep in group.parameter_groups:
+                    # node layout is map of machine names to layout for each
+                    # machine. If unspecified, or certain machine is
+                    # unspecified, use default.
+                    if sweep.node_layout is None:
+                        node_layout = None
+                    else:
+                        node_layout = sweep.node_layout.get(self.machine.name)
+                    if node_layout is None:
+                        node_layout = NodeLayout.default_no_share_layout(
+                                            self.machine.processes_per_node,
+                                            self.codes.keys())
+                    else:
+                        node_layout = NodeLayout(node_layout)
 
-                # TODO: validate node layout against machine model
+                    # TODO: validate node layout against machine model
 
-                # Summit override. Don't support MPMD yet.
-                if self.machine.name.lower() == "summit":
-                    if group.launch_mode.lower() == 'mpmd':
-                        print("MPMD not supported on Summit yet. Changing to "
-                              "default launch mode.")
-                        group.launch_mode = 'default'
+                    # Summit override. Don't support MPMD yet.
+                    if self.machine.name.lower() == "summit":
+                        if group.launch_mode.lower() == 'mpmd':
+                            print("MPMD not supported on Summit yet."
+                                  "Changing to default launch mode.")
+                            group.launch_mode = 'default'
 
-                sweep_runs = [Run(inst, self.codes, self.app_dir,
-                                  os.path.join(
-                                      group_output_dir,
-                                      'run-%03d' % (group_run_offset + i)),
-                                  self.inputs,
-                                  node_layout,
-                                  group.rc_dependency,
-                                  group.component_subdirs,
-                                  group.sosflow_profiling,
-                                  group.sosflow_analysis,
-                                  group.component_inputs)
-                              for i, inst in enumerate(sweep.get_instances())]
-                group_runs.extend(sweep_runs)
-                group_run_offset += len(sweep_runs)
+                    sweep_runs = [Run(inst, self.codes, self.app_dir,
+                                      os.path.join(
+                                          group_output_dir,
+                                          'run-{}.{}'.format(
+                                              group_run_offset + i,
+                                              repeat_index)),
+                                      self.inputs,
+                                      node_layout,
+                                      group.rc_dependency,
+                                      group.component_subdirs,
+                                      group.sosflow_profiling,
+                                      group.sosflow_analysis,
+                                      group.component_inputs)
+                                  for i, inst in enumerate(
+                            sweep.get_instances())]
+                    group_runs.extend(sweep_runs)
+                    group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
 
             if group.max_procs is None:
