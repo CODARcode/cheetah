@@ -22,7 +22,7 @@ import logging
 import pdb
 
 from codar.savanna import status
-from codar.cheetah.model import NodeLayout
+from codar.savanna.node_layout import NodeLayout
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -385,7 +385,7 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir, total_nodes,
+    def __init__(self, pipe_id, runs, working_dir, total_nodes, machine_name,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
@@ -399,6 +399,7 @@ class Pipeline(object):
         self.post_process_args = post_process_args
         self.post_process_stop_on_failure = post_process_stop_on_failure
         self.node_layout = node_layout
+        self.machine_name = machine_name
 
         self._state_lock = threading.Lock()
         self._running = False
@@ -460,13 +461,17 @@ class Pipeline(object):
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         node_layout = data.get("node_layout")
         total_nodes = data.get("total_nodes")
+        machine_name = data.get("machine_name")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
-                    kill_on_partial_failure=kill_on_partial_failure,
-                    post_process_script=post_process_script,
-                    post_process_args=post_process_args,
-                    post_process_stop_on_failure=post_process_stop_on_failure,
-                    node_layout=node_layout, launch_mode=launch_mode,
-                        total_nodes = total_nodes)
+                        kill_on_partial_failure=kill_on_partial_failure,
+                        post_process_script=post_process_script,
+                        post_process_args=post_process_args,
+                        post_process_stop_on_failure=
+                        post_process_stop_on_failure,
+                        node_layout=node_layout,
+                        launch_mode=launch_mode,
+                        total_nodes = total_nodes,
+                        machine_name=machine_name)
 
     def start(self, consumer, runner=None):
         # Mark all runs as active before they are actually started
@@ -609,7 +614,8 @@ class Pipeline(object):
     def set_ppn(self, ppn):
         """Determine number of nodes needed to run pipeline with the specified
         node layout or full occupancy layout with ppn. Also updates runs
-        to set node and task per node counts."""
+        to set node and task per node counts.
+        TODO: This should be set by Cheetah in fobs.json"""
         if self.node_layout is None:
             run_names = [run.name for run in self.runs]
             node_layout = NodeLayout.default_no_share_layout(ppn, run_names)
