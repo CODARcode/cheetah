@@ -1,7 +1,7 @@
 """
 Configuration for machines supported by Codar.
 """
-from codar.cheetah import launchers, exc
+from codar.savanna import exc
 
 
 # Note: not all schedulers support all options, the purpose of this is
@@ -19,11 +19,10 @@ class Machine(object):
     having to define machine specific parameter for every experiment
     separately."""
 
-    def __init__(self, name, launcher_class, scheduler_name, runner_name,
+    def __init__(self, name, scheduler_name, runner_name,
                  processes_per_node=None, node_exclusive=False,
                  scheduler_options=None, dataspaces_servers_per_node=1):
         self.name = name
-        self.launcher_class = launcher_class
         self.scheduler_name = scheduler_name
         self.runner_name = runner_name
         # TODO: should the workflow script have knowledge of different
@@ -33,11 +32,6 @@ class Machine(object):
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)
         self.scheduler_options = scheduler_options or {}
         self.dataspaces_servers_per_node = dataspaces_servers_per_node
-
-    def get_launcher_instance(self, output_directory, num_codes):
-        return self.launcher_class(self.name, self.scheduler_name,
-                                   self.runner_name, output_directory,
-                                   num_codes)
 
     def get_scheduler_options(self, options):
         """Validate supplied options and add default values where missing.
@@ -63,34 +57,33 @@ def _check_known_scheduler_options(supported_set, options):
 # container with all the machines.
 
 # NOTE: set process per node to avoid errors with sosflow calculations
-local=Machine('local', launchers.Launcher, "local", "mpiexec",
-              processes_per_node=1)
+local = Machine('local', "local", "mpiexec", processes_per_node=1)
 
-titan=Machine('titan', launchers.Launcher, "pbs", "aprun",
-              processes_per_node=16, node_exclusive=True,
-              scheduler_options=dict(project="", queue="debug"),
-              dataspaces_servers_per_node=4)
+titan = Machine('titan', "pbs", "aprun",
+                processes_per_node=16, node_exclusive=True,
+                scheduler_options=dict(project="", queue="debug"),
+                dataspaces_servers_per_node=4)
 
 # TODO: remove node exclusive restriction, which can be avoided on cori
 # using correct sbatch and srun options. As a start just get feature
 # parity with titan.
-cori=Machine('cori', launchers.Launcher, "slurm", "srun",
-             processes_per_node=32, node_exclusive=True,
-             dataspaces_servers_per_node=4,
-             scheduler_options=dict(project="",
-                                    queue="debug",
-                                    constraint="haswell",
-                                    license="SCRATCH,project"))
+cori = Machine('cori', "slurm", "srun",
+               processes_per_node=32, node_exclusive=True,
+               dataspaces_servers_per_node=4,
+               scheduler_options=dict(project="",
+                                      queue="debug",
+                                      constraint="haswell",
+                                      license="SCRATCH,project"))
 
 
-theta=Machine('theta', launchers.Launcher, "cobalt", "aprun",
-              processes_per_node=64, node_exclusive=True,
-              dataspaces_servers_per_node=8,
-              scheduler_options=dict(project="",
-                                     queue="debug-flat-quad"))
+theta = Machine('theta', "cobalt", "aprun",
+                processes_per_node=64, node_exclusive=True,
+                dataspaces_servers_per_node=8,
+                scheduler_options=dict(project="",
+                                       queue="debug-flat-quad"))
 
 
-summit = Machine('summit', launchers.Launcher, "ibm_lsf", "jsrun",
+summit = Machine('summit', "ibm_lsf", "jsrun",
                  processes_per_node=42, node_exclusive=True,
                  scheduler_options=dict(project=""))
 
