@@ -5,6 +5,7 @@ import threading
 import os
 import json
 import logging
+from collections import deque
 
 from codar.cheetah.helpers import get_file_size
 from codar.savanna import status
@@ -27,9 +28,10 @@ class PipelineRunner(object):
     stop and kill_all methods could be called from any of the producer,
     Pipeline or Run threads."""
 
-    def __init__(self, runner, max_nodes, processes_per_node,
+    def __init__(self, runner, max_nodes, machine_name, processes_per_node,
                  status_file=None):
         self.max_nodes = max_nodes
+        self.machine_name = machine_name
         self.ppn = processes_per_node
         self.runner = runner
 

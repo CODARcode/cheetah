@@ -347,7 +347,8 @@ class Launcher(object):
             campaign_name='codar.cheetah.'+campaign_name,
             group_name=group_name,
             constraint=scheduler_options.get('constraint', ''),
-            license=scheduler_options.get('license', '')
+            license=scheduler_options.get('license', ''),
+            machine_name=machine.name
         )
         with open(env_path, 'w') as f:
             f.write(group_env)

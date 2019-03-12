@@ -17,6 +17,7 @@ start=$(date +%s)
  --processes-per-node=1 \
  --producer-input-file=fobs.json \
  --log-file=codar.FOBrun.log \
+ --machine-name=$CODAR_CHEETAH_MACHINE_NAME \
  --status-file=codar.workflow.status.json \
  --log-level=$CODAR_CHEETAH_WORKFLOW_LOG_LEVEL
 
