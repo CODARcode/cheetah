@@ -19,9 +19,10 @@ import math
 import threading
 import signal
 import logging
+from queue import Queue
 import pdb
 
-from codar.savanna import status
+from codar.savanna import status, machines, summit_helper
 from codar.savanna.node_layout import NodeLayout
 
 
@@ -50,7 +51,8 @@ class Run(threading.Thread):
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
-                 nprocs=1, stdout_path=None, stderr_path=None,
+                 nprocs=1, res_set=None, nrs=None, rs_per_host=None,
+                 stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
                  depends_on_runs=None, hostfile=None):
@@ -62,6 +64,14 @@ class Run(threading.Thread):
         self.working_dir = working_dir
         self.timeout = timeout
         self.nprocs = nprocs
+
+        # res_set, nrs, and rs_per_host represent resource_set definition,
+        # total no. of resource sets, and the no. of resource sets per host
+        # respectively. Reqd for Summit.
+        self.res_set = res_set
+        self.nrs = nrs
+        self.rs_per_host = rs_per_host
+
         self.stdout_path = _get_path(working_dir, STDOUT_NAME + "." + name,
                                      stdout_path)
         self.stderr_path = _get_path(working_dir, STDERR_NAME + "." + name,
@@ -102,6 +112,8 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
+        self.nodes_assigned = None
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -114,6 +126,9 @@ class Run(threading.Thread):
                 working_dir=data['working_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
+                res_set=data.get('res_set'),
+                nrs=data.get('nrs'),
+                rs_per_host=data.get('rs_per_host'),
                 stdout_path=data.get('stdout_path'),
                 stderr_path=data.get('stderr_path'),
                 return_path=data.get('return_path'),
@@ -419,6 +434,10 @@ class Pipeline(object):
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
 
+        # List of node IDs assigned to this pipeline. Get initialized in
+        # start()
+        self.nodes_assigned = Queue()
+
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -473,11 +492,17 @@ class Pipeline(object):
                         total_nodes = total_nodes,
                         machine_name=machine_name)
 
-    def start(self, consumer, runner=None):
+    def start(self, consumer, nodes_assigned, runner=None):
         # Mark all runs as active before they are actually started
         # in a separate thread, so other methods know the state.
+
+        for node_name in nodes_assigned:
+            machine = machines.get_by_name(self.machine_name)
+            self.nodes_assigned.put(machine.node_class(node_name))
+
         self.add_done_callback(consumer.pipeline_finished)
         self.add_fatal_callback(consumer.pipeline_fatal)
+
         with self._state_lock:
             for run in self.runs:
                 run.set_runner(runner)
@@ -508,10 +533,48 @@ class Pipeline(object):
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
 
-        for run in self.runs:
+        # we assume this is an ordered list of dicts that takes dependencies
+        # into account
+
+        # For now, lets do this only for Summit
+        if self.machine_name.lower() == "summit":
+            for layout_d in self.node_layout:
+                self._launch_codes_in_layout(layout_d)
+
+        else:
+            for run in self.runs:
+                run.start()
+                if run.sleep_after:
+                    time.sleep(run.sleep_after)
+
+    def _launch_codes_in_layout(self, layout):
+        """Launch the codes in this node layout.
+        Only supported for Summit as of now"""
+
+        node_sharing = False
+        if len(layout) > 1:
+            node_sharing = True
+
+        # Get num nodes required to run this layout
+        nodes_reqd_for_layout = 0
+        for run in layout.keys():
+            nodes_reqd_for_run = math.ceil(run.nrs/run.rs_per_host)
+            nodes_reqd_for_layout = max(nodes_reqd_for_layout,
+                                        nodes_reqd_for_run)
+
+        # Get a list of nodes required for this run
+        nodes_assigned_to_layout = []
+        for i in range(nodes_reqd_for_layout):
+            nodes_assigned_to_layout.append(self.nodes_assigned.get())
+
+        for run in layout.keys():
+            run.nodes_assigned = nodes_assigned_to_layout
             run.start()
             if run.sleep_after:
                 time.sleep(run.sleep_after)
+
+        # TODO cannot support dependencies on Summit unless there is a way to
+        # release nodes assigned to a layout
 
     def run_finished(self, run):
         assert self._running
