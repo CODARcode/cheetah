@@ -23,6 +23,7 @@ from queue import Queue
 import pdb
 
 from codar.savanna import status, machines, summit_helper
+from codar.savanna.exc import SavannaException
 from codar.savanna.node_layout import NodeLayout
 
 
@@ -46,12 +47,19 @@ def _get_path(default_dir, default_name, specified_name):
     return path
 
 
+class NodeConfig:
+    def __init__(self):
+        self.num_ranks_per_node = 0
+        self.cpu = []
+        self.gpu = []
+
+
 class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, env, working_dir, timeout=None,
-                 nprocs=1, res_set=None, nrs=None, rs_per_host=None,
+                 nprocs=1, res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -69,8 +77,6 @@ class Run(threading.Thread):
         # total no. of resource sets, and the no. of resource sets per host
         # respectively. Reqd for Summit.
         self.res_set = res_set
-        self.nrs = nrs
-        self.rs_per_host = rs_per_host
 
         self.stdout_path = _get_path(working_dir, STDOUT_NAME + "." + name,
                                      stdout_path)
@@ -112,7 +118,16 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
+        # Machine and nodes assigned are set by pipeline just before run is
+        # started
+        self.machine = None
         self.nodes_assigned = None
+
+        # node_config for node-sharing on summit
+        self.node_config = None
+
+        # erf_file needed for summit
+        self.erf_file = None
 
     @classmethod
     def from_data(cls, data):
@@ -127,8 +142,6 @@ class Run(threading.Thread):
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 res_set=data.get('res_set'),
-                nrs=data.get('nrs'),
-                rs_per_host=data.get('rs_per_host'),
                 stdout_path=data.get('stdout_path'),
                 stderr_path=data.get('stderr_path'),
                 return_path=data.get('return_path'),
@@ -228,10 +241,20 @@ class Run(threading.Thread):
         if self.depends_on_runs is not None:
             threading.Thread.join(self.depends_on_runs)
 
+        if self.machine.name.lower() == 'summit':
+            self.erf_file = self.working_dir + "/codar.erf_input"
+            summit_helper.create_erf_file(self)
+
+        # if self.machine.name.lower() == 'summit':
+        #     # are we releasing when the run finishes, or when the pipeline
+        #     # finishes? reqd. for dependency mgmt
+        #     self.add_callback(self._release_nodes)
+
         if self.runner is not None:
             args = self.runner.wrap(self)
         else:
             args = [self.exe] + self.args
+
         self._start_time = time.time()
         with self._state_lock:
             if self._killed:
@@ -260,6 +283,7 @@ class Run(threading.Thread):
                         # the exception before kill.
                         self._timed_out = True
                     self._timeout_pending = False
+                    # TODO will this call the release_nodes callback?
 
         self._pgroup_wait()
         with self._state_lock:
@@ -398,6 +422,12 @@ class Run(threading.Thread):
         on each run."""
         return self.nodes
 
+    def _release_nodes(self):
+        pass
+
+    def create_node_config(self):
+        pass
+
 
 class Pipeline(object):
     def __init__(self, pipe_id, runs, working_dir, total_nodes, machine_name,
@@ -430,6 +460,7 @@ class Pipeline(object):
         for run in runs:
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
+            run.machine = machines.get_by_name(machine_name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
@@ -437,6 +468,10 @@ class Pipeline(object):
         # List of node IDs assigned to this pipeline. Get initialized in
         # start()
         self.nodes_assigned = Queue()
+
+        # Parse the node layout and set the run information.
+        # Only for Summit right now.
+        self._parse_node_layout(self)
 
     @classmethod
     def from_data(cls, data):
@@ -489,7 +524,7 @@ class Pipeline(object):
                         post_process_stop_on_failure,
                         node_layout=node_layout,
                         launch_mode=launch_mode,
-                        total_nodes = total_nodes,
+                        total_nodes=total_nodes,
                         machine_name=machine_name)
 
     def start(self, consumer, nodes_assigned, runner=None):
@@ -497,8 +532,9 @@ class Pipeline(object):
         # in a separate thread, so other methods know the state.
 
         for node_name in nodes_assigned:
+            self.nodes_assigned.put(node_name)
             machine = machines.get_by_name(self.machine_name)
-            self.nodes_assigned.put(machine.node_class(node_name))
+            # self.nodes_assigned.put(machine.node_class(node_name))
 
         self.add_done_callback(consumer.pipeline_finished)
         self.add_fatal_callback(consumer.pipeline_fatal)
@@ -514,8 +550,9 @@ class Pipeline(object):
             for run in self.runs:
                 run.set_runner(runner)
 
-                # Removing this callback that releases the nodes held by a run.
-                # Now this is done when the pipeline finishes
+                # Commenting out the callback to consumer.run_finished that
+                # releases the nodes held by a run.
+                # Now this is called when the pipeline finishes
 
                 # run.add_callback(consumer.run_finished)
 
@@ -533,48 +570,113 @@ class Pipeline(object):
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
 
-        # we assume this is an ordered list of dicts that takes dependencies
-        # into account
-
-        # For now, lets do this only for Summit
-        if self.machine_name.lower() == "summit":
-            for layout_d in self.node_layout:
-                self._launch_codes_in_layout(layout_d)
-
-        else:
-            for run in self.runs:
-                run.start()
-                if run.sleep_after:
-                    time.sleep(run.sleep_after)
-
-    def _launch_codes_in_layout(self, layout):
-        """Launch the codes in this node layout.
-        Only supported for Summit as of now"""
-
-        node_sharing = False
-        if len(layout) > 1:
-            node_sharing = True
-
-        # Get num nodes required to run this layout
-        nodes_reqd_for_layout = 0
-        for run in layout.keys():
-            nodes_reqd_for_run = math.ceil(run.nrs/run.rs_per_host)
-            nodes_reqd_for_layout = max(nodes_reqd_for_layout,
-                                        nodes_reqd_for_run)
-
-        # Get a list of nodes required for this run
-        nodes_assigned_to_layout = []
-        for i in range(nodes_reqd_for_layout):
-            nodes_assigned_to_layout.append(self.nodes_assigned.get())
-
-        for run in layout.keys():
-            run.nodes_assigned = nodes_assigned_to_layout
+        for run in self.runs:
             run.start()
             if run.sleep_after:
                 time.sleep(run.sleep_after)
 
-        # TODO cannot support dependencies on Summit unless there is a way to
-        # release nodes assigned to a layout
+    def _parse_node_layouts(self):
+        """Only for Summit right now."""
+
+        # Return if not on Summit
+        if self.machine_name.lower() not in 'summit':
+            return
+
+        for layout in self.node_layout:
+            self._parse_node_layout(self, layout)
+
+    def _parse_node_layout(self, layout):
+        """
+        what should be the output of this?
+        each run must have its num_nodes_reqd, and node_configs set.
+        you dont need the num_nodes_required for this layout set, do you?
+        for the layout, set the run information, everything except the
+        nodes_assigned.
+        then get the max nodes reqd, remove them from the queue, and assign
+        them to the runs. that is.
+        """
+
+        # Extract code info for this node
+        codes_on_node = self._extract_codes_on_node(layout)
+
+        # Get num nodes required to run this layout
+        num_nodes_reqd_for_layout = max([code.nodes for code in codes_on_node])
+
+        # Get a list of nodes required for this run
+        nodes_assigned_to_layout = []
+        for i in range(num_nodes_reqd_for_layout):
+            nodes_assigned_to_layout.append(self.nodes_assigned.get())
+
+        # Assign nodes to runs
+        for run in codes_on_node:
+            run.nodes_assigned = nodes_assigned_to_layout
+
+    def _extract_codes_on_node(self, layout_info):
+
+        if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
+            raise SavannaException("Invalid value for node layout's "
+                                   "__info_type__ key")
+
+        codes_on_node = set()
+
+        # If no node-sharing
+        if layout_info['__info_type__'] == 'resource_set':
+            # Get the run handle
+            run_name = None
+            for k in layout_info.keys():
+                if '__info_type__' not in k:
+                    run_name = k
+                    break
+            assert run_name is not None, "Could not get run in node_layout"
+
+            run = self._get_run_by_name(run_name)
+            run.nodes = math.ceil(run.nprocs / int(layout_info[run_name]))
+            codes_on_node.add(run)
+
+        # if node-sharing
+        elif layout_info['__info_type__'] == 'NodeConfig':
+            # Get the ranks per node for each run
+            num_ranks_per_run = {}
+            for rank_info in layout_info['cpu']:
+                run_name = rank_info.split(':')[0]
+                if run_name not in list(num_ranks_per_run.keys()):
+                    num_ranks_per_run[run_name] += 1
+
+            # Add run to codes_on_node and create nodeconfig for each run
+            for run_name in num_ranks_per_run.keys():
+                run = self._get_run_by_name(run_name)
+                codes_on_node.add(run)
+                run.node_config = NodeConfig
+                for i in range(num_ranks_per_run[run_name]):
+                    # Every rank for this run has a list of cpu and gpu cores
+                    run.node_config.cpu.append([])
+                    run.node_config.gpu.append([])
+
+            # Loop over the cpu core mapping
+            for i in len(layout_info['cpu']):
+                rank_info = layout_info['cpu'][i]
+
+                # if the core is not mapped, go to the next one
+                if rank_info is None:
+                    continue
+
+                run_name = rank_info.split(':')[0]
+                rank_id = rank_info.split(':')[1]
+                run = self._get_run_by_name(run_name)
+
+                # append core id to the rank id of this run
+                run.node_config.cpu[rank_id].append(i)
+
+            # Loop over the gpu mapping
+            for i in len(layout_info['gpu']):
+                rank_list = layout_info['gpu'][i]
+                for rank_info in rank_list:
+                    run_name = rank_info.split(':')[0]
+                    rank_id = rank_info.split(':')[1]
+                    run = self._get_run_by_name(run_name)
+                    run.node_config.gpu[rank_id].append(i)
+
+        return list(codes_on_node)
 
     def run_finished(self, run):
         assert self._running
@@ -668,6 +770,14 @@ class Pipeline(object):
         _log.debug('%s _execute_fatal_callbacks', self.log_prefix)
         for cb in self.fatal_callbacks:
             cb(self)
+
+    def release_nodes(self):
+        pass
+
+    def _get_run_by_name(self, run_name):
+        for run in self.runs:
+            if run.name == run_name:
+                return run
 
     def get_nodes_used(self):
         if self.total_nodes is None:
