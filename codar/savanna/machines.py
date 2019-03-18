@@ -2,6 +2,7 @@
 Configuration for machines supported by Codar.
 """
 from codar.savanna import exc
+import json
 
 
 # Note: not all schedulers support all options, the purpose of this is
@@ -22,6 +23,10 @@ class SummitNode(MachineNode):
         MachineNode.__init__(self, id)
         self.cpu = [None] * 42
         self.gpu = [None] * 6
+
+    def __str__(self):
+        self.__dict__['__meta_class__'] = 'NodeConfig'
+        return json.dumps(self.__dict__)
 
 
 class Machine(object):
