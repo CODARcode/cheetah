@@ -296,7 +296,7 @@ class Launcher(object):
                        post_process_stop_on_failure=
                             run_post_process_stop_on_failure,
                        post_process_args=[params_path_json],
-                       node_layout=run.node_layout.as_data_list(),
+                       node_layout=run.node_layout.serialize_to_dict(),
                        total_nodes=run.total_nodes,
                        machine_name=machine.name)
             fob_list.append(fob)

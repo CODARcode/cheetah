@@ -20,6 +20,7 @@ import threading
 import signal
 import logging
 from queue import Queue
+import json
 import pdb
 
 from codar.savanna import status, machines, summit_helper
@@ -242,7 +243,7 @@ class Run(threading.Thread):
             threading.Thread.join(self.depends_on_runs)
 
         if self.machine.name.lower() == 'summit':
-            self.erf_file = self.working_dir + "/codar.erf_input"
+            self.erf_file = self.working_dir + "/" + self.name + ".erf_input"
             summit_helper.create_erf_file(self)
 
         # if self.machine.name.lower() == 'summit':
@@ -380,6 +381,7 @@ class Run(threading.Thread):
         env.update(self.env)
         _log.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
                    env.get('LD_LIBRARY_PATH', ''))
+        args = ['ls']
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
                                    preexec_fn=os.setpgrp)
@@ -469,10 +471,6 @@ class Pipeline(object):
         # start()
         self.nodes_assigned = Queue()
 
-        # Parse the node layout and set the run information.
-        # Only for Summit right now.
-        self._parse_node_layout(self)
-
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -560,6 +558,11 @@ class Pipeline(object):
                 self._active_runs.add(run)
             self._running = True
 
+            # Parse the node layout and set the run information.
+            # This requires self.nodes_assigned .
+            # Only for Summit right now.
+            self._parse_node_layouts()
+
             # Next start pipeline runs in separate thread and return
             # immediately, so we can inject a wait time between starting runs.
             self._pipe_thread = threading.Thread(target=self._start)
@@ -583,7 +586,7 @@ class Pipeline(object):
             return
 
         for layout in self.node_layout:
-            self._parse_node_layout(self, layout)
+            self._parse_node_layout(layout)
 
     def _parse_node_layout(self, layout):
         """
@@ -605,7 +608,8 @@ class Pipeline(object):
         # Get a list of nodes required for this run
         nodes_assigned_to_layout = []
         for i in range(num_nodes_reqd_for_layout):
-            nodes_assigned_to_layout.append(self.nodes_assigned.get())
+
+            nodes_assigned_to_layout.append(list(self.nodes_assigned.queue)[i])
 
         # Assign nodes to runs
         for run in codes_on_node:
@@ -613,14 +617,16 @@ class Pipeline(object):
 
     def _extract_codes_on_node(self, layout_info):
 
-        if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
-            raise SavannaException("Invalid value for node layout's "
-                                   "__info_type__ key")
+        # Remove this check for now
+        # if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
+        #     raise SavannaException("Invalid value for node layout's "
+        #                            "__info_type__ key")
 
         codes_on_node = set()
 
         # If no node-sharing
-        if layout_info['__info_type__'] == 'resource_set':
+        # if layout_info['__info_type__'] == 'resource_set':
+        if layout_info.get('__info_type__', None) is None:
             # Get the run handle
             run_name = None
             for k in layout_info.keys():
@@ -638,22 +644,31 @@ class Pipeline(object):
             # Get the ranks per node for each run
             num_ranks_per_run = {}
             for rank_info in layout_info['cpu']:
-                run_name = rank_info.split(':')[0]
-                if run_name not in list(num_ranks_per_run.keys()):
+                if rank_info is not None:
+                    run_name = rank_info.split(':')[0]
+                    if run_name not in list(num_ranks_per_run.keys()):
+                        num_ranks_per_run[run_name] = 0
                     num_ranks_per_run[run_name] += 1
+
+            # set the no. of nodes for the codes on this node
+            for code in num_ranks_per_run:
+                run = self._get_run_by_name(code)
+                run.nodes = math.ceil(run.nprocs/num_ranks_per_run[code])
 
             # Add run to codes_on_node and create nodeconfig for each run
             for run_name in num_ranks_per_run.keys():
+                num_ranks_per_node = num_ranks_per_run[run_name]
                 run = self._get_run_by_name(run_name)
                 codes_on_node.add(run)
-                run.node_config = NodeConfig
-                for i in range(num_ranks_per_run[run_name]):
+                run.node_config = NodeConfig()
+                run.node_config.num_ranks_per_node = num_ranks_per_node
+                for i in range(num_ranks_per_node):
                     # Every rank for this run has a list of cpu and gpu cores
                     run.node_config.cpu.append([])
                     run.node_config.gpu.append([])
 
             # Loop over the cpu core mapping
-            for i in len(layout_info['cpu']):
+            for i in range(len(layout_info['cpu'])):
                 rank_info = layout_info['cpu'][i]
 
                 # if the core is not mapped, go to the next one
@@ -665,16 +680,18 @@ class Pipeline(object):
                 run = self._get_run_by_name(run_name)
 
                 # append core id to the rank id of this run
-                run.node_config.cpu[rank_id].append(i)
+                run.node_config.cpu[int(rank_id)].append(i)
 
             # Loop over the gpu mapping
-            for i in len(layout_info['gpu']):
+            for i in range(len(layout_info['gpu'])):
                 rank_list = layout_info['gpu'][i]
-                for rank_info in rank_list:
-                    run_name = rank_info.split(':')[0]
-                    rank_id = rank_info.split(':')[1]
-                    run = self._get_run_by_name(run_name)
-                    run.node_config.gpu[rank_id].append(i)
+                if rank_list is not None:
+                    for rank_info in rank_list:
+                        run_name = rank_info.split(':')[0]
+                        rank_id = rank_info.split(':')[1]
+                        run = self._get_run_by_name(run_name)
+                        run.node_config.gpu[int(rank_id)].append(i)
+                        pass
 
         return list(codes_on_node)
 

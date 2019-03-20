@@ -28,7 +28,39 @@ def _create_erf_file_res_set(run, nodes_assigned, res_set):
 def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                  nprocs, num_nodes_reqd, nodes_assigned,
                                  node_config):
-    str = "app 0: " + run_exe + " ".join(run_args) + "\n"
+    str = _get_first_erf_block(run_exe, run_args)
+    for i in range(num_nodes_reqd):
+        next_host = nodes_assigned[i]
+        rank_offset = i * node_config.num_ranks_per_node
+        for j in range(node_config.num_ranks_per_node):
+            rank_id = rank_offset+j
+            str += '\nrank : {}: {{ host: {}; cpu: '.format(rank_id,
+                                                           next_host)
+            for core_id in node_config.cpu[j]:
+                if j > 0:
+                    str += ', '
+                str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
+
+            if len(node_config.gpu[j]) > 0:
+                str += " ; gpu: {"
+
+            for gpu_id in node_config.gpu[j]:
+                str += "{},".format(gpu_id)
+
+            # Remove the last comma
+            str = str[:-1]
+            str += "}"
+
+            str += " } : app 0"
+            if rank_id == nprocs-1:
+                break
+
+    with open(erf_file_path, 'w') as f:
+        f.write(str)
+
+
+def _get_first_erf_block(run_exe, run_args):
+    str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
     str += "cpu_index_using: logical\n"
     str += "overlapping_rs: warn\n"
     str += "skip_missing_cpu: warn\n"
@@ -38,35 +70,7 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
     str += "oversubscribe_gpu: allow\n"
     str += "oversubscribe_mem: allow\n"
     str += "launch_distribution: packed"
-
-    for i in range(num_nodes_reqd):
-        next_host = nodes_assigned[i]
-        rank_offset = i * node_config.num_ranks_per_node
-        for j in range(node_config.num_ranks_per_node):
-            rank_id = rank_offset+j
-            str += '\nrank : {} {{ host: {}; cpu: '.format(rank_id,
-                                                           next_host)
-            for core_id in node_config.cpu[j]:
-                if j > 0:
-                    str += ', '
-                str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
-
-            if len(node_config.gpu[j]) > 0:
-                str += " ; gpu: {{"
-
-            for gpu_id in node_config.gpu[j]:
-                str += "{},".format(gpu_id)
-
-            # Remove the last comma
-            str = str[:-1]
-            str += "}}"
-
-            str += " }} : app 0"
-            if rank_id == nprocs-1:
-                break
-
-    with open(erf_file_path) as f:
-        f.write(str)
+    return str
 
 # app 0: js_task_info
 # cpu_index_using: logical
