@@ -14,19 +14,46 @@ SCHEDULER_OPTIONS = set(["project", "queue", "constraint", "license"])
 
 
 class MachineNode:
-    def __init__(self, id):
-        self.id = id
+    def __init__(self, num_cpus, num_gpus):
+        # self.id = id
+        self.cpu = [None] * num_cpus
+        self.gpu = [None] * num_gpus
 
+    def validate_layout(self):
+        raise NotImplemented
+
+    def to_json(self):
+        raise NotImplemented
 
 class SummitNode(MachineNode):
-    def __init__(self, id):
-        MachineNode.__init__(self, id)
-        self.cpu = [None] * 42
-        self.gpu = [None] * 6
+    def __init__(self):
+        MachineNode.__init__(self, 42, 6)
 
-    def __str__(self):
-        self.__dict__['__meta_class__'] = 'NodeConfig'
-        return json.dumps(self.__dict__)
+    def validate_layout(self):
+        """Check that 1) the same rank of the same code is not repeated,
+        2) a gpu is not mapped to multiple executables."""
+
+        assert not all(core_map is None for core_map in self.cpu), \
+            "core mapping in nodeconfig is all None"
+
+        core_map = [v for v in self.cpu if v is not None]
+        assert len(core_map) == len(set(core_map)), \
+            "duplicate mapping found in nodeconfig"
+
+        gpu_map = [v for v in self.gpu if v is not None]
+        assert len(gpu_map) == len(set(gpu_map)), \
+            "duplicated mapping found in node config"
+
+        gpu_code_map = [v.split(":")[0] for v in self.gpu if v is not None]
+        assert all(x == gpu_code_map[0] for x in gpu_code_map), \
+            "cannot map different executables to the same gpu"
+
+        # assert that all PEs from 0 through max are on the node and that
+        # the user has not forgotten any
+
+    def to_json(self):
+        self.__dict__['__info_type__'] = 'NodeConfig'
+        return self.__dict__
 
 
 class Machine(object):

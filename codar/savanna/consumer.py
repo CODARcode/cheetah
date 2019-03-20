@@ -66,8 +66,8 @@ class PipelineRunner(object):
         q = Queue()
         # if machine_name.lower() == 'summit':
         "add relative node names starting with 1 for creating ERF files"
-        for i in range(1, max_nodes+1):
-            q.put('host{}'.format(i))
+        for i in range(1, max_nodes):
+            q.put('{}'.format(i))
         return q
 
     def add_pipeline(self, p):
@@ -173,7 +173,7 @@ class PipelineRunner(object):
             # Return nodes used by the pipeline
             while not pipeline.nodes_assigned.empty():
                 pipe_node = pipeline.nodes_assigned.get()
-                self.allocated_nodes.put(pipe_node.id)
+                self.allocated_nodes.put(pipe_node)
 
             self.free_cv.notify()
 
