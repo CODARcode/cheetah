@@ -137,7 +137,10 @@ class PipelineRunner(object):
             while not pipe.nodes_assigned.empty():
                 pipe_node = pipe.nodes_assigned.get()
                 self.allocated_nodes.put(pipe_node.id)
+
             pipe.force_kill_all()
+            _log.debug("killed pipeline {}, free nodes {} -> {}".format(
+                pipe.id, self.free_nodes, self.free_nodes + pipe.total_nodes))
         # NB: the run_pipelines methods will block waiting for the
         # pipelines, so we don't need to do that here. Callers that want
         # to block can call join on the consumer thread.
@@ -166,14 +169,14 @@ class PipelineRunner(object):
 
         # Free resources used by the pipeline
         with self.free_cv:
-            _log.debug("finished pipeline, free nodes %d -> %d",
-                       self.free_nodes, self.free_nodes + pipeline.total_nodes)
-            self.free_nodes += pipeline.total_nodes
-
             # Return nodes used by the pipeline
             while not pipeline.nodes_assigned.empty():
                 pipe_node = pipeline.nodes_assigned.get()
                 self.allocated_nodes.put(pipe_node)
+
+            _log.debug("finished pipeline, free nodes %d -> %d",
+                       self.free_nodes, self.free_nodes + pipeline.total_nodes)
+            self.free_nodes += pipeline.total_nodes
 
             self.free_cv.notify()
 

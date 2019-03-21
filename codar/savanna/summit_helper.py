@@ -34,7 +34,7 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
         rank_offset = i * node_config.num_ranks_per_node
         for j in range(node_config.num_ranks_per_node):
             rank_id = rank_offset+j
-            str += '\nrank : {}: {{ host: {}; cpu: '.format(rank_id,
+            str += '\nrank: {}: {{ host: {}; cpu: '.format(rank_id,
                                                            next_host)
             for core_id in node_config.cpu[j]:
                 # if j > 0:
@@ -55,6 +55,8 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
             if rank_id == nprocs-1:
                 break
 
+    # jsrun fails without this line break
+    str += "\n"
     with open(erf_file_path, 'w') as f:
         f.write(str)
 

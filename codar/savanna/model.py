@@ -585,6 +585,7 @@ class Pipeline(object):
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
 
+        _log.debug("Pipeline {} launching run components".format(self.id))
         for run in self.runs:
             run.start()
             if run.sleep_after:
