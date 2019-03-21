@@ -37,8 +37,8 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
             str += '\nrank : {}: {{ host: {}; cpu: '.format(rank_id,
                                                            next_host)
             for core_id in node_config.cpu[j]:
-                if j > 0:
-                    str += ', '
+                # if j > 0:
+                #     str += ', '
                 str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
 
             if len(node_config.gpu[j]) > 0:
