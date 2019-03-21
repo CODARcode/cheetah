@@ -617,6 +617,13 @@ class Pipeline(object):
         # Get num nodes required to run this layout
         num_nodes_reqd_for_layout = max([code.nodes for code in codes_on_node])
 
+        # Ensure required nodes are available
+        num_nodes_in_queue = len(list(self._nodes_assigned.queue))
+        assert num_nodes_in_queue >= num_nodes_reqd_for_layout,\
+            "Do not have sufficient nodes to run the layout. "\
+            "Need {}, found {}".format(num_nodes_reqd_for_layout,
+                                       num_nodes_in_queue)
+
         # Get a list of nodes required for this run
         nodes_assigned_to_layout = []
         for i in range(num_nodes_reqd_for_layout):
