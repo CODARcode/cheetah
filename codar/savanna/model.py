@@ -736,7 +736,6 @@ class Pipeline(object):
                 # run if set.
                 for run2 in self._active_runs:
                     run2.kill()
-                run_done_callbacks = True
 
         # Note: must be done without lock, since callbacks may call
         # get_state or other methods that acquire lock.
