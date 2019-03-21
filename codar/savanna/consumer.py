@@ -174,8 +174,9 @@ class PipelineRunner(object):
                 pipe_node = pipeline.nodes_assigned.get()
                 self.allocated_nodes.put(pipe_node)
 
-            _log.debug("finished pipeline, free nodes %d -> %d",
-                       self.free_nodes, self.free_nodes + pipeline.total_nodes)
+            _log.debug("finished pipeline {}, free nodes {} -> {}".format(
+                pipeline.id, self.free_nodes, self.free_nodes +
+                                              pipeline.total_nodes))
             self.free_nodes += pipeline.total_nodes
 
             self.free_cv.notify()
