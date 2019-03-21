@@ -287,7 +287,7 @@ class Campaign(object):
                     sweep_runs = [Run(inst, self.codes, self.app_dir,
                                       os.path.join(
                                           group_output_dir,
-                                          'run-{}.{}'.format(
+                                          'run-{}.iteration-{}'.format(
                                               group_run_offset + i,
                                               repeat_index)),
                                       self.inputs,
