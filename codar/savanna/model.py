@@ -20,6 +20,7 @@ import threading
 import signal
 import logging
 from queue import Queue
+import copy
 import json
 import pdb
 
@@ -381,7 +382,6 @@ class Run(threading.Thread):
         env.update(self.env)
         _log.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
                    env.get('LD_LIBRARY_PATH', ''))
-        args = ['ls']
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
                                    preexec_fn=os.setpgrp)
@@ -471,6 +471,13 @@ class Pipeline(object):
         # start()
         self.nodes_assigned = Queue()
 
+        # Keep a copy of the nodes assigned. Pop nodes from this queue to
+        # assign to Runs. When a Run is done, it can push the node back into
+        # this queue, but Runs that share nodes may add the same node to the
+        # Queue multiple times. We need a SetQueue for this, or a way to
+        # have all Runs in a shared node release nodes just once.
+        self._nodes_assigned = Queue()
+
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -533,6 +540,11 @@ class Pipeline(object):
             self.nodes_assigned.put(node_name)
             machine = machines.get_by_name(self.machine_name)
             # self.nodes_assigned.put(machine.node_class(node_name))
+
+        # Make a copy of the nodes_assigned. copy.deepcopy does not work
+        # self._nodes_assigned = copy.deepcopy(self.nodes_assigned)
+        for node in list(self.nodes_assigned.queue):
+            self._nodes_assigned.put(node)
 
         self.add_done_callback(consumer.pipeline_finished)
         self.add_fatal_callback(consumer.pipeline_fatal)
@@ -608,8 +620,7 @@ class Pipeline(object):
         # Get a list of nodes required for this run
         nodes_assigned_to_layout = []
         for i in range(num_nodes_reqd_for_layout):
-
-            nodes_assigned_to_layout.append(list(self.nodes_assigned.queue)[i])
+            nodes_assigned_to_layout.append(self._nodes_assigned.get())
 
         # Assign nodes to runs
         for run in codes_on_node:
@@ -698,6 +709,12 @@ class Pipeline(object):
     def run_finished(self, run):
         assert self._running
         run_done_callbacks = False
+
+        # release_nodes doesn't do anything at this time. Runs do not
+        # release nodes back to the pipeline, as it is non-trivial to
+        # release nodes to the pipeline when Runs share nodes.
+        self._release_nodes(run.nodes_assigned)
+
         with self._state_lock:
             self._active_runs.remove(run)
             if not self._active_runs:
@@ -788,7 +805,7 @@ class Pipeline(object):
         for cb in self.fatal_callbacks:
             cb(self)
 
-    def release_nodes(self):
+    def _release_nodes(self, nodes_assigned_to_run):
         pass
 
     def _get_run_by_name(self, run_name):
