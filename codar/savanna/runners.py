@@ -49,7 +49,7 @@ class SummitRunner(Runner):
 
     def wrap(self, run):
         runner_args = ['jsrun', '--erf_input', run.erf_file]
-        return runner_args + [run.exe] + run.args
+        return runner_args
 
     def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
         """This function is deprecated in favor of the above that uses erf

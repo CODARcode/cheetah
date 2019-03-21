@@ -40,13 +40,20 @@ class SummitNode(MachineNode):
         assert len(core_map) == len(set(core_map)), \
             "duplicate mapping found in nodeconfig"
 
-        gpu_map = [v for v in self.gpu if v is not None]
-        assert len(gpu_map) == len(set(gpu_map)), \
-            "duplicated mapping found in node config"
+        for e in self.gpu:
+            if e is not None:
+                assert type(e) == list, "gpu mapping values must be a list " \
+                                        "of processes"
 
-        gpu_code_map = [v.split(":")[0] for v in self.gpu if v is not None]
-        assert all(x == gpu_code_map[0] for x in gpu_code_map), \
-            "cannot map different executables to the same gpu"
+        # gpu_map = [v for v in self.gpu if v is not None]
+        # assert len(gpu_map) == len(set(gpu_map)), \
+        #     "duplicated mapping found in node config"
+
+        for l in self.gpu:
+            if l is not None:
+                gpu_code_map = [v.split(":")[0] for v in l]
+                assert all(x == gpu_code_map[0] for x in gpu_code_map), \
+                    "cannot map different executables to the same gpu"
 
         # assert that all PEs from 0 through max are on the node and that
         # the user has not forgotten any
