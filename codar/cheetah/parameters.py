@@ -235,6 +235,12 @@ class Instance(object):
             return pv.value
         return None
 
+    def get_sched_opts(self, target):
+        pv = self.parameter_values[target].get('sched_opts')
+        if pv:
+            return pv.value
+        return None
+
     def as_dict(self):
         """
         Produce dict (mainly for for JSON seriliazation) with keys based on
@@ -458,6 +464,13 @@ class ParamEnvVar(Param):
     def __init__(self, target, name, option, values):
         Param.__init__(self, target, name, values)
         self.option = option
+
+
+class ParamSchedulerArgs(Param):
+    def __init__(self, target, values):
+        Param.__init__(self, target, "sched_opts", values)
+        assert ((type(values) == list) and (type(values[0]) == dict)), \
+            "ParamSchedulerArgs must be a list containing a single dict"
 
 
 class ParamRunner(Param):

@@ -482,7 +482,10 @@ class Run(object):
                 adios_xml_file = relative_or_absolute_path(
                     self.codes_path, adios_xml_file)
 
+            sched_args = self.instance.get_sched_opts(target)
+
             comp = RunComponent(name=target, exe=exe_path, args=argv,
+                                sched_args=sched_args,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
                                 working_dir=working_dir,
@@ -871,13 +874,14 @@ class Run(object):
 
 
 class RunComponent(object):
-    def __init__(self, name, exe, args, nprocs, working_dir,
+    def __init__(self, name, exe, args, sched_args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
                  env=None, timeout=None, hostfile=None):
         self.name = name
         self.exe = exe
         self.args = args
+        self.sched_args = sched_args
         self.nprocs = nprocs
         self.sleep_after = sleep_after
         self.env = env or {}
@@ -893,6 +897,7 @@ class RunComponent(object):
         data = dict(name=self.name,
                     exe=self.exe,
                     args=self.args,
+                    sched_args=self.sched_args,
                     nprocs=self.nprocs,
                     working_dir=self.working_dir,
                     sleep_after=self.sleep_after,
