@@ -16,7 +16,7 @@ class MPIRunner(Runner):
         self.tasks_per_node_arg = tasks_per_node_arg
         self.hostfile = hostfile
 
-    def wrap(self, run, find_in_path=True):
+    def wrap(self, run, sched_args, find_in_path=True):
         if find_in_path:
             exe_path = shutil.which(self.exe)
         else:
@@ -24,7 +24,13 @@ class MPIRunner(Runner):
             exe_path = self.exe
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
+
         runner_args = [exe_path, self.nprocs_arg, str(run.nprocs)]
+
+        if sched_args:
+            for (k,v) in sched_args.items():
+                runner_args += [k, v]
+
         if self.nodes_arg:
             runner_args += [self.nodes_arg, str(run.nodes)]
         if self.tasks_per_node_arg:
@@ -45,7 +51,7 @@ class SummitRunner(Runner):
         self.launch_distribution_arg = '-d'
         self.bind_arg = '-b'
 
-    def wrap(self, run, find_in_path=True):
+    def wrap(self, run, sched_args, find_in_path=True):
         if find_in_path:
             exe_path = shutil.which(self.exe)
         else:

@@ -67,6 +67,9 @@ class Brusselator(Campaign):
 
             # Sweep over environment variables
             # p.ParamEnvVar     ('simulation', 'openmp_stuff', 'OMP_NUM_THREADS', [4,8]),
+
+            # Pass additional scheduler arguments.
+            # p.ParamSchedulerArgs ('simulation', [{'-f':'hosts.txt'}])
     ]
 
     # Create a sweep

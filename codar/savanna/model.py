@@ -49,8 +49,8 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, env, working_dir, timeout=None,
-                 nprocs=1, stdout_path=None, stderr_path=None,
+    def __init__(self, name, exe, args, sched_args, env, working_dir,
+                 timeout=None, nprocs=1, stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
                  depends_on_runs=None, hostfile=None):
@@ -58,6 +58,7 @@ class Run(threading.Thread):
         self.name = name
         self.exe = exe
         self.args = args
+        self.sched_args = sched_args
         self.env = env or {}
         self.working_dir = working_dir
         self.timeout = timeout
@@ -110,6 +111,7 @@ class Run(threading.Thread):
         args. Raises KeyError if a required key is missing."""
         # TODO: deeper validation
         r = Run(name=data['name'], exe=data['exe'], args=data['args'],
+                sched_args=data['sched_args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
                 timeout=data.get('timeout'),
@@ -214,7 +216,7 @@ class Run(threading.Thread):
             threading.Thread.join(self.depends_on_runs)
 
         if self.runner is not None:
-            args = self.runner.wrap(self)
+            args = self.runner.wrap(self, self.sched_args)
         else:
             args = [self.exe] + self.args
         self._start_time = time.time()
