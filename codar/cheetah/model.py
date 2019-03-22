@@ -328,7 +328,7 @@ class Campaign(object):
             # objects, i.e. add methods so launcher can get all info it needs
             # and simplify this loop.
             group.nodes = launcher.create_group_directory(
-                self.name, group_name,
+                self.name, self.app_dir, group_name,
                 group_runs,
                 max_procs,
                 nodes=group.nodes,

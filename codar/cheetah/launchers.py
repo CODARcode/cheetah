@@ -16,7 +16,7 @@ from codar.cheetah.parameters import ParamAdiosXML, ParamADIOS2XML, \
     ParamConfig, ParamKeyValue, ParamEnvVar
 from codar.cheetah.helpers import parse_timedelta_seconds
 from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
-    json_config_set_option
+    json_config_set_option, relative_or_absolute_path, copy_to_path
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
@@ -58,7 +58,7 @@ class Launcher(object):
         self.output_directory = output_directory
         self.num_codes = num_codes
 
-    def create_group_directory(self, campaign_name, group_name, runs,
+    def create_group_directory(self, campaign_name, app_dir, group_name, runs,
                                max_nprocs, nodes, launch_mode, rc_dependency,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
@@ -208,8 +208,11 @@ class Launcher(object):
                 run.instance.get_parameter_values_by_type(ParamConfig)
             for pv in config_params:
                 working_dir = working_dirs[pv.target]
+                src_filepath = relative_or_absolute_path(app_dir,
+                                                         pv.config_filename)
                 config_filepath = os.path.join(working_dir,
                                                pv.config_filename)
+                copy_to_path(src_filepath, config_filepath)
                 lines = []
                 # read and modify lines
                 # hack: handle json files. currently works only on singly
@@ -233,7 +236,10 @@ class Launcher(object):
                 run.instance.get_parameter_values_by_type(ParamKeyValue)
             for pv in kv_params:
                 working_dir = working_dirs[pv.target]
+                src_filepath = relative_or_absolute_path(app_dir,
+                                                         pv.config_filename)
                 kv_filepath = os.path.join(working_dir, pv.config_filename)
+                copy_to_path(src_filepath, kv_filepath)
                 lines = []
                 # read and modify lines
                 with open(kv_filepath) as kv_f:
