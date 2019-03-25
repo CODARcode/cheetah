@@ -212,7 +212,8 @@ class Launcher(object):
                                                          pv.config_filename)
                 config_filepath = os.path.join(working_dir,
                                                pv.config_filename)
-                copy_to_path(src_filepath, config_filepath)
+                if not os.path.isfile(config_filepath):
+                    copy_to_path(src_filepath, config_filepath)
                 lines = []
                 # read and modify lines
                 # hack: handle json files. currently works only on singly
