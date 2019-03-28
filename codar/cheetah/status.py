@@ -89,8 +89,7 @@ def print_campaign_status(campaign_directory, filter_user=None,
 def _get_group_code_names(fob_file_path):
     """Extract code names from first run in fobs file."""
     with open(fob_file_path) as f:
-        line1 = f.readline()
-        data = json.loads(line1)
+        data = json.load(f)[0]
         return [r['name'] for r in data['runs']]
 
 
