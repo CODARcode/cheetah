@@ -51,6 +51,11 @@ def _get_path(default_dir, default_name, specified_name):
 
 class NodeConfig:
     def __init__(self):
+        """
+        Intended to look like
+        cpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        gpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        """
         self.num_ranks_per_node = 0
         self.cpu = []
         self.gpu = []
@@ -641,6 +646,13 @@ class Pipeline(object):
         # if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
         #     raise SavannaException("Invalid value for node layout's "
         #                            "__info_type__ key")
+        # node-layout in fobs.json looks like
+        #{
+        #    node_layout: [
+        #        {‘__info_type__’:’NodeConfig’, ‘cpu’:[,,, , , ], ‘gpu’:[,,,
+        #        , , ]}, {‘__info_type__’: ‘resource_set’, ’simulation’: 4}, {‘__info_type__’: ‘analysis0’: 7}]
+        #}
+
 
         codes_on_node = set()
 
