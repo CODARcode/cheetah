@@ -27,7 +27,7 @@ class Brusselator(Campaign):
             p.ParamConfig       ('simulation', 'kill_rate_V', 'settings.json', 'k', [0.048]),
             p.ParamEnvVar       ('simulation', 'openmp', 'OMP_NUM_THREADS', [4]),
 
-            p.ParamRunner       ('pdf_calc', 'nprocs', 1),
+            p.ParamRunner       ('pdf_calc', 'nprocs', [1]),
             p.ParamCmdLineArg      ('pdf_calc', 'infile', 1, ['gs.bp']),
             p.ParamCmdLineArg      ('pdf_calc', 'outfile', 2, ['pdf']),
     ]
