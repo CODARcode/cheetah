@@ -333,7 +333,6 @@ class Param(object):
         return self.values[idx]
 
     def __len__(self):
-        print(self.values)
         return len(self.values)
 
 
