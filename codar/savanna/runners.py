@@ -4,7 +4,7 @@ from codar.savanna import machines
 
 
 class Runner(object):
-    def wrap(self, run):
+    def wrap(self, run, sched_args):
         raise NotImplemented()
 
 
@@ -53,7 +53,13 @@ class SummitRunner(Runner):
         self.bind_arg = '-b'
         self.machine = machines.summit
 
-    def wrap(self, run, sched_args, find_in_path=True):
+    def wrap(self, run, sched_args):
+        runner_args = ['jsrun', '--erf_input', run.erf_file]
+        return runner_args
+
+    def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
+        """This function is deprecated in favor of the above that uses erf
+        files"""
         if find_in_path:
             exe_path = shutil.which(self.exe)
         else:
