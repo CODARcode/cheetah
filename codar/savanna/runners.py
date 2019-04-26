@@ -4,7 +4,7 @@ from codar.savanna import machines
 
 
 class Runner(object):
-    def wrap(self, run):
+    def wrap(self, run, sched_args):
         raise NotImplemented()
 
 
@@ -53,7 +53,7 @@ class SummitRunner(Runner):
         self.bind_arg = '-b'
         self.machine = machines.summit
 
-    def wrap(self, run):
+    def wrap(self, run, sched_args):
         runner_args = ['jsrun', '--erf_input', run.erf_file]
         return runner_args
 
