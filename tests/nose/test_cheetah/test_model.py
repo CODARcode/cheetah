@@ -6,7 +6,8 @@ import getpass
 from nose.tools import assert_equal
 
 from codar.cheetah import exc
-from codar.cheetah.model import Campaign, NodeLayout
+from codar.cheetah.model import Campaign
+from codar.savanna.model import NodeLayout
 from codar.cheetah.parameters import SweepGroup, Sweep
 from codar.cheetah.parameters import ParamRunner, ParamCmdLineArg, \
                                 ParamAdiosXML
@@ -83,10 +84,8 @@ def test_codes_ordering():
 
     correct_order = list(c.codes.keys())
 
-    fobs = []
     with open(fob_path) as f:
-        for line in f:
-            fobs.append(json.loads(line))
+        fobs = json.load(f)
 
     for fob in fobs:
         fob_order = [run['name'] for run in fob['runs']]
@@ -175,39 +174,6 @@ def test_error_nodes_too_small():
         assert 'got 1' in str(e), str(e)
     else:
         assert False, 'error not raised on param using unknown code'
-
-
-def test_nodes_sosflow():
-    class TestSosflowCampaign(TestCampaign):
-        codes = [('test1', dict(exe='test1', linked_with_sosflow=True)),
-                 ('test2', dict(exe='test2', linked_with_sosflow=True)),
-                 ('nosos', dict(exe='nosos', linked_with_sosflow=False))]
-        sweeps = [
-            SweepGroup(name='test_group', sosflow_profiling=True,
-                       sosflow_analysis=True, parameter_groups=[
-              Sweep([
-                ParamRunner('test1', 'nprocs', [7]),
-                ParamCmdLineArg('test1', 'arg1', 1, ['a', 'b']),
-                ParamCmdLineArg('test1', 'arg2', 2, ['1', '2']),
-
-                ParamRunner('test2', 'nprocs', [16]),
-                ParamCmdLineArg('test2', 'arg1', 1, ['y', 'z']),
-                ParamCmdLineArg('test2', 'arg2', 2, ['-1', '-2']),
-
-                ParamRunner('nosos', 'nprocs', [1]),
-                ParamCmdLineArg('nosos', 'arg1', 1, ['one', 'two']),
-              ])
-            ])
-        ]
-
-    c = TestSosflowCampaign('titan', '/test')
-    out_dir = os.path.join(TEST_OUTPUT_DIR,
-                       'test_model', 'test_nodes_sosflow')
-    fob_path = os.path.join(out_dir, 'test_group', 'fobs.json')
-    shutil.rmtree(out_dir, ignore_errors=True)
-    c.make_experiment_run_dir(out_dir, _check_code_paths=False)
-    group = c.sweeps[0]
-    assert group.nodes == 4, group.nodes
 
 
 def test_node_layout_repeated_code():
