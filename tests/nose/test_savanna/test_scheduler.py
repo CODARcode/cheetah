@@ -2,7 +2,7 @@
 
 from nose.tools import assert_equal, assert_in
 
-from codar.workflow.scheduler import JobList
+from codar.savanna.scheduler import JobList
 
 
 def test_job_list():
