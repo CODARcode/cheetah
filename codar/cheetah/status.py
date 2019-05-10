@@ -89,8 +89,10 @@ def print_campaign_status(campaign_directory, filter_user=None,
 def _get_group_code_names(fob_file_path):
     """Extract code names from first run in fobs file."""
     with open(fob_file_path) as f:
-        line1 = f.readline()
-        data = json.loads(line1)
+        # TODO: potentially expensive to have to load the entire JSON
+        # doc just to get this information from the first FOB in the list.
+        data_list = json.load(f)
+        data = data_list[0]
         return [r['name'] for r in data['runs']]
 
 
@@ -186,6 +188,22 @@ def get_workflow_status(status_file_path, print_counts=False, indent=0,
                         print_parameters=False,
                         filter_code=None, run_summary=False,
                         code_names=None):
+    """
+    @param print_counts: print summary statistics summed across all runs
+    @param run_summary: print one line per run with summary of it's status
+    @param print_return_codes: print per component return codes
+                               under each run
+    @param print_parameters: print per-run parameters under each run
+    @param filter_code: when any detailed print option is enabled, show
+                        values only for the maching codes (by name). Does
+                        not affect summary counts
+    @param filter_run: when any detailed print option is enabled, show only
+                       the matching runs (by name). DOes not affect
+                       summary counts
+    @param code_names: list of code names that are part of the campaign
+                       TODO: why can't this be infered from the status data
+                       itself? Maybe it should be updated so it can?
+    """
     with open(status_file_path) as f:
         status_data = json.load(f)
 
