@@ -15,7 +15,7 @@ class Brusselator(Campaign):
     supported_machines = ['local', 'titan', 'theta']
     kill_on_partial_failure = True
     run_dir_setup_script = None
-    run_post_process_script = "post-process.sh"
+    # run_post_process_script = "post-process.sh"
     umask = '027'
     scheduler_options = {'titan': {'project':'CSC249ADCD01', 'queue': 'batch'}}
     app_config_scripts = {'local': 'setup.sh', 'titan': 'env_setup.sh'}
@@ -26,10 +26,11 @@ class Brusselator(Campaign):
             p.ParamConfig       ('simulation', 'feed_rate_U', 'settings.json', 'F', [0.01,0.02]),
             p.ParamConfig       ('simulation', 'kill_rate_V', 'settings.json', 'k', [0.048]),
             p.ParamEnvVar       ('simulation', 'openmp', 'OMP_NUM_THREADS', [4]),
+            p.ParamADIOS2XML    ('simulation', 'SimulationOutput', 'engine', [ {'SST':{}} ]),
 
             p.ParamRunner       ('pdf_calc', 'nprocs', [1]),
-            p.ParamCmdLineArg      ('pdf_calc', 'infile', 1, ['gs.bp']),
-            p.ParamCmdLineArg      ('pdf_calc', 'outfile', 2, ['pdf']),
+            p.ParamCmdLineArg   ('pdf_calc', 'infile', 1, ['gs.bp']),
+            p.ParamCmdLineArg   ('pdf_calc', 'outfile', 2, ['pdf']),
     ]
 
     #sweep1 = p.Sweep (parameters=sweep1_parameters, node_layout = {'titan': [{'simulation':16}, ] })
