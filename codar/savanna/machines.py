@@ -33,13 +33,15 @@ class SummitNode(MachineNode):
         """Check that 1) the same rank of the same code is not repeated,
         2) a gpu is not mapped to multiple executables."""
 
+        # Assert node config is not empty
         assert not all(core_map is None for core_map in self.cpu), \
             "core mapping in nodeconfig is all None"
 
-        core_map = [v for v in self.cpu if v is not None]
-        assert len(core_map) == len(set(core_map)), \
-            "duplicate mapping found in nodeconfig"
+        # core_map = [v for v in self.cpu if v is not None]
+        # assert len(core_map) == len(set(core_map)), \
+        #     "duplicate mapping found in nodeconfig"
 
+        # Assert gpu mapping is a list and not a string
         for e in self.gpu:
             if e is not None:
                 assert type(e) == list, "gpu mapping values must be a list " \
@@ -49,6 +51,7 @@ class SummitNode(MachineNode):
         # assert len(gpu_map) == len(set(gpu_map)), \
         #     "duplicated mapping found in node config"
 
+        # Assert that a gpu is not mapped to different executables
         for l in self.gpu:
             if l is not None:
                 gpu_code_map = [v.split(":")[0] for v in l]
