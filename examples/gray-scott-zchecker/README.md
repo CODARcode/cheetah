@@ -20,3 +20,9 @@ The output from Gray-Scott simulation is passed through Z-Checker
 9. SZ is taken from `https://www.mcs.anl.gov/~shdi/download/sz-download.html`
 10. Z-Checker is taken from `https://github.com/CODARcode/Z-checker`
 
+
+# TODO
+
+1. Add second variable to `zchecker.cpp`
+2. Test that Z-Checker reporting tool can deal with the resulting file organization.
+3. Document how to install Gray-Scott
