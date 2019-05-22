@@ -36,9 +36,9 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
             rank_id = rank_offset+j
             str += '\nrank: {}: {{ host: {}; cpu: '.format(rank_id,
                                                            next_host)
-            for core_id in node_config.cpu[j]:
-                # if j > 0:
-                #     str += ', '
+            for index, core_id in enumerate(node_config.cpu[j]):
+                if index > 0:
+                    str += ', '
                 str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
 
             if len(node_config.gpu[j]) > 0:
@@ -90,3 +90,9 @@ def _get_first_erf_block(run_exe, run_args):
 # rank: 3: { host: 1; cpu: {84-87}, {88-95} ; gpu: {3,4} } : app 0
 # rank: 4: { host: 1; cpu: {88-91}, {84-87,92-95} ; gpu: {3,4} } : app 0
 # rank: 5: { host: 1; cpu: {92-95}, {84-91} ; gpu: {3,4} } : app 0
+
+# MY NOTES:
+# 1 PE may be mapped to multiple CPUs
+# jsrun does allow one CPU to be mapped to multiple ranks. We don't allow it.
+# 1 GPU may be mapped to multiple ranks
+#   of the same application?
