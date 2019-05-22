@@ -136,7 +136,7 @@ class PipelineRunner(object):
             # Return nodes used by the pipeline
             while not pipe.nodes_assigned.empty():
                 pipe_node = pipe.nodes_assigned.get()
-                self.allocated_nodes.put(pipe_node.id)
+                self.allocated_nodes.put(pipe_node)
 
             pipe.force_kill_all()
             _log.debug("killed pipeline {}, free nodes {} -> {}".format(
