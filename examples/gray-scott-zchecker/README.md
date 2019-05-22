@@ -16,9 +16,10 @@ The output from Gray-Scott simulation is passed through Z-Checker
 6. Z-Checker results are dumped into `compressionResults`
    directory.
 7. `sz.config` and `zc.config` are configuration files for SZ compressor and Z-Checker.
-8. Gray-Scott is taken from `https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott`
-9. SZ is taken from `https://www.mcs.anl.gov/~shdi/download/sz-download.html`
-10. Z-Checker is taken from `https://github.com/CODARcode/Z-checker`
+8. To create a compaign: `make create`, to run a campaign: `make run`, etc.
+9. Gray-Scott is taken from `https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott`
+10. SZ is taken from `https://www.mcs.anl.gov/~shdi/download/sz-download.html`
+11. Z-Checker is taken from `https://github.com/CODARcode/Z-checker`
 
 
 # TODO
