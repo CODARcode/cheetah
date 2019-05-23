@@ -16,16 +16,32 @@
 #include "sz.h"
 #include "adios2.h"
 #include "zc.h"
-
-bool epsilon(double d) { return (d < 1.0e-20); }
-bool epsilon(float d) { return (d < 1.0e-20); }
+#include "zfp.h"
 
 void printUsage()
 {
   std::cout<<"Hello"<<std::endl;
 }
 
-void z_check(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+void z_check_zfp(int stepsAnalysis, std::vector<double>& u, const std::string &solution)
+{
+  double tolerance = 1.e-8;
+  zfp_type type = zfp_type_double;
+  zfp_field* field = zfp_field_1d(u.data(), type, u.size());
+  zfp_stream* zfp = zfp_stream_open(NULL);
+  zfp_stream_set_accuracy(zfp, tolerance);
+  size_t bufsize = zfp_stream_maximum_size(zfp, field);
+  void* buffer = malloc(bufsize);
+  bitstream* stream = stream_open(buffer, bufsize);
+  zfp_stream_set_bit_stream(zfp, stream);
+  zfp_stream_rewind(zfp);
+  size_t zfpsize = zfp_compress(zfp, field);          
+  zfp_stream_rewind(zfp);
+  size_t size = zfp_decompress(zfp, field);
+
+}
+
+void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution)
 {
 	std::string tstr = std::to_string(stepAnalysis);
 	char varName[1024];
@@ -37,7 +53,6 @@ void z_check(int stepAnalysis, std::vector<double>& u, const std::string &soluti
 	std::cout << "outSize=" << outSize << std::endl;
 	std::cout.flush();
 	
-	//char solution[1024] = "u";
 	char s[1024];
 	strcpy(s, solution.c_str());
 	ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
@@ -46,7 +61,7 @@ void z_check(int stepAnalysis, std::vector<double>& u, const std::string &soluti
 	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, 0, 0, u.size());
 
 	ZC_endDec(compareResult, decData);
-	//	ZC_printCompressionResult(compareResult);
+	ZC_printCompressionResult(compareResult);
 
 	freeDataProperty(dataProperty);
 	freeCompareResult(compareResult);
@@ -182,8 +197,8 @@ int main(int argc, char *argv[])
         // End adios2 step
         reader.EndStep();
 
-	z_check(stepAnalysis, u, std::string("u"));
-	z_check(stepAnalysis, v, std::string("v"));	
+	z_check_sz(stepAnalysis, u, std::string("u"));
+	z_check_sz(stepAnalysis, v, std::string("v"));	
 	
         if (!rank)
         {
