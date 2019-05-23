@@ -41,19 +41,24 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   zfp_stream_set_bit_stream(zfp, stream);
   zfp_stream_rewind(zfp);
   size_t outSize = zfp_compress(zfp, field);          
+  std::cout << "inSize  = " << u.size()*sizeof(double) << std::endl; 
   std::cout << "outSize = " << outSize << std::endl;
+  std::cout.flush();
   
   char s[1024];
   strcpy(s, solution.c_str());
   ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
 
   ZC_startDec();
-  void* decData = malloc(u.size());
+  void* decData = malloc(u.size()*sizeof(double));
   zfp_field* field_dec = zfp_field_1d(decData, type, u.size());
+  /*
   zfp_stream* zfp_dec = zfp_stream_open(NULL);
   zfp_stream_set_accuracy(zfp_dec, tolerance);
   zfp_stream_rewind(zfp_dec);
-  size_t size = zfp_decompress(zfp_dec, field);
+  */
+  zfp_stream_rewind(zfp);
+  size_t size = zfp_decompress(zfp, field_dec);
 
   ZC_endDec(compareResult, decData);
   ZC_printCompressionResult(compareResult);
@@ -61,7 +66,7 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   freeDataProperty(dataProperty);
   freeCompareResult(compareResult);
   free(buffer);
-  free(decData);  
+  free(decData);
 }
 
 void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution)
@@ -220,8 +225,13 @@ int main(int argc, char *argv[])
         // End adios2 step
         reader.EndStep();
 
+	/*
 	z_check_sz(stepAnalysis, u, std::string("u"));
-	z_check_sz(stepAnalysis, v, std::string("v"));	
+	z_check_sz(stepAnalysis, v, std::string("v"));
+	*/
+	
+	z_check_zfp(stepAnalysis, u, std::string("u"));
+	z_check_zfp(stepAnalysis, v, std::string("v"));		
 	
         if (!rank)
         {
