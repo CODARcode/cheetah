@@ -25,6 +25,37 @@ void printUsage()
   std::cout<<"Hello"<<std::endl;
 }
 
+void z_check(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+{
+	std::string tstr = std::to_string(stepAnalysis);
+	char varName[1024];
+	strcpy(varName, tstr.c_str());
+	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());	
+	size_t outSize;
+
+	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize, 0, 0, 0, 0, u.size());
+	std::cout << "outSize=" << outSize << std::endl;
+	std::cout.flush();
+	
+	//char solution[1024] = "u";
+	char s[1024];
+	strcpy(s, solution.c_str());
+	ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
+
+	ZC_startDec();
+	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, 0, 0, u.size());
+
+	ZC_endDec(compareResult, decData);
+	//	ZC_printCompressionResult(compareResult);
+
+	freeDataProperty(dataProperty);
+	freeCompareResult(compareResult);
+	free(bytes);
+	free(decData);	
+}
+
+
+
 int main(int argc, char *argv[])
 {
     MPI_Init(&argc, &argv);
@@ -38,6 +69,11 @@ int main(int argc, char *argv[])
 
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &comm_size);
+
+    char szconfig[1024] = "sz.config";
+    char zcconfig[1024] = "zc.config";
+    SZ_Init(szconfig);
+    ZC_Init(zcconfig);
 
     if (argc < 3)
     {
@@ -146,60 +182,8 @@ int main(int argc, char *argv[])
         // End adios2 step
         reader.EndStep();
 
-	/*
-	std::cout<<u.size()<<std::endl;
-	for(int i=0;i<10;++i) std::cout<<u[i]<<std::endl;
-	std::cout.flush();
-	std::cerr.flush();
-	*/
-
-	char szconfig[1024] = "sz.config";
-	char zcconfig[1024] = "zc.config";
-	SZ_Init(szconfig);
-	ZC_Init(zcconfig);
-
-	/*
-	std::cout<<"Here 1?"<<std::endl;
-	std::cout.flush();
-	*/
-
-	std::string tstr = std::to_string(stepAnalysis);
-	char varName[1024];
-	strcpy(varName, tstr.c_str());
-	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());	
-	size_t outSize;
-
-	/*
-	std::cout<<"Here 2?"<<std::endl;
-	std::cout.flush();
-	*/
-
-	/*
-	char *errBoundMode = "ABS";
-	unsigned char *bytes = SZ_compress_args(SZ_DOUBLE, u.data(), &outSize, errBoundMode,
-						absErrBound, absErrBound, u.size(), 0, 0, 0, 0);
-	*/	
-	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize, 0, 0, 0, 0, u.size());
-	std::cout << "outSize=" << outSize << std::endl;
-	std::cout.flush();
-	
-	char solution[1024] = "u";
-	ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, solution, outSize);
-
-	ZC_startDec();
-	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, 0, 0, u.size());
-	char solName[1024] = "And this?";
-	ZC_endDec(compareResult, decData);
-	//	ZC_printCompressionResult(compareResult);
-
-
-	freeDataProperty(dataProperty);
-	freeCompareResult(compareResult);
-	// free(data);
-	free(bytes);
-	free(decData);	
-	SZ_Finalize();
-	ZC_Finalize();
+	z_check(stepAnalysis, u, std::string("u"));
+	z_check(stepAnalysis, v, std::string("v"));	
 	
         if (!rank)
         {
@@ -213,6 +197,8 @@ int main(int argc, char *argv[])
 
     // cleanup
     reader.Close();
+    SZ_Finalize();
+    ZC_Finalize();
     MPI_Finalize();
     return 0;
 }
