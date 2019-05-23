@@ -23,8 +23,13 @@ void printUsage()
   std::cout<<"Hello"<<std::endl;
 }
 
-void z_check_zfp(int stepsAnalysis, std::vector<double>& u, const std::string &solution)
+void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution)
 {
+  std::string tstr = std::to_string(stepAnalysis);
+  char varName[1024];
+  strcpy(varName, tstr.c_str());
+  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());
+
   double tolerance = 1.e-8;
   zfp_type type = zfp_type_double;
   zfp_field* field = zfp_field_1d(u.data(), type, u.size());
@@ -35,10 +40,28 @@ void z_check_zfp(int stepsAnalysis, std::vector<double>& u, const std::string &s
   bitstream* stream = stream_open(buffer, bufsize);
   zfp_stream_set_bit_stream(zfp, stream);
   zfp_stream_rewind(zfp);
-  size_t zfpsize = zfp_compress(zfp, field);          
-  zfp_stream_rewind(zfp);
-  size_t size = zfp_decompress(zfp, field);
+  size_t outSize = zfp_compress(zfp, field);          
+  std::cout << "outSize = " << outSize << std::endl;
+  
+  char s[1024];
+  strcpy(s, solution.c_str());
+  ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
 
+  ZC_startDec();
+  void* decData = malloc(u.size());
+  zfp_field* field_dec = zfp_field_1d(decData, type, u.size());
+  zfp_stream* zfp_dec = zfp_stream_open(NULL);
+  zfp_stream_set_accuracy(zfp_dec, tolerance);
+  zfp_stream_rewind(zfp_dec);
+  size_t size = zfp_decompress(zfp_dec, field);
+
+  ZC_endDec(compareResult, decData);
+  ZC_printCompressionResult(compareResult);
+
+  freeDataProperty(dataProperty);
+  freeCompareResult(compareResult);
+  free(buffer);
+  free(decData);  
 }
 
 void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution)
