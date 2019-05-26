@@ -17,11 +17,47 @@
 #include "adios2.h"
 #include "zc.h"
 #include "zfp.h"
-
+extern "C" {
+#include "mgard_capi.h"
+}
+  
 void printUsage()
 {
   std::cout<<"Hello"<<std::endl;
 }
+
+void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+{
+  std::string tstr = std::to_string(stepAnalysis);
+  char varName[1024];
+  strcpy(varName, tstr.c_str());
+  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());
+  double * tmp = (double*)malloc(u.size()*sizeof(double));
+  for(int i = 0; i < u.size(); ++i) tmp[i] = u[i];
+  double tolerance = 1.e-8;
+  int outSize;
+  int nfib=15;
+  unsigned char *bytes = mgard_compress(1, tmp, &outSize, 1, u.size(), nfib, &tolerance);
+  std::cout << "inSize  = " << u.size()*sizeof(double) << std::endl; 
+  std::cout << "outSize = " << outSize << std::endl;
+  std::cout.flush();
+  
+  char s[1024];
+  strcpy(s, solution.c_str());
+  ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
+
+  ZC_startDec();
+
+  double * decData = (double*)mgard_decompress(1, bytes, outSize, 1, u.size(), nfib);
+  ZC_endDec(compareResult, decData);
+  ZC_printCompressionResult(compareResult);
+
+  freeDataProperty(dataProperty);
+  freeCompareResult(compareResult);
+  free(bytes);
+  free(decData);  
+}
+
 
 void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution)
 {
@@ -40,7 +76,7 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   bitstream* stream = stream_open(buffer, bufsize);
   zfp_stream_set_bit_stream(zfp, stream);
   zfp_stream_rewind(zfp);
-  size_t outSize = zfp_compress(zfp, field);          
+  size_t outSize = zfp_compress(zfp, field);
   std::cout << "inSize  = " << u.size()*sizeof(double) << std::endl; 
   std::cout << "outSize = " << outSize << std::endl;
   std::cout.flush();
@@ -52,11 +88,6 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   ZC_startDec();
   void* decData = malloc(u.size()*sizeof(double));
   zfp_field* field_dec = zfp_field_1d(decData, type, u.size());
-  /*
-  zfp_stream* zfp_dec = zfp_stream_open(NULL);
-  zfp_stream_set_accuracy(zfp_dec, tolerance);
-  zfp_stream_rewind(zfp_dec);
-  */
   zfp_stream_rewind(zfp);
   size_t size = zfp_decompress(zfp, field_dec);
 
@@ -224,14 +255,16 @@ int main(int argc, char *argv[])
 
         // End adios2 step
         reader.EndStep();
-
 	/*
-	z_check_sz(stepAnalysis, u, std::string("u"));
-	z_check_sz(stepAnalysis, v, std::string("v"));
+	z_check_sz(stepAnalysis, u, std::string("u_sz"));
+	z_check_sz(stepAnalysis, v, std::string("v_sz"));	
+
+	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
+	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 	*/
 	
-	z_check_zfp(stepAnalysis, u, std::string("u"));
-	z_check_zfp(stepAnalysis, v, std::string("v"));		
+	z_check_mgard(stepAnalysis, u, std::string("u_mgard"));
+	z_check_mgard(stepAnalysis, v, std::string("v_mgard"));			
 	
         if (!rank)
         {
