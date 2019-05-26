@@ -109,15 +109,16 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   free(decData);
 }
 
-void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution,
+		const std::vector<std::size_t>& shape)
 {
 	std::string tstr = std::to_string(stepAnalysis);
 	char varName[1024];
 	strcpy(varName, tstr.c_str());
-	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());	
+	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, shape[2], shape[1], shape[0]);	
 	size_t outSize;
 
-	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize, 0, 0, 0, 0, u.size());
+	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize, 0, 0, shape[2], shape[1], shape[0]);
 	std::cout << "outSize=" << outSize << std::endl;
 	std::cout.flush();
 	
@@ -126,7 +127,7 @@ void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &sol
 	ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
 
 	ZC_startDec();
-	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, 0, 0, u.size());
+	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, shape[2], shape[1], shape[0]);
 
 	ZC_endDec(compareResult, decData);
 	ZC_printCompressionResult(compareResult);
@@ -264,13 +265,12 @@ int main(int argc, char *argv[])
 
         // End adios2 step
         reader.EndStep();
-	/*
-	z_check_sz(stepAnalysis, u, std::string("u_sz"));
-	z_check_sz(stepAnalysis, v, std::string("v_sz"));	
+
+	z_check_sz(stepAnalysis, u, std::string("u_sz"), shape);
+	z_check_sz(stepAnalysis, v, std::string("v_sz"), shape);	
 
 	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
 	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
-	*/
 
 	z_check_mgard(stepAnalysis, u, std::string("u_mgard"), shape);
 	z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);			
