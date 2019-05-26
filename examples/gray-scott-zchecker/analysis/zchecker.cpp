@@ -26,18 +26,22 @@ void printUsage()
   std::cout<<"Hello"<<std::endl;
 }
 
-void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution,
+		   const std::vector<std::size_t>& shape)
 {
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
   strcpy(varName, tstr.c_str());
-  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());
+  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, shape[2], shape[1], shape[1]);
+  std::cout<<"diff = " << (u.size() - shape[0]*shape[1]*shape[2]) << std::endl;
+  std::cout.flush();
   double * tmp = (double*)malloc(u.size()*sizeof(double));
   for(int i = 0; i < u.size(); ++i) tmp[i] = u[i];
   double tolerance = 1.e-8;
   int outSize;
-  int nfib=15;
-  unsigned char *bytes = mgard_compress(1, tmp, &outSize, 1, u.size(), nfib, &tolerance);
+  int nfib=1;
+  unsigned char *bytes = mgard_compress(1, tmp, &outSize, shape[2], shape[1], shape[0], &tolerance);
+  std::cout << "stepAnalysis=" << stepAnalysis << std::endl;
   std::cout << "inSize  = " << u.size()*sizeof(double) << std::endl; 
   std::cout << "outSize = " << outSize << std::endl;
   std::cout.flush();
@@ -48,14 +52,19 @@ void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &
 
   ZC_startDec();
 
-  double * decData = (double*)mgard_decompress(1, bytes, outSize, 1, u.size(), nfib);
+  double * decData = (double*)mgard_decompress(1, bytes, outSize, shape[2], shape[1], shape[0]);
   ZC_endDec(compareResult, decData);
   ZC_printCompressionResult(compareResult);
 
+  std::cout << "After decompression" << std::endl;
+  std::cout << "========" << std::endl;  
+  std::cout.flush();
+  
   freeDataProperty(dataProperty);
   freeCompareResult(compareResult);
   free(bytes);
-  free(decData);  
+  free(decData);
+  free(tmp);
 }
 
 
@@ -262,9 +271,9 @@ int main(int argc, char *argv[])
 	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
 	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 	*/
-	
-	z_check_mgard(stepAnalysis, u, std::string("u_mgard"));
-	z_check_mgard(stepAnalysis, v, std::string("v_mgard"));			
+
+	z_check_mgard(stepAnalysis, u, std::string("u_mgard"), shape);
+	z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);			
 	
         if (!rank)
         {
