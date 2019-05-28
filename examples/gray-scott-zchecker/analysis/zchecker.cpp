@@ -1,8 +1,8 @@
 /*
  * Analysis code for the Gray-Scott application.
- * Reads variable U and V, compresses and decompresses them at each step, runs zchecker to compare
- * original and decompressed data
- * Writes zchecker statistics to file
+ * Reads variable U and V, compresses and decompresses them at each step, 
+ * runs zchecker to compare the original and decompressed data
+ * Writes zchecker statistics to separate files per variable, per step
  */
 
 #include <algorithm>
@@ -13,6 +13,7 @@
 #include <chrono>
 #include <string>
 #include <thread>
+#include <cassert>
 #include "sz.h"
 #include "adios2.h"
 #include "zc.h"
@@ -20,10 +21,10 @@
 extern "C" {
 #include "mgard_capi.h"
 }
-  
+
 void printUsage()
 {
-  std::cout<<"Hello"<<std::endl;
+  std::cout<<"./zchecker <input>"<<std::endl;
 }
 
 void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution,
@@ -32,15 +33,23 @@ void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
   strcpy(varName, tstr.c_str());
-  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, shape[2], shape[1], shape[1]);
-  std::cout<<"diff = " << (u.size() - shape[0]*shape[1]*shape[2]) << std::endl;
-  std::cout.flush();
+  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(),
+					       0, 0, shape[2], shape[1], shape[1]);
+  assert(u.size() == shape[0]*shape[1]*shape[2]);
+
+  /* Is this necessary? MGARD README suggests that tmp would be blown away
+     after usage, might corrupt u-vector to do it to u.data()
+  */
   double * tmp = (double*)malloc(u.size()*sizeof(double));
   for(int i = 0; i < u.size(); ++i) tmp[i] = u[i];
-  double tolerance = 1.e-8;
+  // necessary?
+  
+  double tolerance = 1.e-8; // pass it as an argument to function and exe
   int outSize;
   int nfib=1;
-  unsigned char *bytes = mgard_compress(1, tmp, &outSize, shape[2], shape[1], shape[0], &tolerance);
+  /* Is the order of shapes correct? Is nfib the 3rd dim? */
+  unsigned char *bytes = mgard_compress(1, tmp, &outSize, shape[2],
+					shape[1], shape[0], &tolerance);
   std::cout << "stepAnalysis=" << stepAnalysis << std::endl;
   std::cout << "inSize  = " << u.size()*sizeof(double) << std::endl; 
   std::cout << "outSize = " << outSize << std::endl;
@@ -52,13 +61,10 @@ void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &
 
   ZC_startDec();
 
-  double * decData = (double*)mgard_decompress(1, bytes, outSize, shape[2], shape[1], shape[0]);
+  double * decData = (double*)mgard_decompress(1, bytes, outSize,
+					       shape[2], shape[1], shape[0]);
   ZC_endDec(compareResult, decData);
   ZC_printCompressionResult(compareResult);
-
-  std::cout << "After decompression" << std::endl;
-  std::cout << "========" << std::endl;  
-  std::cout.flush();
   
   freeDataProperty(dataProperty);
   freeCompareResult(compareResult);
@@ -67,13 +73,14 @@ void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &
   free(tmp);
 }
 
-
+// pass shape, tolerance
 void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution)
 {
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
   strcpy(varName, tstr.c_str());
-  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, 0, 0, u.size());
+  ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(),
+					       0, 0, 0, 0, u.size());
 
   double tolerance = 1.e-8;
   zfp_type type = zfp_type_double;
@@ -95,6 +102,7 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
 
   ZC_startDec();
+  // should it be allocated or is it down inside decompress?
   void* decData = malloc(u.size()*sizeof(double));
   zfp_field* field_dec = zfp_field_1d(decData, type, u.size());
   zfp_stream_rewind(zfp);
@@ -115,10 +123,12 @@ void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &sol
 	std::string tstr = std::to_string(stepAnalysis);
 	char varName[1024];
 	strcpy(varName, tstr.c_str());
-	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(), 0, 0, shape[2], shape[1], shape[0]);	
+	ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(),
+						     0, 0, shape[2], shape[1], shape[0]);	
 	size_t outSize;
 
-	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize, 0, 0, shape[2], shape[1], shape[0]);
+	unsigned char *bytes = SZ_compress(SZ_DOUBLE, u.data(), &outSize,
+					   0, 0, shape[2], shape[1], shape[0]);
 	std::cout << "outSize=" << outSize << std::endl;
 	std::cout.flush();
 	
@@ -127,7 +137,8 @@ void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &sol
 	ZC_CompareData* compareResult = ZC_endCmpr(dataProperty, s, outSize);
 
 	ZC_startDec();
-	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize, 0, 0, shape[2], shape[1], shape[0]);
+	double *decData = (double*)SZ_decompress(SZ_DOUBLE, bytes, outSize,
+						 0, 0, shape[2], shape[1], shape[0]);
 
 	ZC_endDec(compareResult, decData);
 	ZC_printCompressionResult(compareResult);
@@ -169,11 +180,11 @@ int main(int argc, char *argv[])
     }
 
     std::string in_filename;
-    std::string out_filename;
+    //std::string out_filename;
 
     //    bool write_inputvars = false;
     in_filename = argv[1];
-    out_filename = argv[2];
+    //out_filename = argv[2];
 
     std::size_t u_global_size, v_global_size;
     std::size_t u_local_size, v_local_size;
@@ -197,21 +208,22 @@ int main(int argc, char *argv[])
 
     // IO objects for reading and writing
     adios2::IO reader_io = ad.DeclareIO("SimulationOutput");
-    // adios2::IO writer_io = ad.DeclareIO("PDFAnalysisOutput");
     if (!rank) 
     {
-        std::cout << "zchecker reads from Gray-Scott simulation using engine type:  " << reader_io.EngineType() << std::endl;
-        //std::cout << "PDF analysis writes using engine type:                 " << writer_io.EngineType() << std::endl;
+        std::cout << "zchecker reads from Gray-Scott simulation using engine type:  "
+		  << reader_io.EngineType() << std::endl;
     }
 
-    // Engines for reading and writing
-    adios2::Engine reader = reader_io.Open(in_filename, adios2::Mode::Read, comm);
+    // Engines for reading
+    adios2::Engine reader = reader_io.Open(in_filename,
+					   adios2::Mode::Read, comm);
 
     int stepAnalysis = 0;
     while(true) {
 
         // Begin step
-        adios2::StepStatus read_status = reader.BeginStep(adios2::StepMode::NextAvailable, 10.0f);
+        adios2::StepStatus read_status = reader.BeginStep(adios2::StepMode::NextAvailable,
+							  10.0f);
         if (read_status == adios2::StepStatus::NotReady)
         {
             // std::cout << "Stream not ready yet. Waiting...\n";
@@ -277,7 +289,7 @@ int main(int argc, char *argv[])
 	
         if (!rank)
         {
-            std::cout << "PDF Analysis step " << stepAnalysis
+            std::cout << "Z-Checker Analysis step " << stepAnalysis
                 << " processing sim output step "
                 << stepSimOut << " sim compute step " << simStep << std::endl;
         }
