@@ -328,6 +328,7 @@ class Param(object):
             values = [values]
 
         self.values = values
+        assert type(values) == list, "Parameter value must be a list"
 
     def __get__(self, idx):
         return self.values[idx]
