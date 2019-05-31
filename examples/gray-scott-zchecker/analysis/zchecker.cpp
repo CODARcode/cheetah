@@ -98,6 +98,8 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
 void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution,
 		const std::vector<std::size_t>& shape)
 {
+  extract_features(u.data(), shape[0], shape[1], shape[2]);
+  
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
   strcpy(varName, tstr.c_str());
