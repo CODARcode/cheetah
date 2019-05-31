@@ -1,3 +1,7 @@
+/*
+  Based on https://github.com/CODARcode/ftk/blob/master/examples/critical_point_tracking_3d/ex_critical_point_tracking_3d.cpp
+ */
+
 #include <fstream>
 #include <mutex>
 #include <cassert>
@@ -147,6 +151,11 @@ void extract_features(double *data, const size_t DW, const size_t DH, const size
   //  scalar.from_netcdf(argv[1], "vort", starts, sizes);
   scalar.reshape({DW, DH, DD});
 
+  for (int k = 0; k < DD; k ++)
+    for (int j = 0; j < DH; j ++)
+      for (int i = 0; i < DW; i ++)
+        scalar(i, j, k) = data[i*DW*DH + j*DW + k];
+  
   derive_gradients(DW, DH, DD);
   derive_hessians(DW, DH, DD);
   
