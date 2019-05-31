@@ -20,19 +20,14 @@
 #include <hypermesh/ndarray.hh>
 #include <hypermesh/regular_simplex_mesh.hh>
 
-hypermesh::ndarray<float> scalar, grad, hess;
+#include "ftk_3D_interface.h"
+
+hypermesh::ndarray<double> scalar, grad, hess;
 hypermesh::regular_simplex_mesh m(3); // the 3D spatial mesh
 
 std::mutex mutex;
 
-struct critical_point_t {
-  float x[4]; // the spacetime coordinates of the trajectory
-};
- 
 std::map<hypermesh::regular_simplex_mesh_element, critical_point_t> critical_points;
-
-// the output trajectories
-std::vector<std::vector<std::vector<float>>> trajectories;
 
 void derive_gradients(const size_t DW, const size_t DH, const size_t DD)
 {
@@ -122,7 +117,9 @@ void check_simplex(const hypermesh::regular_simplex_mesh_element& s)
     ftk::lerp_s3v4(X, mu, x);
    
     critical_point_t p;
+    
     p.x[0] = x[0]; p.x[1] = x[1]; p.x[2] = x[2]; // p.x[3] = x[3];
+    p.v = val;
     {
       std::lock_guard<std::mutex> guard(mutex);
       critical_points[s] = p;
@@ -136,21 +133,22 @@ void check_simplex(const hypermesh::regular_simplex_mesh_element& s)
 void extract_critical_points(const size_t DW, const size_t DH, const size_t DD)
 {
   fprintf(stderr, "extracting critical points...\n");
-  m.set_lb_ub({2, 2, 2}, {DW-3, DH-3, DD-3}); // set the lower and upper bounds of the mesh
+  m.set_lb_ub({2, 2, 2}, {static_cast<int>(DW)-3,
+	static_cast<int>(DH)-3, static_cast<int>(DD)-3}); // set the lower and upper bounds of the mesh
   m.element_for(3, check_simplex); // iterate over all 3-simplices
 }
 
-
-void extract_features(double *data, const size_t DW, const size_t DH, const size_t DD)
+// public interface to ftk
+std::vector<critical_point_t> extract_features(double *data, const size_t DW,
+					       const size_t DH, const size_t DD)
 {
-  std::cout << "Hello from extract_features()" << std::endl;
-
   size_t starts[4] = {0, 0, 0, 0}, 
          sizes[4]  = {1, size_t(DD), size_t(DH), size_t(DW)};
 
-  //  scalar.from_netcdf(argv[1], "vort", starts, sizes);
   scalar.reshape({DW, DH, DD});
 
+  // can one avoid copying? data comes from a vector,
+  // scalar under the hood is a vector
   for (int k = 0; k < DD; k ++)
     for (int j = 0; j < DH; j ++)
       for (int i = 0; i < DW; i ++)
@@ -160,4 +158,16 @@ void extract_features(double *data, const size_t DW, const size_t DH, const size
   derive_hessians(DW, DH, DD);
   
   extract_critical_points(DW, DH, DD);
+
+  std::vector<critical_point_t> features;
+  for(auto cp = critical_points.begin(); cp != critical_points.end(); ++cp)
+    features.push_back(cp->second);
+  return features;
+}
+
+//How to define it?
+double distance_between_features(std::vector<critical_point_t>& features1,
+				 std::vector<critical_point_t>& features2)
+{
+  return 0.0;
 }
