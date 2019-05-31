@@ -159,6 +159,7 @@ int main(int argc, char *argv[])
     SZ_Finalize();
     ZC_Finalize();
     MPI_Finalize();
+
     return 0;
 }
 
