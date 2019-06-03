@@ -169,5 +169,5 @@ std::vector<critical_point_t> extract_features(double *data, const size_t DW,
 double distance_between_features(std::vector<critical_point_t>& features1,
 				 std::vector<critical_point_t>& features2)
 {
-  return 0.0;
+  return features1.size() - features2.size();
 }
