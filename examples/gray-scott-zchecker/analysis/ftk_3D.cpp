@@ -50,7 +50,7 @@ void derive_hessians(const size_t DW, const size_t DH, const size_t DD)
   fprintf(stderr, "deriving hessians...\n");
   hess.reshape({3, 3, DW, DH, DD});
 
-  for (int k = 0; k < DD-2; k ++) {
+  for (int k = 2; k < DD-2; k ++) {
     for (int j = 2; j < DH-2; j ++) {
       for (int i = 2; i < DW-2; i ++) {
         const double H00 = hess(0, 0, i, j, k) = // ddf/dx2
