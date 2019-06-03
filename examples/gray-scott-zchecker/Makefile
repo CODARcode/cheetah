@@ -11,4 +11,4 @@ status:
 report:
 	cheetah.py status ${campaign} -t -p
 clean:
-	rm -rf *~ ${campaign} __pycache__ *.sst
+	rm -rf *~ ${campaign} __pycache__ 
