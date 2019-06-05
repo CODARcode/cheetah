@@ -58,22 +58,28 @@ int main(int argc, char *argv[])
     adios2::Variable<double> var_u_in, var_v_in;
     adios2::Variable<int> var_step_in;
     adios2::Variable<int> var_step_out;
-    adios2::Variable<double> var_u_out, var_v_out;
+    adios2::Variable<double> var_u_original_out, var_v_original_out;
+    adios2::Variable<double> var_u_lossy_out, var_v_lossy_out;    
 
     // adios2 io object and engine init
     adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
 
     // IO objects for reading and writing
     adios2::IO reader_io = ad.DeclareIO("SimulationOutput");
+    adios2::IO writer_io = ad.DeclareIO("CompressionOutput");
     if (!rank) 
     {
         std::cout << "zchecker reads from Gray-Scott simulation using engine type:  "
 		  << reader_io.EngineType() << std::endl;
+        std::cout << "Compression data is written using engine type:  "
+		  << writer_io.EngineType() << std::endl;
     }
 
-    // Engines for reading
+    // Engines for reading and writing
     adios2::Engine reader = reader_io.Open(in_filename,
 					   adios2::Mode::Read, comm);
+    adios2::Engine writer = writer_io.Open("CompressionOutput",
+					   adios2::Mode::Write, comm);
 
     int stepAnalysis = 0;
     while(true) {
@@ -128,6 +134,33 @@ int main(int argc, char *argv[])
                     {start1,0,0},
                     {count1, shape[1], shape[2]}));
 
+
+        if (firstStep) {
+	  var_u_original_out =
+	    writer_io.DefineVariable<double> ("U/original",
+					      { shape[0], shape[1], shape[2] },
+					      { start1, 0, 0 },
+					      { count1, shape[1], shape[2] } );
+	  var_v_original_out =
+	    writer_io.DefineVariable<double> ("V/original",
+					      { shape[0], shape[1], shape[2] },
+					      { start1, 0, 0 },
+					      { count1, shape[1], shape[2] } );
+	  var_u_lossy_out =
+	    writer_io.DefineVariable<double> ("U/lossy",
+					      { shape[0], shape[1], shape[2] },
+					      { start1, 0, 0 },
+					      { count1, shape[1], shape[2] } );
+	  var_v_lossy_out =
+	    writer_io.DefineVariable<double> ("V/lossy",
+					      { shape[0], shape[1], shape[2] },
+					      { start1, 0, 0 },
+					      { count1, shape[1], shape[2] } );
+	  firstStep = false;
+        }
+
+
+	
         // Read adios2 data
         reader.Get<double>(var_u_in, u);
         reader.Get<double>(var_v_in, v);
@@ -135,14 +168,25 @@ int main(int argc, char *argv[])
         // End adios2 step
         reader.EndStep();
 
-	z_check_sz(stepAnalysis, u, std::string("u_sz"), shape);
-	z_check_sz(stepAnalysis, v, std::string("v_sz"), shape);	
+	auto lossy_u = z_check_sz(stepAnalysis, u, std::string("u_sz"), shape);
+	auto lossy_v = z_check_sz(stepAnalysis, v, std::string("v_sz"), shape);	
 
 	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
 	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 
 	z_check_mgard(stepAnalysis, u, std::string("u_mgard"), shape);
-	z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);			
+	z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);
+
+
+        writer.BeginStep ();
+        writer.Put<double> (var_u_original_out, u.data());
+        writer.Put<double> (var_v_original_out, v.data());
+
+	// to change later
+        writer.Put<double> (var_u_lossy_out, lossy_u);
+        writer.Put<double> (var_v_lossy_out, lossy_v);	
+        writer.EndStep ();
+	
 	
         if (!rank)
         {
@@ -150,12 +194,14 @@ int main(int argc, char *argv[])
                 << " processing sim output step "
                 << stepSimOut << " sim compute step " << simStep << std::endl;
         }
-	
+	free(lossy_u);
+	free(lossy_v);
         ++stepAnalysis;
     }
 
     // cleanup
     reader.Close();
+    writer.Close();
     SZ_Finalize();
     ZC_Finalize();
     MPI_Finalize();

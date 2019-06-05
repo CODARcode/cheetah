@@ -25,8 +25,9 @@ The output from Gray-Scott simulation is passed through Z-Checker
 # TODO
 
 1. Document how to install Gray-Scott
-2. Is shape used correctly in mgard and SZ?
+2. Is shape used correctly?
 3. Provide two outputs into BP files: original data and compressed/decompressed data
-4. Integrate FTK
+4. More meaningful distance between features for FTK?
+
 
 

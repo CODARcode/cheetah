@@ -96,8 +96,9 @@ void z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &so
   free(decData);
 }
 
-void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &solution,
-		const std::vector<std::size_t>& shape)
+double* z_check_sz(int stepAnalysis, std::vector<double>& u,
+				   const std::string &solution,
+				   const std::vector<std::size_t>& shape)
 {
 
   std::vector<critical_point_t> features1 =
@@ -135,7 +136,8 @@ void z_check_sz(int stepAnalysis, std::vector<double>& u, const std::string &sol
   freeDataProperty(dataProperty);
   freeCompareResult(compareResult);
   free(bytes);
-  free(decData);	
+  //free(decData);
+  return decData;
 }
 
 
