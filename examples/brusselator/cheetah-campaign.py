@@ -12,7 +12,7 @@ class Brusselator(Campaign):
     # If there is an adios xml file associated with the codes, list it here
     # 'sleep_after' represents the time gap after which the next code is spawned
     codes = [ ("simulation", dict(exe="simulation/Brusselator", adios_xml_file='adios2_config.xml', sleep_after=None)),
-              ("norm_calc",  dict(exe="analysis/norm_calc",     adios_xml_file='adios2_config.xml', ))
+              ("norm_calc",  dict(exe="analysis/norm_calc",     adios_xml_file='adios2_config.xml', runner_override=False))
             ]
 
     # A list of machines that this campaign must be supported on
