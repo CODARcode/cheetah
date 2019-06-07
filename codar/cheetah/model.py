@@ -449,6 +449,10 @@ class Run(object):
         for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
             sleep_after = self.codes[target].get('sleep_after', 0)
+            runner_override = self.codes[target].get('runner_override', False)
+            assert type(runner_override) == bool, \
+                "The runner_override property for the " + target + " codes " \
+                "object must be a boolean value True/False"
 
             # Set separate subdirs for individual components if requested
             if self.component_subdirs:
@@ -492,7 +496,8 @@ class Run(object):
                                 component_inputs=component_inputs,
                                 linked_with_sosflow=linked_with_sosflow,
                                 adios_xml_file=adios_xml_file,
-                                hostfile=self.instance.get_hostfile(target))
+                                hostfile=self.instance.get_hostfile(target),
+                                runner_override=runner_override)
             comps.append(comp)
         return comps
 
@@ -877,7 +882,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, sched_args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None):
+                 env=None, timeout=None, hostfile=None, runner_override=False):
         self.name = name
         self.exe = exe
         self.args = args
@@ -892,6 +897,7 @@ class RunComponent(object):
         self.adios_xml_file = adios_xml_file
         self.hostfile = hostfile
         self.after_rc_done = None
+        self.runner_override = runner_override
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -904,7 +910,8 @@ class RunComponent(object):
                     linked_with_sosflow=self.linked_with_sosflow,
                     adios_xml_file=self.adios_xml_file,
                     hostfile=self.hostfile,
-                    after_rc_done=self.after_rc_done)
+                    after_rc_done=self.after_rc_done,
+                    runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env
         if self.timeout:

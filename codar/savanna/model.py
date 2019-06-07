@@ -70,7 +70,8 @@ class Run(threading.Thread):
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
-                 depends_on_runs=None, hostfile=None):
+                 depends_on_runs=None, hostfile=None,
+                 runner_override=False):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -137,6 +138,10 @@ class Run(threading.Thread):
         # erf_file needed for summit
         self.erf_file = None
 
+        # An override option to launch the code without the machine runner (
+        # aprun/jsrun/srun etc.
+        self.runner_override = runner_override
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -157,7 +162,8 @@ class Run(threading.Thread):
                 walltime_path=data.get('walltime_path'),
                 sleep_after=data.get('sleep_after'),
                 depends_on_runs=data.get('after_rc_done'),
-                hostfile=data.get('hostfile'))
+                hostfile=data.get('hostfile'),
+                runner_override=data.get('runner_override'))
 
         return r
 
@@ -181,6 +187,8 @@ class Run(threading.Thread):
 
     def set_runner(self, runner):
         self.runner = runner
+        if self.runner_override:
+            self.runner = None
 
     @property
     def timed_out(self):
