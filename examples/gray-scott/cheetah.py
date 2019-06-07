@@ -9,7 +9,7 @@ class Brusselator(Campaign):
 
     codes = [ ("simulation", dict(exe="gray-scott",
                                   adios_xml_file='adios2.xml')),
-              ("pdf_calc", dict(exe="pdf_calc", adios_xml_file='adios2.xml')),
+              ("pdf_calc", dict(exe="pdf_calc", adios_xml_file='adios2.xml', runner_override=False)),
             ]
 
     supported_machines = ['local', 'titan', 'theta']
