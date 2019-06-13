@@ -4,7 +4,7 @@ from codar.cheetah.parameters import SymLink
 import copy
 
 
-class Brusselator(Campaign):
+class GrayScott(Campaign):
     # A name for the campaign
     name = "gray_scott"
 
