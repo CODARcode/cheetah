@@ -303,7 +303,7 @@ class Launcher(object):
                        post_process_stop_on_failure=
                             run_post_process_stop_on_failure,
                        post_process_args=[params_path_json],
-                       node_layout=run.node_layout.as_data_list(),
+                       node_layout=run.node_layout.serialize_to_dict(),
                        total_nodes=run.total_nodes,
                        machine_name=machine.name)
             fob_list.append(fob)
@@ -354,7 +354,8 @@ class Launcher(object):
             campaign_name='codar.cheetah.'+campaign_name,
             group_name=group_name,
             constraint=scheduler_options.get('constraint', ''),
-            license=scheduler_options.get('license', '')
+            license=scheduler_options.get('license', ''),
+            machine_name=machine.name
         )
         with open(env_path, 'w') as f:
             f.write(group_env)

@@ -5,6 +5,7 @@ import threading
 import os
 import json
 import logging
+from queue import Queue
 
 from codar.cheetah.helpers import get_file_size
 from codar.savanna import status
@@ -27,9 +28,10 @@ class PipelineRunner(object):
     stop and kill_all methods could be called from any of the producer,
     Pipeline or Run threads."""
 
-    def __init__(self, runner, max_nodes, processes_per_node,
+    def __init__(self, runner, max_nodes, machine_name, processes_per_node,
                  status_file=None):
         self.max_nodes = max_nodes
+        self.machine_name = machine_name
         self.ppn = processes_per_node
         self.runner = runner
 
@@ -54,6 +56,20 @@ class PipelineRunner(object):
         self._allow_new_pipelines = True
         self._killed = False
 
+        # a queue of allocated nodes
+        self.allocated_nodes = self._get_node_list(machine_name, max_nodes)
+
+    def _get_node_list(self, machine_name, max_nodes):
+        """Get a list of hostnames in this allocation.
+        Currently supported for Summit only. Hostnames start with 'host1'"""
+
+        q = Queue()
+        # if machine_name.lower() == 'summit':
+        "add relative node names starting with 1 for creating ERF files"
+        for i in range(max_nodes):
+            q.put('{}'.format(i+1))
+        return q
+
     def add_pipeline(self, p):
         with self.pipelines_lock:
             if not self._allow_new_pipelines:
@@ -62,8 +78,14 @@ class PipelineRunner(object):
             if p.id in self._pipeline_ids:
                 raise ValueError("duplicate pipeline id: %s" % p.id)
             self._pipeline_ids.add(p.id)
-            p.set_ppn(self.ppn)
-            p.set_total_nodes()
+
+            if self.machine_name.lower() not in 'summit':
+                # for summit, the node_layout parsing is different
+                p.set_ppn(self.ppn)
+
+            # set_total_nodes() is deprecated. Leave it here for now.
+            # p.set_total_nodes()
+
             if p.get_nodes_used() > self.max_nodes:
                 _log.error(
                     "pipeline '%s' requires %d nodes > max %d, skipping",
@@ -109,7 +131,16 @@ class PipelineRunner(object):
             self.job_list_cv.notify()
 
         for pipe in still_running:
+            # Release allocated nodes. Don't really need to do this as all
+            # pipelines are being killed.
+            # Return nodes used by the pipeline
+            while not pipe.nodes_assigned.empty():
+                pipe_node = pipe.nodes_assigned.get()
+                self.allocated_nodes.put(pipe_node)
+
             pipe.force_kill_all()
+            _log.debug("killed pipeline {}, free nodes {} -> {}".format(
+                pipe.id, self.free_nodes, self.free_nodes + pipe.total_nodes))
         # NB: the run_pipelines methods will block waiting for the
         # pipelines, so we don't need to do that here. Callers that want
         # to block can call join on the consumer thread.
@@ -138,9 +169,16 @@ class PipelineRunner(object):
 
         # Free resources used by the pipeline
         with self.free_cv:
-            _log.debug("finished pipeline, free nodes %d -> %d",
-                       self.free_nodes, self.free_nodes + pipeline.total_nodes)
+            # Return nodes used by the pipeline
+            while not pipeline.nodes_assigned.empty():
+                pipe_node = pipeline.nodes_assigned.get()
+                self.allocated_nodes.put(pipe_node)
+
+            _log.debug("finished pipeline {}, free nodes {} -> {}".format(
+                pipeline.id, self.free_nodes, self.free_nodes +
+                                              pipeline.total_nodes))
             self.free_nodes += pipeline.total_nodes
+
             self.free_cv.notify()
 
         # Remove pipeline from list of running pipelines
@@ -158,6 +196,7 @@ class PipelineRunner(object):
         threads are complete."""
         while True:
             # wait until a job is available or end has been signaled
+            nodes_assigned = []
             no_more_pipelines = False
             with self.job_list_cv:
                 while len(self.job_list) == 0:
@@ -185,12 +224,19 @@ class PipelineRunner(object):
                                self.free_nodes - pipeline.get_nodes_used())
                     self.free_nodes -= pipeline.get_nodes_used()
 
+                    # Get a list of node names from the allocated nodes and
+                    # assign it to the pipeline
+                    for i in range(pipeline.total_nodes):
+                        nodes_assigned.append(self.allocated_nodes.get())
+                    _log.debug("pipeline {0} allocated nodes {1}".format(
+                        pipeline.id, nodes_assigned))
+
             if not self._process_pipelines:
                 self._join_running_pipelines()
                 return
 
             with self.pipelines_lock:
-                pipeline.start(self, self.runner)
+                pipeline.start(self, nodes_assigned, self.runner)
                 self._running_pipelines.add(pipeline)
                 if self._status is not None:
                     self._status.set_state(pipeline.get_state())

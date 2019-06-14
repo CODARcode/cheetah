@@ -1,9 +1,10 @@
 import shutil
 import math
+from codar.savanna import machines
 
 
 class Runner(object):
-    def wrap(self, run):
+    def wrap(self, run, sched_args):
         raise NotImplemented()
 
 
@@ -50,8 +51,15 @@ class SummitRunner(Runner):
         self.rs_per_host_arg = '-r'
         self.launch_distribution_arg = '-d'
         self.bind_arg = '-b'
+        self.machine = machines.summit
 
-    def wrap(self, run, sched_args, find_in_path=True):
+    def wrap(self, run, sched_args):
+        runner_args = ['jsrun', '--erf_input', run.erf_file]
+        return runner_args
+
+    def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
+        """This function is deprecated in favor of the above that uses erf
+        files"""
         if find_in_path:
             exe_path = shutil.which(self.exe)
         else:
@@ -60,18 +68,18 @@ class SummitRunner(Runner):
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
 
-        nrs = math.ceil(run.nprocs/run.tasks_per_node)
-        tasks_per_rs = run.tasks_per_node
-        cpus_per_rs = tasks_per_rs
-        gpus_per_rs = 6
-        rs_per_host = 1
+        # nrs = math.ceil(run.nprocs/run.tasks_per_node)
+        # tasks_per_rs = run.tasks_per_node
+        # cpus_per_rs = tasks_per_rs
+        # gpus_per_rs = 6
+        # rs_per_host = 1
 
         runner_args = [exe_path,
-                       self.nrs_arg, str(nrs),
-                       self.tasks_per_rs_arg, str(tasks_per_rs),
-                       self.cpus_per_rs_arg, str(cpus_per_rs),
-                       self.gpus_per_rs_arg, str(gpus_per_rs),
-                       self.rs_per_host_arg, str(rs_per_host),
+                       self.nrs_arg, jsrun_opts.nrs,
+                       self.tasks_per_rs_arg, jsrun_opts.tasks_per_rs,
+                       self.cpus_per_rs_arg, jsrun_opts.cpus_per_rs,
+                       self.gpus_per_rs_arg, jsrun_opts.gpus_per_rs,
+                       self.rs_per_host_arg, jsrun_opts.rs_per_host,
 
                        # Omit for now
                        # self.launch_distribution_arg,

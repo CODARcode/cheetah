@@ -19,10 +19,14 @@ import math
 import threading
 import signal
 import logging
+from queue import Queue
+import copy
+import json
 import pdb
 
-from codar.savanna import status
-from codar.cheetah.model import NodeLayout
+from codar.savanna import status, machines, summit_helper
+from codar.savanna.exc import SavannaException
+from codar.savanna.node_layout import NodeLayout
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -45,15 +49,29 @@ def _get_path(default_dir, default_name, specified_name):
     return path
 
 
+class NodeConfig:
+    def __init__(self):
+        """
+        Intended to look like
+        cpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        gpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        """
+        self.num_ranks_per_node = 0
+        self.cpu = []
+        self.gpu = []
+
+
 class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, sched_args, env, working_dir,
-                 timeout=None, nprocs=1, stdout_path=None, stderr_path=None,
+                 timeout=None, nprocs=1, res_set=None,
+                 stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
-                 depends_on_runs=None, hostfile=None):
+                 depends_on_runs=None, hostfile=None,
+                 runner_override=False):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -63,6 +81,12 @@ class Run(threading.Thread):
         self.working_dir = working_dir
         self.timeout = timeout
         self.nprocs = nprocs
+
+        # res_set, nrs, and rs_per_host represent resource_set definition,
+        # total no. of resource sets, and the no. of resource sets per host
+        # respectively. Reqd for Summit.
+        self.res_set = res_set
+
         self.stdout_path = _get_path(working_dir, STDOUT_NAME + "." + name,
                                      stdout_path)
         self.stderr_path = _get_path(working_dir, STDERR_NAME + "." + name,
@@ -103,6 +127,21 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
+        # Machine and nodes assigned are set by pipeline just before run is
+        # started
+        self.machine = None
+        self.nodes_assigned = None
+
+        # node_config for node-sharing on summit
+        self.node_config = None
+
+        # erf_file needed for summit
+        self.erf_file = None
+
+        # An override option to launch the code without the machine runner (
+        # aprun/jsrun/srun etc.
+        self.runner_override = runner_override
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -116,13 +155,15 @@ class Run(threading.Thread):
                 working_dir=data['working_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
+                res_set=data.get('res_set'),
                 stdout_path=data.get('stdout_path'),
                 stderr_path=data.get('stderr_path'),
                 return_path=data.get('return_path'),
                 walltime_path=data.get('walltime_path'),
                 sleep_after=data.get('sleep_after'),
                 depends_on_runs=data.get('after_rc_done'),
-                hostfile=data.get('hostfile'))
+                hostfile=data.get('hostfile'),
+                runner_override=data.get('runner_override'))
 
         return r
 
@@ -146,6 +187,8 @@ class Run(threading.Thread):
 
     def set_runner(self, runner):
         self.runner = runner
+        if self.runner_override:
+            self.runner = None
 
     @property
     def timed_out(self):
@@ -215,10 +258,20 @@ class Run(threading.Thread):
         if self.depends_on_runs is not None:
             threading.Thread.join(self.depends_on_runs)
 
+        if self.machine.name.lower() == 'summit':
+            self.erf_file = self.working_dir + "/" + self.name + ".erf_input"
+            summit_helper.create_erf_file(self)
+
+        # if self.machine.name.lower() == 'summit':
+        #     # are we releasing when the run finishes, or when the pipeline
+        #     # finishes? reqd. for dependency mgmt
+        #     self.add_callback(self._release_nodes)
+
         if self.runner is not None:
             args = self.runner.wrap(self, self.sched_args)
         else:
             args = [self.exe] + self.args
+
         self._start_time = time.time()
         with self._state_lock:
             if self._killed:
@@ -247,6 +300,7 @@ class Run(threading.Thread):
                         # the exception before kill.
                         self._timed_out = True
                     self._timeout_pending = False
+                    # TODO will this call the release_nodes callback?
 
         self._pgroup_wait()
         with self._state_lock:
@@ -385,9 +439,15 @@ class Run(threading.Thread):
         on each run."""
         return self.nodes
 
+    def _release_nodes(self):
+        pass
+
+    def create_node_config(self):
+        pass
+
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir, total_nodes,
+    def __init__(self, pipe_id, runs, working_dir, total_nodes, machine_name,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
@@ -401,6 +461,7 @@ class Pipeline(object):
         self.post_process_args = post_process_args
         self.post_process_stop_on_failure = post_process_stop_on_failure
         self.node_layout = node_layout
+        self.machine_name = machine_name
 
         self._state_lock = threading.Lock()
         self._running = False
@@ -416,9 +477,21 @@ class Pipeline(object):
         for run in runs:
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
+            run.machine = machines.get_by_name(machine_name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
+
+        # List of node IDs assigned to this pipeline. Get initialized in
+        # start()
+        self.nodes_assigned = Queue()
+
+        # Keep a copy of the nodes assigned. Pop nodes from this queue to
+        # assign to Runs. When a Run is done, it can push the node back into
+        # this queue, but Runs that share nodes may add the same node to the
+        # Queue multiple times. We need a SetQueue for this, or a way to
+        # have all Runs in a shared node release nodes just once.
+        self._nodes_assigned = Queue()
 
     @classmethod
     def from_data(cls, data):
@@ -462,19 +535,35 @@ class Pipeline(object):
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         node_layout = data.get("node_layout")
         total_nodes = data.get("total_nodes")
+        machine_name = data.get("machine_name")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
-                    kill_on_partial_failure=kill_on_partial_failure,
-                    post_process_script=post_process_script,
-                    post_process_args=post_process_args,
-                    post_process_stop_on_failure=post_process_stop_on_failure,
-                    node_layout=node_layout, launch_mode=launch_mode,
-                        total_nodes = total_nodes)
+                        kill_on_partial_failure=kill_on_partial_failure,
+                        post_process_script=post_process_script,
+                        post_process_args=post_process_args,
+                        post_process_stop_on_failure=
+                        post_process_stop_on_failure,
+                        node_layout=node_layout,
+                        launch_mode=launch_mode,
+                        total_nodes=total_nodes,
+                        machine_name=machine_name)
 
-    def start(self, consumer, runner=None):
+    def start(self, consumer, nodes_assigned, runner=None):
         # Mark all runs as active before they are actually started
         # in a separate thread, so other methods know the state.
+
+        for node_name in nodes_assigned:
+            self.nodes_assigned.put(node_name)
+            machine = machines.get_by_name(self.machine_name)
+            # self.nodes_assigned.put(machine.node_class(node_name))
+
+        # Make a copy of the nodes_assigned. copy.deepcopy does not work
+        # self._nodes_assigned = copy.deepcopy(self.nodes_assigned)
+        for node in list(self.nodes_assigned.queue):
+            self._nodes_assigned.put(node)
+
         self.add_done_callback(consumer.pipeline_finished)
         self.add_fatal_callback(consumer.pipeline_fatal)
+
         with self._state_lock:
             for run in self.runs:
                 run.set_runner(runner)
@@ -486,14 +575,20 @@ class Pipeline(object):
             for run in self.runs:
                 run.set_runner(runner)
 
-                # Removing this callback that releases the nodes held by a run.
-                # Now this is done when the pipeline finishes
+                # Commenting out the callback to consumer.run_finished that
+                # releases the nodes held by a run.
+                # Now this is called when the pipeline finishes
 
                 # run.add_callback(consumer.run_finished)
 
                 run.add_callback(self.run_finished)
                 self._active_runs.add(run)
             self._running = True
+
+            # Parse the node layout and set the run information.
+            # This requires self.nodes_assigned .
+            # Only for Summit right now.
+            self._parse_node_layouts()
 
             # Next start pipeline runs in separate thread and return
             # immediately, so we can inject a wait time between starting runs.
@@ -505,14 +600,151 @@ class Pipeline(object):
         their progress and signal consumer when finished. Use join_all to
         wait until they are all finished."""
 
+        _log.debug("Pipeline {} launching run components".format(self.id))
         for run in self.runs:
             run.start()
             if run.sleep_after:
                 time.sleep(run.sleep_after)
 
+    def _parse_node_layouts(self):
+        """Only for Summit right now."""
+
+        # Return if not on Summit
+        if self.machine_name.lower() not in 'summit':
+            return
+
+        for layout in self.node_layout:
+            self._parse_node_layout(layout)
+
+    def _parse_node_layout(self, layout):
+        """
+        what should be the output of this?
+        each run must have its num_nodes_reqd, and node_configs set.
+        you dont need the num_nodes_required for this layout set, do you?
+        for the layout, set the run information, everything except the
+        nodes_assigned.
+        then get the max nodes reqd, remove them from the queue, and assign
+        them to the runs. that is.
+        """
+
+        # Extract code info for this node
+        codes_on_node = self._extract_codes_on_node(layout)
+
+        # Get num nodes required to run this layout
+        num_nodes_reqd_for_layout = max([code.nodes for code in codes_on_node])
+
+        # Ensure required nodes are available
+        num_nodes_in_queue = len(list(self._nodes_assigned.queue))
+        assert num_nodes_in_queue >= num_nodes_reqd_for_layout,\
+            "Do not have sufficient nodes to run the layout. "\
+            "Need {}, found {}".format(num_nodes_reqd_for_layout,
+                                       num_nodes_in_queue)
+
+        # Get a list of nodes required for this run
+        nodes_assigned_to_layout = []
+        for i in range(num_nodes_reqd_for_layout):
+            nodes_assigned_to_layout.append(self._nodes_assigned.get())
+
+        # Assign nodes to runs
+        for run in codes_on_node:
+            run.nodes_assigned = nodes_assigned_to_layout
+
+    def _extract_codes_on_node(self, layout_info):
+
+        # Remove this check for now
+        # if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
+        #     raise SavannaException("Invalid value for node layout's "
+        #                            "__info_type__ key")
+        # node-layout in fobs.json looks like
+        #{
+        #    node_layout: [
+        #        {‘__info_type__’:’NodeConfig’, ‘cpu’:[,,, , , ], ‘gpu’:[,,,
+        #        , , ]}, {‘__info_type__’: ‘resource_set’, ’simulation’: 4}, {‘__info_type__’: ‘analysis0’: 7}]
+        #}
+
+
+        codes_on_node = set()
+
+        # If no node-sharing
+        # if layout_info['__info_type__'] == 'resource_set':
+        if layout_info.get('__info_type__', None) is None:
+            # Get the run handle
+            run_name = None
+            for k in layout_info.keys():
+                if '__info_type__' not in k:
+                    run_name = k
+                    break
+            assert run_name is not None, "Could not get run in node_layout"
+
+            run = self._get_run_by_name(run_name)
+            run.nodes = math.ceil(run.nprocs / int(layout_info[run_name]))
+            codes_on_node.add(run)
+
+        # if node-sharing
+        elif layout_info['__info_type__'] == 'NodeConfig':
+            # Get the ranks per node for each run
+            num_ranks_per_run = {}
+            for rank_info in layout_info['cpu']:
+                if rank_info is not None:
+                    run_name = rank_info.split(':')[0]
+                    if run_name not in list(num_ranks_per_run.keys()):
+                        num_ranks_per_run[run_name] = 0
+                    num_ranks_per_run[run_name] += 1
+
+            # set the no. of nodes for the codes on this node
+            for code in num_ranks_per_run:
+                run = self._get_run_by_name(code)
+                run.nodes = math.ceil(run.nprocs/num_ranks_per_run[code])
+
+            # Add run to codes_on_node and create nodeconfig for each run
+            for run_name in num_ranks_per_run.keys():
+                num_ranks_per_node = num_ranks_per_run[run_name]
+                run = self._get_run_by_name(run_name)
+                codes_on_node.add(run)
+                run.node_config = NodeConfig()
+                run.node_config.num_ranks_per_node = num_ranks_per_node
+                for i in range(num_ranks_per_node):
+                    # Every rank for this run has a list of cpu and gpu cores
+                    run.node_config.cpu.append([])
+                    run.node_config.gpu.append([])
+
+            # Loop over the cpu core mapping
+            for i in range(len(layout_info['cpu'])):
+                rank_info = layout_info['cpu'][i]
+
+                # if the core is not mapped, go to the next one
+                if rank_info is None:
+                    continue
+
+                run_name = rank_info.split(':')[0]
+                rank_id = rank_info.split(':')[1]
+                run = self._get_run_by_name(run_name)
+
+                # append core id to the rank id of this run
+                run.node_config.cpu[int(rank_id)].append(i)
+
+            # Loop over the gpu mapping
+            for i in range(len(layout_info['gpu'])):
+                rank_list = layout_info['gpu'][i]
+                if rank_list is not None:
+                    for rank_info in rank_list:
+                        run_name = rank_info.split(':')[0]
+                        rank_id = rank_info.split(':')[1]
+                        run = self._get_run_by_name(run_name)
+                        run.node_config.gpu[int(rank_id)].append(i)
+                        pass
+
+        return list(codes_on_node)
+
     def run_finished(self, run):
         assert self._running
         run_done_callbacks = False
+
+        # release_nodes doesn't do anything at this time. Runs do not
+        # release nodes back to the pipeline, as it is non-trivial to
+        # release nodes to the pipeline when Runs share nodes.
+        self._release_nodes(run.nodes_assigned)
+
         with self._state_lock:
             self._active_runs.remove(run)
             if not self._active_runs:
@@ -602,6 +834,14 @@ class Pipeline(object):
         for cb in self.fatal_callbacks:
             cb(self)
 
+    def _release_nodes(self, nodes_assigned_to_run):
+        pass
+
+    def _get_run_by_name(self, run_name):
+        for run in self.runs:
+            if run.name == run_name:
+                return run
+
     def get_nodes_used(self):
         if self.total_nodes is None:
             raise ValueError("set_ppn must be called before getting node usage")
@@ -610,7 +850,8 @@ class Pipeline(object):
     def set_ppn(self, ppn):
         """Determine number of nodes needed to run pipeline with the specified
         node layout or full occupancy layout with ppn. Also updates runs
-        to set node and task per node counts."""
+        to set node and task per node counts.
+        TODO: This should be set by Cheetah in fobs.json"""
         if self.node_layout is None:
             run_names = [run.name for run in self.runs]
             node_layout = NodeLayout.default_no_share_layout(ppn, run_names)

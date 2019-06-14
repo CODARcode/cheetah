@@ -29,6 +29,7 @@ def parse_args():
                         choices=['DEBUG','INFO','WARNING','ERROR','CRITICAL'],
                         default='INFO')
     parser.add_argument('--status-file')
+    parser.add_argument('--machine-name')
 
     args = parser.parse_args()
 
@@ -68,6 +69,7 @@ def main():
 
     consumer = PipelineRunner(runner=runner,
                               max_nodes=args.max_nodes,
+                              machine_name=args.machine_name,
                               processes_per_node=args.processes_per_node,
                               status_file=args.status_file)
 

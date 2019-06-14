@@ -20,7 +20,9 @@ from pathlib import Path
 from collections import OrderedDict
 import warnings
 
-from codar.cheetah import machines, parameters, config, templates, exc
+from codar.savanna import machines
+from codar.savanna.node_layout import NodeLayout
+from codar.cheetah import parameters, config, templates, exc, machine_launchers
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
@@ -252,10 +254,10 @@ class Campaign(object):
             # TODO: support alternate template for dirs?
             group_name = group.name
             group_output_dir = os.path.join(output_dir, group_name)
-            launcher = self.machine.get_launcher_instance(group_output_dir,
-                                                          len(self.codes))
+            launcher = machine_launchers.get_launcher(self.machine,
+                                                      group_output_dir,
+                                                      len(self.codes))
             group_runs = []
-            group_run_offset = 0
             for repeat_index in range(0, group.run_repetitions+1):
                 group_run_offset = 0
                 for sweep in group.parameter_groups:
@@ -285,10 +287,11 @@ class Campaign(object):
                     sweep_runs = [Run(inst, self.codes, self.app_dir,
                                       os.path.join(
                                           group_output_dir,
-                                          'run-{}.{}'.format(
+                                          'run-{}.iteration-{}'.format(
                                               group_run_offset + i,
                                               repeat_index)),
                                       self.inputs,
+                                      self.machine,
                                       node_layout,
                                       group.rc_dependency,
                                       group.component_subdirs,
@@ -394,93 +397,6 @@ class Campaign(object):
         return os.path.join(experiment_dir, p)
 
 
-class NodeLayout(object):
-    """Class representing options on how to organize a multi-exe task across
-    many nodes. It is the scheduler model's job to take this and produce the
-    correct scheduler and runner options to make this happen, or raise an error
-    if it's not possible. Note that this will generally be different for each
-    machine unless it is very simple and suppored uniformly by all desired
-    machines.
-
-    A layout is represented as a list of dictionaries, where each dictionary
-    described codes to be run together on a single node. The keys are
-    the names of the codes, and the values are the number of processes to
-    assign to each.
-    """
-
-    def __init__(self, layout_list):
-        # TODO: better validation
-        assert isinstance(layout_list, list)
-        for item in layout_list:
-            assert isinstance(item, dict)
-        # For now, only allow codes to be in one node grouping
-        key_sets = [set(d.keys()) for d in layout_list]
-        for i, ks in enumerate(key_sets[:-1]):
-            for j in range(i+1, len(key_sets)):
-                shared = ks & key_sets[j]
-                if shared:
-                    raise ValueError("code(s) appear multiple times: "
-                                     + ",".join(shared))
-        self.layout_list = layout_list
-        self.layout_map = {}
-        for d in layout_list:
-            for k in d.keys():
-                self.layout_map[k] = d
-
-    def add_node(self, node_dict):
-        """Add a node to an existing layout, e.g. add sosflow."""
-        node_dict = dict(node_dict) # copy
-        self.layout_list.append(node_dict)
-        for k in node_dict.keys():
-            self.layout_map[k] = node_dict
-
-    def get_node_containing_code(self, code):
-        """Get node dict containing the specified code. Raises KeyError if
-        not found."""
-        return self.layout_map[code]
-
-    def codes_per_node(self):
-        return max(len(d) for d in self.layout_list)
-
-    def shared_nodes(self):
-        return sum(1 for d in self.layout_list if len(d) > 1)
-
-    def ppn(self):
-        return max(sum(d.values()) for d in self.layout_list)
-
-    def validate(self, ppn, codes_per_node, shared_nodes):
-        """Given a machine ppn and max numer of codes (e.g. 4 on cori),
-        raise a ValueError if the specified layout won't fit."""
-        layout_codes_per_node = self.codes_per_node()
-        if layout_codes_per_node > codes_per_node:
-            raise ValueError("Node layout error: %d codes > max %d"
-                             % (layout_codes_per_node, codes_per_node))
-        layout_ppn = self.ppn()
-        if layout_ppn > ppn:
-            raise ValueError("Node layout error: %d ppn > max %d"
-                             % (layout_ppn, ppn))
-
-        layout_shared_nodes = self.shared_nodes()
-        if layout_shared_nodes > shared_nodes:
-            raise ValueError("Node layout error: %d shared nodes > max %d"
-                             % (layout_shared_nodes, shared_nodes))
-
-    def as_data_list(self):
-        """Get a copy of the data list passed to the constructor,
-        suitable for JSON serialization."""
-        return list(self.layout_list)
-
-    def copy(self):
-        return NodeLayout(self.as_data_list())
-
-    @classmethod
-    def default_no_share_layout(cls, ppn, code_names):
-        """Create a layout object for the specified codes and ppn, where each
-        code uses max procs on it's own node."""
-        layout = [{ code: ppn } for code in code_names]
-        return cls(layout)
-
-
 class Run(object):
     """
     Class representing how to actually run an instance on a given environment,
@@ -490,7 +406,7 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 node_layout, rc_dependency, component_subdirs,
+                 machine, node_layout, rc_dependency, component_subdirs,
                  sosflow_profiling, sosflow_analyis, component_inputs=None):
         self.instance = instance
         self.codes = codes
@@ -498,6 +414,7 @@ class Run(object):
         self.run_path = run_path
         self.run_id = os.path.basename(run_path)
         self.inputs = inputs
+        self.machine = machine
         # Note: the layout will be modified if sosflow is set, so it's
         # important to use a copy.
         self.node_layout = node_layout.copy()
@@ -507,6 +424,11 @@ class Run(object):
         self.component_inputs = component_inputs
         self.total_nodes = 0
         self.run_components = self._get_run_components()
+
+        # populate nodelayout to contain all RCs
+        self.node_layout.populate_remaining([rc.name for rc in
+                                             self.run_components],
+                                            self.machine.processes_per_node)
 
         # Get the RCs that this rc depends on
         # This must be done before the total no. of nodes are calculated
@@ -527,6 +449,10 @@ class Run(object):
         for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
             sleep_after = self.codes[target].get('sleep_after', 0)
+            runner_override = self.codes[target].get('runner_override', False)
+            assert type(runner_override) == bool, \
+                "The runner_override property for the " + target + " codes " \
+                "object must be a boolean value True/False"
 
             # Set separate subdirs for individual components if requested
             if self.component_subdirs:
@@ -570,7 +496,8 @@ class Run(object):
                                 component_inputs=component_inputs,
                                 linked_with_sosflow=linked_with_sosflow,
                                 adios_xml_file=adios_xml_file,
-                                hostfile=self.instance.get_hostfile(target))
+                                hostfile=self.instance.get_hostfile(target),
+                                runner_override=runner_override)
             comps.append(comp)
         return comps
 
@@ -629,42 +556,67 @@ class Run(object):
         NOTE: if run after insert_sosflow, then this WILL include the sosflow
         nodes, otherwise it will not. Node-sharing not supported yet."""
 
-        num_nodes_rc = {}
-        for rc in self.run_components:
-            code_node = self.node_layout.get_node_containing_code(rc.name)
-            code_procs_per_node = code_node[rc.name]
-            num_nodes_rc[rc.name] = int(math.ceil(rc.nprocs /
-                                                  code_procs_per_node))
+        # num_nodes_rc = {}
+        # for rc in self.run_components:
+        #     code_node = self.node_layout.get_node_containing_code(rc.name)
+        #     code_procs_per_node = code_node[rc.name]
+        #     num_nodes_rc[rc.name] = int(math.ceil(rc.nprocs /
+        #                                           code_procs_per_node))
 
+        # group codes by node
+        code_groups = self.node_layout.group_codes_by_node()
+
+        # ------------------------------------------------------------------- #
+        # KM: Commenting out the block below.
+        # It gets the total no. of nodes depending upon the rc dependency.
+        # Need to look at how to do it when shared node layouts are concerned.
+        # Commenting it out will get more nodes than required, which is ok.
+        # If there is a dependency on between codes on the same node,
+        # could this be an issue?
+
+        # KM: use task graphs to improve this embarassing algorithm
         # RC dependency handling
-        # @TODO need better algorithm to do this
-        top_rc = [[rc] for rc in self.run_components if rc.after_rc_done is
-                  None]
-        assert len(top_rc) > 0, "Circular task dependency found"
 
-        def add_to_top_rc(tmprc):
-            if type(tmprc) is str:
-                tmprc = self._get_rc_by_name(tmprc)
-            top_rc_serialized = [r for l in top_rc for r in l]
-            after_rc_done_obj = self._get_rc_by_name(tmprc.after_rc_done)
-            if after_rc_done_obj not in top_rc_serialized:
-                add_to_top_rc(after_rc_done_obj.after_rc_done)
-            for l in top_rc:
-                if after_rc_done_obj in l:
-                    if tmprc not in l:
-                        l.append(tmprc)
-                        break
+        # # @TODO need better algorithm to do this
+        # top_rc = [[rc] for rc in self.run_components if rc.after_rc_done is
+        #           None]
+        # assert len(top_rc) > 0, "Circular task dependency found"
 
-        for rc in self.run_components:
-            if rc.after_rc_done is not None:
-                add_to_top_rc(rc)
+        # def add_to_top_rc(tmprc):
+        #     if type(tmprc) is str:
+        #         tmprc = self._get_rc_by_name(tmprc)
+        #     top_rc_serialized = [r for l in top_rc for r in l]
+        #     after_rc_done_obj = self._get_rc_by_name(tmprc.after_rc_done)
+        #     if after_rc_done_obj not in top_rc_serialized:
+        #         add_to_top_rc(after_rc_done_obj.after_rc_done)
+        #     for l in top_rc:
+        #         if after_rc_done_obj in l:
+        #             if tmprc not in l:
+        #                 l.append(tmprc)
+        #                 break
+        #
+        # for rc in self.run_components:
+        #     if rc.after_rc_done is not None:
+        #         add_to_top_rc(rc)
 
-        total_nodes = 0
-        for rc_list in top_rc:
-            max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
-            total_nodes += max_nodes
+        # total_nodes = 0
+        # for rc_list in top_rc:
+        #     max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
+        #     total_nodes += max_nodes
+        # self.total_nodes = total_nodes
+        # ------------------------------------------------------------------- #
 
-        self.total_nodes = total_nodes
+        # Get the max no. of nodes required based on the node layout
+        group_max_nodes = []
+        for code_group in code_groups:
+            group_max = 0
+            for codename in code_group:
+                rc = self._get_rc_by_name(codename)
+                num_nodes_code = math.ceil(rc.nprocs/code_group[codename])
+                group_max = max(group_max, num_nodes_code)
+            group_max_nodes.append(group_max)
+
+        self.total_nodes = sum(group_max_nodes)
 
     def _get_total_sosflow_component_nodes(self):
         """Get the total number of nodes that will be required by the components
@@ -930,7 +882,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, sched_args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None):
+                 env=None, timeout=None, hostfile=None, runner_override=False):
         self.name = name
         self.exe = exe
         self.args = args
@@ -945,6 +897,7 @@ class RunComponent(object):
         self.adios_xml_file = adios_xml_file
         self.hostfile = hostfile
         self.after_rc_done = None
+        self.runner_override = runner_override
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -957,7 +910,8 @@ class RunComponent(object):
                     linked_with_sosflow=self.linked_with_sosflow,
                     adios_xml_file=self.adios_xml_file,
                     hostfile=self.hostfile,
-                    after_rc_done=self.after_rc_done)
+                    after_rc_done=self.after_rc_done,
+                    runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env
         if self.timeout:

@@ -24,19 +24,17 @@ with the `-h` option, e.g. `cheetah.py create-campaign -h`.
 
 ## Requirements
 
-Cheetah requires a modern Linux install with Python 3.4 or greater and
-numpy. Some cheetah functionality is designed to inter-operate with the
-Savanna software stack, including ADIOS, Dataspaces, SOSFlow, and TAU, but
-simple campaigns can be run without further dependencies.
-See the [savanna documentation](https://github.com/CODARcode/savanna)
-for more information and install instructions.
+Cheetah requires a modern Linux install with Python 3.5 or greater.
+Some cheetah functionality is designed to inter-operate with the
 
-## Installation from github (for developers)
 
-For development or to run the latest version of cheetah (or a feature
-branch), you can clone the git repository and install in develop mode,
-so any changes to the repository directory will be reflected immediately
-in the python environment without re-installing a new version.
+## Installation
+
+Cheetah can be installed on a local Linux machine through the Spack package 
+manager `codar-cheetah`.
+
+On supercomputers and other clusters, it is recommended to clone Cheetah 
+from the github repository.
 
 ```
 git clone https://github.com/CODARcode/cheetah.git
@@ -46,6 +44,7 @@ python3 -m venv venv-cheetah
 source venv-cheetah/bin/activate
 pip install --editable .
 ```
+I NEED TO VERIFY IF THE ABOVE WORKS -- Kshitij
 
 Note that any usage of cheetah will require using the python executable
 within this virtualenv (via the activate script, manually setting PATH,
@@ -56,7 +55,16 @@ will use the same python executable to run the workflow.py script on
 compute nodes, unless this is overridden by setting `python_path` in the
 campaign spec.
 
-## Running the test suite
+## Documentation and Tutorials
+The examples/ directory is the best place to start with for understanding and using Cheetah.
+The eulers_number example is a simple Python code that demonstrates the use of Cheetah
+to create parameter sweeps.
+Two benchmark workflows, namely the brusselator code and the gray-scott reaction-diffusion
+reaction solver show real-world examples of workflows where simulation and analysis applications 
+are coupled through ADIOS.
+
+
+<!-- ## Running the test suite
 
 Running the tests requires having `nose` installed within the cheetah
 virtualenv. Continuing from the github installation example above:
@@ -86,79 +94,9 @@ git clone https://github.com/CODARcode/Example-EXAALT
 To run the test suite (from the top level cheetah directory):
 ```
 tests/run-all.sh
-```
+``` -->
 
-## Tutorial for Running Heat Transfer example with Cheetah
-
-1. Install Savanna and build the Heat Transfer example (see [savanna
-   instructions](https://github.com/CODARcode/savanna/blob/master/README.md)).
-   This tutorial will assume spack was used for the
-   installation, and uses bash for environment setup examples.
-
-2. Download the Cheetah v0.5.1 release from github and unpack the release
-   [tarball](https://github.com/CODARcode/cheetah/archive/v0.5.1.tar.gz).
-
-3. Install Cheetah to a venv or virtualenv:
-
-```
-cd /path/to/cheetah-0.5.1
-python3 -m venv venv-cheetah
-source venv-cheetah/bin/activate
-pip install .
-```
-
-4. Set up the environment for cheetah (this can be added to your ~/.bashrc
-   file for convenience, after the spack environment is loaded):
-
-```
-source <(spack module loads --dependencies adios)
-```
-
-5. Make a directory for storing campaigns, for example:
-
-```
-mkdir -p ~/codar/campaigns
-```
-
-6. Generate a campaign from the example, which will run Heat\_Transfer
-   with stage\_write three times, once with no compression, once with
-   zfp, and once with sz:
-
-```
-path2savanna = `spack find -p savanna | grep savanna | awk '{ print $2 }'`
-cd /path/to/cheetah
-./cheetah.py create-campaign -e examples/heat_transfer_small.py \
- -a $path2savanna/Heat_Transfer \
- -m local -o ~/codar/campaigns/heat
-```
-
-7. Run the campaign:
-
-```
-cd ~/codar/campaigns/heat/$USER
-./run-all.sh
-```
-
-For run output, see `GROUP_NAME/run-NNN`. To debug submit failures, look at
-`GROUP_NAME/codar.cheetah.submit-output.txt`. To view progress of the run,
-start with the status command with no options, then use the options to drill
-down and get more details on specific groups and runs. For example:
-
-```
-# show progress of each group in the campaign
-cheetah.py status ~/codar/campaigns/heat
-
-# get a summary of runs within a group
-cheetah.py status ~/codar/campaigns/heat -g GROUP\_NAME -s
-
-# show status of each run within a group
-cheetah.py status ~/codar/campaigns/heat -g GROUP\_NAME -n
-
-# show stderr and stdout for a specific run within a group
-cheetah.py status ~/codar/campaigns/heat -g GROUP\_NAME -r RUN\_NAME -o
-```
-
-## Campaign Directory
+<!-- ## Campaign Directory
 
 Within the output directory, cheetah creates a subdirectory based on your
 username. Within the user directory, there is a subdirectory for each group
@@ -315,66 +253,4 @@ supported parameter types. For a complete list, see the examples and the
   on the convention used by the code. Note that this is distinct from
   the name, but a good choice for name is the option with the dashes
   removed.
-
-## Changelog
-
-### v0.5.1
-
-- Refactor to better support installation via pip and setuptools
-- Campaigns will use the same python executable as the
-  `cheetah.py create-campaign` command used to generate them, which
-  should automatically take care of using the correct virtualenv in most
-  cases. For any exceptions, the `python_path` variable can be set in
-  the campaign spec.
-
-### v0.5
-
-- New subcommand structure (the initial command structure is now under
-  the `create-campaign` subcommand).
-- New `status` subcommand
-- New  `generate-report` subcommand
-- Multi-user campaign support
-- Specify different node counts in Sweeps
-- Add experiments to an existing campaign directory
-- Option to override number of nodes
-- Feature to parse and consolidate campaign performance information
-- Have cheetah figure out min/max number of nodes
-- Mark file as ADIOS XML file for an application
-- Support for absolute paths for input files
-- Support for TAU trace directory
-- Support for input files with key-value parameters
-- Get Example-Heat_Transfer + Tau working with Cheetah
-- Support for running per-run setup script during campaign creation
-- Support for sub-directories for FOB components
-- Named group directories in campaign
-- Ordered invocation of FOB components
-- Insert delay between component invocations
-- Derived params based on params for codes
-- Option to kill run if any component fails
-- Support for timeouts
-- Support for named arguments
-- Set custom TAU environment variable for each code
-- Dataspaces integration
-- Improved ADIOS parameter support
-- Add `node\_layout` Sweep option for per-machine node configuration
-- Working machine support: local, cori, theta, and titan
-- Add umask campaign option
-- Per code/component input files
-- Improved workflow scheduling (more efficient use of available nodes
-  within a sweep group)
-- Add new parameter types `ParamKeyValue` (for ini, namelist, and other
-  similar name=value formatted config files) and `ParamConfig` (fully
-  generic string replacment, can be used with any format)
-- Add hook in report generation to run user script
-- Support symlinks for input files, useful to avoid copying large files
-- (beta) SOSFlow integration
-- (beta) Resume partially completed campaigns
-
-
-See the v0.5 milestone on github for a complete list including bug fixes:
-https://github.com/CODARcode/cheetah/milestone/1?closed=1
-
-### v0.1
-
-- Initial release
-- Working machine support: local, titan
+ -->
