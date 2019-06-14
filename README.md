@@ -44,6 +44,7 @@ python3 -m venv venv-cheetah
 source venv-cheetah/bin/activate
 pip install --editable .
 ```
+I NEED TO VERIFY IF THE ABOVE WORKS -- Kshitij
 
 Note that any usage of cheetah will require using the python executable
 within this virtualenv (via the activate script, manually setting PATH,
@@ -55,17 +56,15 @@ compute nodes, unless this is overridden by setting `python_path` in the
 campaign spec.
 
 ## Documentation and Tutorials
-A user guide is included in docs/.
-
 The examples/ directory is the best place to start with for understanding and using Cheetah.
 The eulers_number example is a simple Python code that demonstrates the use of Cheetah
 to create parameter sweeps.
-Two benchmark workflows, viz. the brusselator code and the gray-scott reaction-diffusion
+Two benchmark workflows, namely the brusselator code and the gray-scott reaction-diffusion
 reaction solver show real-world examples of workflows where simulation and analysis applications 
 are coupled through ADIOS.
 
 
-## Running the test suite
+<!-- ## Running the test suite
 
 Running the tests requires having `nose` installed within the cheetah
 virtualenv. Continuing from the github installation example above:
@@ -95,7 +94,7 @@ git clone https://github.com/CODARcode/Example-EXAALT
 To run the test suite (from the top level cheetah directory):
 ```
 tests/run-all.sh
-```
+``` -->
 
 <!-- ## Campaign Directory
 
