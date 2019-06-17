@@ -291,7 +291,8 @@ class CodeCommand(object):
             # TODO: handle separator between option and value, e.g. '',
             # '=', or ' '?
             argv.append(option)
-            argv.append(str(value))
+            if value is not None:
+                argv.append(str(value))
         return argv
 
 
