@@ -1,5 +1,4 @@
 from paraview.simple import *
-import commands
 
 vars = ['U', 'V']
 Xs = [1, 16]
@@ -22,8 +21,6 @@ for var in vars:
         SaveAnimation('movies/%s_X%d_a.avi' % (var, X) , layout1, SaveAllViews=1,
                       ImageResolution=[2240, 860],
                       FrameWindow=[0, 23])        
-
-for var in vars:
     for T in Ts:
         layout1, view1, view2 = compareX(var=var, step=T, play=False)
         SaveAnimation('movies/%s_T%d.avi' % (var, T) , layout1, SaveAllViews=1,

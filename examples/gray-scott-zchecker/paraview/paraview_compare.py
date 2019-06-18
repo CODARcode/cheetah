@@ -1,10 +1,15 @@
 from paraview.simple import *
 
+def init_camera_view(view):
+    view.CameraPosition = [-124.0, 16.0, 16.0]
+    view.CameraFocalPoint = [16.0, 16.0, 16.0]
+    view.CameraViewUp = [0.0, 0.0, 1.0]
+    view.CameraParallelProjection = 1
+    view.CameraParallelScale = 1.0
+    
 def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True):
     ResetSession()
     r1 = VisItPixieReader(FileName=fn)
-    Show()
-    Render()
 
     variable1 = 'Step%d/%s/original' % (step, var)
     variable2 = 'Step%d/%s/lossy' % (step, var)
@@ -53,25 +58,11 @@ def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True):
     text1 = Text()
     text2 = Text()
 
-    text1.Text = '%s, step=%d, original' % (var, step)
-    text2.Text = '%s, step=%d, lossy' % (var, step)
+    text1.Text = '%s, original, time = %d' % (var, step)
+    text2.Text = '%s, lossy, time = %d' % (var, step)
 
     text1Display = Show(text1, renderView1)
     text2Display = Show(text2, renderView2)
-
-    """
-    annotateTime1 = AnnotateTime()
-    annotateTime2 = AnnotateTime()
-
-    annotateTime1Display = Show(annotateTime1, renderView1)
-    annotateTime2Display = Show(annotateTime2, renderView2)
-
-    annotateTime1Display.WindowLocation = 'LowerCenter'
-    annotateTime2Display.WindowLocation = 'LowerCenter'
-
-    annotateTime1.Format = 'x - 1 = %f'
-    annotateTime2.Format = 'x - 1 = %f'
-    """
 
     text3 = Text()
     text3.Text = "X = 1"
@@ -80,21 +71,9 @@ def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True):
     text3Display1.WindowLocation = 'LowerCenter'
     text3Display2.WindowLocation = 'LowerCenter'    
     
-
-    renderView1.CameraPosition = [-124.0, 16.0, 16.0]
-    renderView1.CameraFocalPoint = [16.0, 16.0, 16.0]
-    renderView1.CameraViewUp = [0.0, 0.0, 1.0]
-    renderView1.CameraParallelProjection = 1
-    renderView1.CameraParallelScale = 1.0
-    
+    init_camera_view(renderView1)
     renderView1.ResetCamera()
-    
-    renderView2.CameraPosition = [-124.0, 16.0, 16.0]
-    renderView2.CameraFocalPoint = [16.0, 16.0, 16.0]
-    renderView2.CameraViewUp = [0.0, 0.0, 1.0]
-    renderView2.CameraParallelProjection = 1
-    renderView2.CameraParallelScale = 1.0
-    
+    init_camera_view(renderView2)
     renderView2.ResetCamera()
 
     Show()
@@ -172,7 +151,7 @@ def compareT(var='U', X=16, fn='CompressionOutput.h5', steps=24, play=True):
     text2 = Text()
 
     text1.Text = '%s, original, X=%s' % (var, X)
-    text2.Text = '%s, lossy,    X=%d' % (var, X)
+    text2.Text = '%s, lossy, X=%d' % (var, X)
 
     text1Display = Show(text1, renderView1)
     text2Display = Show(text2, renderView2)
@@ -186,23 +165,12 @@ def compareT(var='U', X=16, fn='CompressionOutput.h5', steps=24, play=True):
     annotateTime1Display.WindowLocation = 'LowerCenter'
     annotateTime2Display.WindowLocation = 'LowerCenter'
 
-    annotateTime1.Format = 'time = %f'
-    annotateTime2.Format = 'time = %f'
+    annotateTime1.Format = 'time = %.1f'
+    annotateTime2.Format = 'time = %.1f'
 
-    renderView1.CameraPosition = [-124.0, 16.0, 16.0]
-    renderView1.CameraFocalPoint = [16.0, 16.0, 16.0]
-    renderView1.CameraViewUp = [0.0, 0.0, 1.0]
-    renderView1.CameraParallelProjection = 1
-    renderView1.CameraParallelScale = 1.0
-    
+    init_camera_view(renderView1)
     renderView1.ResetCamera()
-    
-    renderView2.CameraPosition = [-124.0, 16.0, 16.0]
-    renderView2.CameraFocalPoint = [16.0, 16.0, 16.0]
-    renderView2.CameraViewUp = [0.0, 0.0, 1.0]
-    renderView2.CameraParallelProjection = 1
-    renderView2.CameraParallelScale = 1.0
-    
+    init_camera_view(renderView2)
     renderView2.ResetCamera()
 
     Show()
