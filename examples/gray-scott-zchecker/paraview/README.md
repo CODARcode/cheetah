@@ -10,8 +10,8 @@
   `compareT()` shows 2D slice animation over T with fixed X for both original and lossy data.
 * By default, the camera is over X and only one side of the cube will be seen. If you want to change view in a predictable way, you can use `angle.py` macro, for example.
 * The script was tested with ParaView 5.6.0 under Ubuntu 18.0.4
-* One can find some animations in `movies` directory.
-* `animations.py` script to automate movie generation currently does not work.
+* One can find links to some animations in `movies` directory.
+* `animations.py` script automates movie generation: first run `paraview_compare.py` in python shell, then run `animations.py`.
 
 
 

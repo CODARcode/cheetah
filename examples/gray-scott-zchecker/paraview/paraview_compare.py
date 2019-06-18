@@ -1,6 +1,6 @@
 from paraview.simple import *
 
-def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32):
+def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True):
     ResetSession()
     r1 = VisItPixieReader(FileName=fn)
     Show()
@@ -118,11 +118,12 @@ def end_cue(self): pass
     scene.Cues.append(pycue)
     scene.EndTime = nx - 1
     scene.NumberOfFrames = nx
-    scene.Play()
-from paraview.simple import *
+    if(play):
+        scene.Play()
+    return layout1, renderView1, renderView2
 
 
-def compareT(var='U', X=16, fn='CompressionOutput.h5', steps=24):
+def compareT(var='U', X=16, fn='CompressionOutput.h5', steps=24, play=True):
     ResetSession()
     r1 = VisItPixieReader(FileName=fn)    
     r1.CellArrays = ['Step%d/%s/original' % (i, var) for i in range(steps)] + \
@@ -227,7 +228,9 @@ def end_cue(self): pass
     scene.Cues.append(pycue)
     scene.EndTime = steps - 1
     scene.NumberOfFrames = steps
-    scene.Play()
+    if(play):
+        scene.Play()
+    return layout1, renderView1, renderView2
 
 
 
