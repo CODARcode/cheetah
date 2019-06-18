@@ -1,4 +1,4 @@
-The output from Gray-Scott simulation is passed through Z-Checker
+The output from Gray-Scott simulation is passed through Z-Checker and FTK. The results are compared using ParaView
 
 1. Modify `env.sh` to set the environment for your situation and source it
 2. You might need to modify `Makefile`
@@ -21,13 +21,8 @@ The output from Gray-Scott simulation is passed through Z-Checker
 10. SZ is taken from `https://www.mcs.anl.gov/~shdi/download/sz-download.html`
 11. Z-Checker is taken from `https://github.com/CODARcode/Z-checker`
 12. MGARD is taken from `https://github.com/CODARcode/MGARD.git`
+13. FTK is taken from https://github.com/CODARcode/ftk
 
-# TODO
-
-1. Document how to install Gray-Scott
-2. Is shape used correctly?
-3. Provide two outputs into BP files: original data and compressed/decompressed data
-4. More meaningful distance between features for FTK?
 
 
 
