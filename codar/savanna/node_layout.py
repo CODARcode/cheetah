@@ -154,7 +154,7 @@ class NodeLayout(object):
 
             # if this is a dict
             elif type(layout_info) == dict:
-                code_groups.append(layout_info)
+                code_groups.append(copy.deepcopy(layout_info))
 
         return code_groups
 

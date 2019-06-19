@@ -19,6 +19,7 @@ import getpass
 from pathlib import Path
 from collections import OrderedDict
 import warnings
+import pdb
 
 from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
@@ -503,8 +504,8 @@ class Run(object):
 
     def _populate_rc_dependency(self, rc_dependency):
         """
-        Populate the after_rc_done field for every RC with object references
-        depending on the rc_dependency group parameter
+        Retrieve the object reference for RCs and populate their
+        after_rc_done field with object references
         """
         if rc_dependency is not None:
             for k,v in rc_dependency.items():
@@ -515,7 +516,8 @@ class Run(object):
                                        "be a string"
 
                 k_rc = self._get_rc_by_name(k)
-                k_rc.after_rc_done = v
+                v_rc = self._get_rc_by_name(v)
+                k_rc.after_rc_done = v_rc
 
                 # k_rc = self._get_rc_by_name(k)
                 # assert k_rc is not None, "RC {0} not found".format(k)
@@ -552,9 +554,12 @@ class Run(object):
                                .format(name))
 
     def _set_total_nodes(self):
-        """Get the total number of nodes that will be required by the Run.
-        NOTE: if run after insert_sosflow, then this WILL include the sosflow
-        nodes, otherwise it will not. Node-sharing not supported yet."""
+        """
+        Get the total number of nodes that will be required by the Run.
+        Group codes based upon the node layout (separate/shared nodes),
+        then consider the dependency between components to calculate the
+        total no. of nodes.
+        """
 
         # num_nodes_rc = {}
         # for rc in self.run_components:
@@ -566,45 +571,8 @@ class Run(object):
         # group codes by node
         code_groups = self.node_layout.group_codes_by_node()
 
-        # ------------------------------------------------------------------- #
-        # KM: Commenting out the block below.
-        # It gets the total no. of nodes depending upon the rc dependency.
-        # Need to look at how to do it when shared node layouts are concerned.
-        # Commenting it out will get more nodes than required, which is ok.
-        # If there is a dependency on between codes on the same node,
-        # could this be an issue?
-
-        # KM: use task graphs to improve this embarassing algorithm
-        # RC dependency handling
-
-        # # @TODO need better algorithm to do this
-        # top_rc = [[rc] for rc in self.run_components if rc.after_rc_done is
-        #           None]
-        # assert len(top_rc) > 0, "Circular task dependency found"
-
-        # def add_to_top_rc(tmprc):
-        #     if type(tmprc) is str:
-        #         tmprc = self._get_rc_by_name(tmprc)
-        #     top_rc_serialized = [r for l in top_rc for r in l]
-        #     after_rc_done_obj = self._get_rc_by_name(tmprc.after_rc_done)
-        #     if after_rc_done_obj not in top_rc_serialized:
-        #         add_to_top_rc(after_rc_done_obj.after_rc_done)
-        #     for l in top_rc:
-        #         if after_rc_done_obj in l:
-        #             if tmprc not in l:
-        #                 l.append(tmprc)
-        #                 break
-        #
-        # for rc in self.run_components:
-        #     if rc.after_rc_done is not None:
-        #         add_to_top_rc(rc)
-
-        # total_nodes = 0
-        # for rc_list in top_rc:
-        #     max_nodes = max(num_nodes_rc[rc.name] for rc in rc_list)
-        #     total_nodes += max_nodes
-        # self.total_nodes = total_nodes
-        # ------------------------------------------------------------------- #
+        # now further group codes based on the dependency
+        self._group_codes_by_dependencies(code_groups)
 
         # Get the max no. of nodes required based on the node layout
         group_max_nodes = []
@@ -617,6 +585,27 @@ class Run(object):
             group_max_nodes.append(group_max)
 
         self.total_nodes = sum(group_max_nodes)
+
+    def _group_codes_by_dependencies(self, code_groups):
+        """Group RCs based upon the dependencies.
+        Input is a list of dictionaries where the key is the code and value
+        is the no. of ranks on a node"""
+
+        # ugh
+        for d in code_groups:
+            for rc_name in list(d.keys()):
+                rc = self._get_rc_by_name(rc_name)
+                if rc.after_rc_done:
+                    m_rc = rc.after_rc_done
+                    if m_rc.name not in d.keys():
+                        t_d = None
+                        for d2 in code_groups:
+                            if m_rc.name in list(d2.keys()):
+                                t_d = d2
+                        assert t_d is not None, "Internal error in " \
+                                                "dependency management."
+                        t_d[rc_name] = d[rc_name]
+                        del d[rc_name]
 
     def _get_total_sosflow_component_nodes(self):
         """Get the total number of nodes that will be required by the components
