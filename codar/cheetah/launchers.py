@@ -59,7 +59,7 @@ class Launcher(object):
         self.num_codes = num_codes
 
     def create_group_directory(self, campaign_name, app_dir, group_name, runs,
-                               max_nprocs, nodes, launch_mode, rc_dependency,
+                               max_nprocs, nodes, launch_mode,
                                component_subdirs, walltime, node_exclusive,
                                timeout, machine,
                                sosd_path=None,
