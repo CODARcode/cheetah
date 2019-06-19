@@ -612,41 +612,44 @@ class Pipeline(object):
         if self.machine_name.lower() not in 'summit':
             return
 
+        # for layout in self.node_layout:
+        #     self._parse_node_layout(layout)
+
+        # get a list containing a list of codes on the same node
+        codes_on_node = []
         for layout in self.node_layout:
-            self._parse_node_layout(layout)
+            codes_on_node.append(list(self._extract_codes_on_node(layout)))
 
-    def _parse_node_layout(self, layout):
-        """
-        what should be the output of this?
-        each run must have its num_nodes_reqd, and node_configs set.
-        you dont need the num_nodes_required for this layout set, do you?
-        for the layout, set the run information, everything except the
-        nodes_assigned.
-        then get the max nodes reqd, remove them from the queue, and assign
-        them to the runs. that is.
-        """
-
-        # Extract code info for this node
-        codes_on_node = self._extract_codes_on_node(layout)
+        # check for dependencies and re-arrange codes in this list
+        for l in codes_on_node:
+            for code in l:
+                if code.depends_on_runs:
+                    t = code.depends_on_runs
+                    if t not in l:
+                        for ol in codes_on_node:
+                            if t in ol:
+                                ol.append(code)
+                                l.remove(code)
 
         # Get num nodes required to run this layout
-        num_nodes_reqd_for_layout = max([code.nodes for code in codes_on_node])
+        for l in codes_on_node:
+            num_nodes_reqd_for_layout = max([code.nodes for code in l])
 
-        # Ensure required nodes are available
-        num_nodes_in_queue = len(list(self._nodes_assigned.queue))
-        assert num_nodes_in_queue >= num_nodes_reqd_for_layout,\
-            "Do not have sufficient nodes to run the layout. "\
-            "Need {}, found {}".format(num_nodes_reqd_for_layout,
-                                       num_nodes_in_queue)
+            # Ensure required nodes are available
+            num_nodes_in_queue = len(list(self._nodes_assigned.queue))
+            assert num_nodes_in_queue >= num_nodes_reqd_for_layout, \
+                "Do not have sufficient nodes to run the layout. " \
+                "Need {}, found {}".format(num_nodes_reqd_for_layout,
+                                           num_nodes_in_queue)
 
-        # Get a list of nodes required for this run
-        nodes_assigned_to_layout = []
-        for i in range(num_nodes_reqd_for_layout):
-            nodes_assigned_to_layout.append(self._nodes_assigned.get())
+            # Get a list of nodes required for this run
+            nodes_assigned_to_layout = []
+            for i in range(num_nodes_reqd_for_layout):
+                nodes_assigned_to_layout.append(self._nodes_assigned.get())
 
-        # Assign nodes to runs
-        for run in codes_on_node:
-            run.nodes_assigned = nodes_assigned_to_layout
+            # Assign nodes to runs
+            for run in l:
+                run.nodes_assigned = nodes_assigned_to_layout
 
     def _extract_codes_on_node(self, layout_info):
 
@@ -660,7 +663,6 @@ class Pipeline(object):
         #        {‘__info_type__’:’NodeConfig’, ‘cpu’:[,,, , , ], ‘gpu’:[,,,
         #        , , ]}, {‘__info_type__’: ‘resource_set’, ’simulation’: 4}, {‘__info_type__’: ‘analysis0’: 7}]
         #}
-
 
         codes_on_node = set()
 
