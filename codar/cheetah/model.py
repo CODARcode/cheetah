@@ -294,7 +294,7 @@ class Campaign(object):
                                       self.inputs,
                                       self.machine,
                                       node_layout,
-                                      group.rc_dependency,
+                                      sweep.rc_dependency,
                                       group.component_subdirs,
                                       group.sosflow_profiling,
                                       group.sosflow_analysis,
@@ -337,7 +337,6 @@ class Campaign(object):
                 max_procs,
                 nodes=group.nodes,
                 launch_mode=group.launch_mode,
-                rc_dependency=group.rc_dependency,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
@@ -911,7 +910,7 @@ class RunComponent(object):
                     linked_with_sosflow=self.linked_with_sosflow,
                     adios_xml_file=self.adios_xml_file,
                     hostfile=self.hostfile,
-                    after_rc_done=self.after_rc_done,
+                    after_rc_done=None,
                     runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env
@@ -919,4 +918,6 @@ class RunComponent(object):
             data['timeout'] = self.timeout
         if self.hostfile:
             data['hostfile'] = self.working_dir + "/" + self.hostfile
+        if self.after_rc_done:
+            data['after_rc_done'] = self.after_rc_done.name
         return data
