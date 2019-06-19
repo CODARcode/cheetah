@@ -634,6 +634,9 @@ class Pipeline(object):
 
         # Get num nodes required to run this layout
         for l in codes_on_node:
+            if len(l) == 0:
+                continue
+
             num_nodes_reqd_for_layout = max([code.nodes for code in l])
 
             # Ensure required nodes are available
