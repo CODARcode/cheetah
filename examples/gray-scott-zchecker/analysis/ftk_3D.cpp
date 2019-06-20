@@ -20,16 +20,15 @@
 #include <hypermesh/ndarray.hh>
 #include <hypermesh/regular_simplex_mesh.hh>
 
-#include "ftk_3D_interface.h"
+#include <functional>
 
-hypermesh::ndarray<double> scalar, grad, hess;
-hypermesh::regular_simplex_mesh m(3); // the 3D spatial mesh
+#include "ftk_3D_interface.h"
 
 std::mutex mutex;
 
-std::map<hypermesh::regular_simplex_mesh_element, critical_point_t> critical_points;
-
-void derive_gradients(const size_t DW, const size_t DH, const size_t DD)
+void derive_gradients(const size_t DW, const size_t DH, const size_t DD,
+		      const hypermesh::ndarray<double> &scalar,
+		      hypermesh::ndarray<double> & grad)
 {
   fprintf(stderr, "deriving gradients...\n");
   grad.reshape({3, DW, DH, DD});
@@ -45,7 +44,9 @@ void derive_gradients(const size_t DW, const size_t DH, const size_t DD)
 }
 
 
-void derive_hessians(const size_t DW, const size_t DH, const size_t DD)
+void derive_hessians(const size_t DW, const size_t DH, const size_t DD,
+		     const hypermesh::ndarray<double> & grad,
+		     hypermesh::ndarray<double> & hess)
 {
   fprintf(stderr, "deriving hessians...\n");
   hess.reshape({3, 3, DW, DH, DD});
@@ -78,7 +79,12 @@ void derive_hessians(const size_t DW, const size_t DH, const size_t DD)
   }
 }
 
-void check_simplex(const hypermesh::regular_simplex_mesh_element& s)
+void check_simplex(const hypermesh::regular_simplex_mesh_element& s,
+		   std::map<hypermesh::regular_simplex_mesh_element, critical_point_t> & critical_points,
+		   hypermesh::ndarray<double> & scalar,
+		   hypermesh::ndarray<double> & grad,
+		   hypermesh::ndarray<double> & hess
+		   )
 {
   if (!s.valid()) return; // check if the 3-simplex is valid
   // fprintf(stderr, "%zu\n", s.to_integer());
@@ -130,18 +136,32 @@ void check_simplex(const hypermesh::regular_simplex_mesh_element& s)
   }
 }
 
-void extract_critical_points(const size_t DW, const size_t DH, const size_t DD)
+void extract_critical_points(const size_t DW, const size_t DH, const size_t DD,
+			     std::map<hypermesh::regular_simplex_mesh_element, critical_point_t> & critical_points,
+			     hypermesh::ndarray<double> & scalar,
+			     hypermesh::ndarray<double> & grad,
+			     hypermesh::ndarray<double> & hess,
+			     hypermesh::regular_simplex_mesh & m
+			     )
 {
+  using namespace std::placeholders;
   fprintf(stderr, "extracting critical points...\n");
   m.set_lb_ub({2, 2, 2}, {static_cast<int>(DW)-3,
 	static_cast<int>(DH)-3, static_cast<int>(DD)-3}); // set the lower and upper bounds of the mesh
-  m.element_for(3, check_simplex); // iterate over all 3-simplices
+  auto my_check_simplex = std::bind(check_simplex,_1, std::ref(critical_points),
+				    std::ref(scalar), std::ref(grad), std::ref(hess)); 
+  m.element_for(3, my_check_simplex); // iterate over all 3-simplices
 }
 
 // public interface to ftk
 std::vector<critical_point_t> extract_features(double *data, const size_t DW,
 					       const size_t DH, const size_t DD)
 {
+  hypermesh::ndarray<double> scalar, grad, hess;
+  hypermesh::regular_simplex_mesh m(3); // the 3D spatial mesh
+  std::map<hypermesh::regular_simplex_mesh_element, critical_point_t> critical_points;
+
+
   size_t starts[4] = {0, 0, 0, 0}, 
          sizes[4]  = {1, size_t(DD), size_t(DH), size_t(DW)};
 
@@ -154,10 +174,10 @@ std::vector<critical_point_t> extract_features(double *data, const size_t DW,
       for (int i = 0; i < DW; i ++)
         scalar(i, j, k) = data[i*DW*DH + j*DW + k];
   
-  derive_gradients(DW, DH, DD);
-  derive_hessians(DW, DH, DD);
+  derive_gradients(DW, DH, DD, scalar, grad);
+  derive_hessians(DW, DH, DD, grad, hess);
   
-  extract_critical_points(DW, DH, DD);
+  extract_critical_points(DW, DH, DD, critical_points, scalar, grad, hess, m);
 
   std::vector<critical_point_t> features;
   for(auto cp = critical_points.begin(); cp != critical_points.end(); ++cp)
@@ -169,5 +189,11 @@ std::vector<critical_point_t> extract_features(double *data, const size_t DW,
 double distance_between_features(std::vector<critical_point_t>& features1,
 				 std::vector<critical_point_t>& features2)
 {
-  return features1.size() - features2.size();
+  double distance = features1.size() - features2.size();
+
+  std::cout << "features1.size() = " << features1.size() << std::endl;
+  std::cout << "features2.size() = " << features2.size() << std::endl;
+  std::cout << "distance = " << distance << std::endl;    
+  
+  return distance;
 }
