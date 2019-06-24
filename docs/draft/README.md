@@ -169,14 +169,14 @@
       	    <parameter key="QueueFullPolicy" value="Block"/>
     	  </engine>
   	</io>                                                                                                                                                                              
-       <io name="CompressionOutput">                                                                                                                                                      
-         <engine type="BPFile">                                                                                                                                                           
-           <parameter key="RendezvousReaderCount" value="1"/>                                                                                                                             
-           <parameter key="QueueLimit" value="15"/>
-           <parameter key="QueueFullPolicy" value="Discard"/>
-         </engine>
-       </io>
-     </adios-config>
+        <io name="CompressionOutput">                                                                                                                                                      
+          <engine type="BPFile">                                                                                                                                                           
+            <parameter key="RendezvousReaderCount" value="1"/>                                                                                                                             
+            <parameter key="QueueLimit" value="15"/>
+            <parameter key="QueueFullPolicy" value="Discard"/>
+          </engine>
+        </io>
+      </adios-config>
       ```
     + Inside Gray-Scott program, using ADIOS2 API, a user would open "SimulationOutput" stream and write to it at each time step without know what kind of I/O object it is: BP file, HDF5,
       network socket, etc.
