@@ -159,9 +159,9 @@
 	[ZFP](https://github.com/LLNL/zfp), [MGARD](https://github.com/CODARcode/MGARD.git), decompresses it back,
 	runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) to decide on the quality of
       	the compression, this job has 1 MPI rank.
-    + Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
-      let us look into `adios2.xml` configuration file:
-      ```
+  - Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
+    let us look into `adios2.xml` configuration file:
+    ```
       <?xml version="1.0"?>
       <adios-config>
         <io name="SimulationOutput">
@@ -179,12 +179,12 @@
           </engine>
         </io>
       </adios-config>
-      ```
-    + Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
-      without knowing what kind of I/O object it is: BP file, HDF5 file,
-      network socket (SST, SSC), etc.
-    + Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
-    + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
-    + "CompressioOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
-    + Engines can be changed in XML file without rebuilding the programs.
+    ```
+  - Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
+    without knowing what kind of I/O object it is: BP file, HDF5 file,
+    network socket (SST, SSC), etc.
+  - Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
+  - The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
+  - "CompressioOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
+  - Engines can be changed in XML file without rebuilding the programs.
 ## Examples
