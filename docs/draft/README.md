@@ -223,8 +223,8 @@
    <ol>
    <li>one
    <li><b>two</b>
-   <li><b style="color:red;">red</b>
-   <li><b style="color:blue;">blue</b>
-   <li><b style="color:green;">green</b>      
+   <li><b style="color:rgb(255, 0, 0);">red</b>
+   <li><b style="color:rgb(0, 0, 255);">blue</b>
+   <li><b style="color:rgb(0,255,0);">green</b>      
    </ol>
    
