@@ -63,7 +63,7 @@
    source venv-cheetah/bin/activate
    ```
 ## Structure of the campaign file
-   Here is a small example of a capaign file:
+   Here is a small example of a campaign file:
    ```
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
@@ -104,4 +104,17 @@ class GrayScott(Campaign):
     ]
 
    ```
+   * One needs to import `Campaign` and `parameters` modules.
+   * To create your own campaign, you need to inherit from `Campaign` class and overwrite some of its fields:
+     * `name` - campaign name
+     * `codes` - what MPI programs to run in parallel.
+       It is a dictionary mapping the campaign name of a program with the corresponding binary
+       possibly setting up some other parameters. In this example, `sleep_after=1` means that
+       `gray-scott` started 1 second earlier than `compression` (is that right?? or the other way around??)
+     * `supported_machines` - indicates for which supercomputer this campaign can be generated (why is it needed considering
+       that it is defined when campaign is generated from the specification file??)
+     * `scheduler_options` - defines some extra options to the scheduler not defined in `savanna`
+       (used by `cheetah` to shield a user from the pecularities of a supercomputer), such as project
+       to charge the run to
+     * `umask` specifies the permissions for the newly created campaign files and directories.
 ## Examples
