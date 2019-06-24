@@ -63,5 +63,45 @@
    source venv-cheetah/bin/activate
    ```
 ## Structure of the campaign file
-   
+   Here is a small example of a capaign file:
+   ```
+from codar.cheetah import Campaign
+from codar.cheetah import parameters as p
+from datetime import timedelta
+
+class GrayScott(Campaign):
+    name = "Gray-Scott-A"
+    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("compression", dict(exe="compression")) ]
+    supported_machines = ['local', 'theta']
+    scheduler_options = {
+        "theta": {
+            "queue": "debug-flat-quad",
+            "project": "XXXX",
+        }
+    }
+    umask = '027'
+    sweeps = [
+     p.SweepGroup(name="Gray-Scott",
+                  walltime=timedelta(minutes=30),
+                  component_subdirs=True,
+                  component_inputs={
+                      'gray-scott': ['settings.json','adios2.xml'],
+                      'compression': ['adios2.xml','sz.config','zc.config']
+                  },
+      parameter_groups=
+      [p.Sweep([
+          p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"]),
+          p.ParamConfig("gray-scott", "L", "settings.json", "L",
+                          [32, 64]),
+          p.ParamConfig("gray-scott", "noise", "settings.json", "noise",
+                          [0.01, 0.1]),
+          p.ParamRunner('gray-scott', 'nprocs', [4] ),
+          p.ParamCmdLineArg("compression", "input", 1, ["../gray-scott/gs.bp"]),
+          p.ParamCmdLineArg("compression", "output", 2, ["compression.bp"]),
+          p.ParamRunner('compression', 'nprocs', [1] )          
+        ]),
+      ]),
+    ]
+
+   ```
 ## Examples
