@@ -214,6 +214,6 @@
   - [Calculating Euler's number](https://github.com/CODARcode/cheetah/tree/dev/examples/eulers_number)
   - [The Gray-Scott Reaction-Diffusion Benchmark](https://github.com/CODARcode/cheetah/tree/dev/examples/gray-scott)
   - [Brusselator](https://github.com/CODARcode/cheetah/tree/dev/examples/brusselator)
-  - [Gray-Scott with compression, Z-Checker and FTK]()
+  - [Gray-Scott with compression, Z-Checker and FTK](https://github.com/CODARcode/cheetah/tree/dev/examples/gray-scott-compression)
 
    
