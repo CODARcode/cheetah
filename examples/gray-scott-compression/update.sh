@@ -1,1 +1,1 @@
-rsync -av /home/igor/tmp3/adiosvm/Tutorial/gray-scott/cheetah_compression/{gs.py,Makefile,adios2.xml.bp,adios2.xml.sst,adios2.xml,env.sh,settingsA.json,sz.config,zc.config,paraview_h5.py,paraview_readme.txt,movies} /home/igor/test1/cheetah/examples/gray-scott-zchecker/
+rsync -av /home/igor/tmp3/adiosvm/Tutorial/gray-scott/cheetah_compression/{gs.py,Makefile,adios2.xml.bp,adios2.xml.sst,adios2.xml,env.sh,settingsA.json,sz.config,zc.config,paraview} /home/igor/test1/cheetah/examples/gray-scott-zchecker/
