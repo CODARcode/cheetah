@@ -140,8 +140,9 @@ class GrayScott(Campaign):
        	 ```
 	 p.ParamRunner('gray-scott', 'nprocs', [4] )
 	 ```
-	 means that "gray-scott" would run using 4 MPI ranks. As with any other cheetah parameters, one can specify several
+	 means that "gray-scott" would use 4 MPI ranks. As with any other cheetah parameters, one can specify several
 	 values for such parameters as well which is needed for codesign studies.
        * Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
-       	 between different parameters.
+       	 between different parameters and define "derived" parameters by using expressions with names of other parameters.
+	 For example, ...
 ## Examples
