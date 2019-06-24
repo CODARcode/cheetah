@@ -72,7 +72,8 @@
 
   class GrayScott(Campaign):
     name = "Gray-Scott-A"
-    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("compression", dict(exe="compression")) ]
+    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)),
+             ("compression", dict(exe="compression")) ]
     supported_machines = ['local', 'theta']
     scheduler_options = {
         "theta": {
