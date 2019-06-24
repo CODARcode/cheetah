@@ -19,7 +19,7 @@
   ADIOS2 shields a user from I/O details. Without recompiling a program, in `adios2.xml` one
   can specify that output/input is written/read to/from a file or network socket, whether a producer should wait
   for a certain number of reads by consumers or discard data after some timeout if consumers cannot keep up, etc.
-* To generate shell scripts for all the specified experiments and a particular supercomputer,
+* To generate shell scripts and configuration files for all the specified experiments and a particular supercomputer,
   one executes  
   ```
   cheetah.py create-campaign -a <dir with configs & binaries> \
@@ -87,7 +87,7 @@
      p.SweepGroup(name="Gray-Scott",
                   walltime=timedelta(minutes=30),
                   component_subdirs=True,
-		  run_repetitions=2,
+                  run_repetitions=2,
                   component_inputs={
                       'gray-scott': ['settings.json','adios2.xml'],
                       'compression': ['adios2.xml','sz.config','zc.config']
