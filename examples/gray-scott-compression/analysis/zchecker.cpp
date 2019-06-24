@@ -100,10 +100,6 @@ double* z_check_sz(int stepAnalysis, std::vector<double>& u,
 				   const std::string &solution,
 				   const std::vector<std::size_t>& shape)
 {
-
-  std::vector<critical_point_t> features1 =
-    extract_features(u.data(), shape[2], shape[1], shape[0]);
-  
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
   strcpy(varName, tstr.c_str());
@@ -125,12 +121,6 @@ double* z_check_sz(int stepAnalysis, std::vector<double>& u,
 					   0, 0, shape[2], shape[1], shape[0]);
   
   ZC_endDec(compareResult, decData);
-
-  std::vector<critical_point_t> features2 =
-    extract_features(decData, shape[0], shape[1], shape[2]);
-
-  double distance = distance_between_features(features1, features2);
-
   ZC_printCompressionResult(compareResult);
   
   freeDataProperty(dataProperty);

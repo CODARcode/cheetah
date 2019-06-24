@@ -6,7 +6,7 @@ from datetime import timedelta
 
 class GrayScott(Campaign):
     name = "Gray-Scott-A"
-    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=5)), ("pdf_calc", dict(exe="zchecker")) ]
+    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("pdf_calc", dict(exe="zchecker")) ]
     supported_machines = ['local', 'theta']
     scheduler_options = {
         "theta": {

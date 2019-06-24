@@ -6,7 +6,7 @@
  */
 
 #include "zchecker.h"
-
+#include "ftk_3D_interface.h"
 
 int main(int argc, char *argv[])
 {
@@ -59,7 +59,10 @@ int main(int argc, char *argv[])
     adios2::Variable<int> var_step_in;
     adios2::Variable<int> var_step_out;
     adios2::Variable<double> var_u_original_out, var_v_original_out;
-    adios2::Variable<double> var_u_lossy_out, var_v_lossy_out;    
+    adios2::Variable<double> var_u_lossy_out, var_v_lossy_out;
+    
+    adios2::Variable<double> var_u_original_features_out, var_v_original_features_out;
+    adios2::Variable<double> var_u_lossy_features_out, var_v_lossy_features_out;    
 
     // adios2 io object and engine init
     adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
@@ -156,6 +159,14 @@ int main(int argc, char *argv[])
 					      { shape[0], shape[1], shape[2] },
 					      { start1, 0, 0 },
 					      { count1, shape[1], shape[2] } );
+
+	  var_u_original_features_out =
+	    writer_io.DefineVariable<double> ("U/features/original",
+					      { 1, 4},
+					      { 0, 0},
+					      { 1, 4} );
+
+	  
 	  firstStep = false;
         }
 
@@ -167,10 +178,35 @@ int main(int argc, char *argv[])
 
         // End adios2 step
         reader.EndStep();
+	
+	std::vector<critical_point_t> features_original_u =
+	  extract_features(u.data(), shape[2], shape[1], shape[0]);
+	std::vector<critical_point_t> features_original_v =
+	  extract_features(v.data(), shape[2], shape[1], shape[0]);	
 
+	std::cout<<"step = " << stepAnalysis << " features_original_u " << features_original_u.size() << std::endl;
+	std::cout<<"step = " << stepAnalysis << " features_original_v " << features_original_v.size() << std::endl;	
+	
+	
 	auto lossy_u = z_check_sz(stepAnalysis, u, std::string("u_sz"), shape);
 	auto lossy_v = z_check_sz(stepAnalysis, v, std::string("v_sz"), shape);	
 
+	std::vector<critical_point_t> features_lossy_sz_u =
+	  extract_features(lossy_u, shape[2], shape[1], shape[0]);
+	std::vector<critical_point_t> features_lossy_sz_v =
+	  extract_features(lossy_v, shape[2], shape[1], shape[0]);	
+
+
+	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_u " << features_lossy_sz_u.size() << std::endl;
+	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_v " << features_lossy_sz_v.size() << std::endl;	
+
+	
+	double distance_sz_u = distance_between_features(features_original_u, features_lossy_sz_u);
+	double distance_sz_v = distance_between_features(features_original_v, features_lossy_sz_v);	
+	//	std::cout << "distance_sz_u = " << distance_sz_u << std::endl;
+	//	std::cout << "distance_sz_v = " << distance_sz_v << std::endl;	
+
+	
 	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
 	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 
@@ -184,7 +220,31 @@ int main(int argc, char *argv[])
 
 	// to change later
         writer.Put<double> (var_u_lossy_out, lossy_u);
-        writer.Put<double> (var_v_lossy_out, lossy_v);	
+        writer.Put<double> (var_v_lossy_out, lossy_v);
+
+	int Ny = features_original_u.size()/comm_size;
+	const adios2::Dims start = {rank*Ny, 0};
+	if(rank == comm_size - 1)
+	  Ny = features_original_u.size() - Ny*rank;
+	if(Ny > 0)
+	  {
+	    const adios2::Dims count = {Ny, 4};
+	    const adios2::Box<adios2::Dims> sel(start, count);
+	    var_u_original_features_out.SetSelection(sel);
+	
+	    const adios2::Dims shape = {features_original_u.size(), 4};
+	    var_u_original_features_out.SetShape(shape);
+
+	    adios2::Variable<double>::Span features_original_u_span = writer.Put<double>(var_u_original_features_out);
+	    for(int i = 0; i < features_original_u.size(); ++i)
+	      {
+		features_original_u_span.at(i+0) = features_original_u[i].x[0];
+		features_original_u_span.at(i+1) = features_original_u[i].x[1];
+		features_original_u_span.at(i+2) = features_original_u[i].x[2];
+		features_original_u_span.at(i+3) = features_original_u[i].v;	    
+	      }
+	  }
+	    
         writer.EndStep ();
 	
 	
