@@ -23,7 +23,8 @@
 * To generate shell scripts for all the specified experiments and a particular supercomputer,
   one executes  
   ```
-  cheetah.py create-campaign -a <dir with configs & binaries> -o <campaign dir> -e <specification>.py -m <supercomputer>
+  cheetah.py create-campaign -a <dir with configs & binaries> \
+  	     -o <campaign dir> -e <specification>.py -m <supercomputer>
   ```  
 * The experiments are organized into separate subdirectories that contain
   all the necessary executables and configuration files to run each experiment separately if necessary.
@@ -43,8 +44,9 @@
   Use `-h` option for a particular command to learn more details
 
 ## Cheetah installation
-   * Dependency: python 3.5+
+   * Dependency: Linux, python 3.5+
    * On supercomputers it should be installed on a parallel file system visible from compute/mother nodes
+   * One can also do development on local computer
    * To install cheetah, do:
      ```
      git clone git@github.com:CODARcode/cheetah.git
@@ -53,9 +55,13 @@
      source venv-cheetah/bin/activate
      pip install --editable .
      ```
+   * Cheetah was tested so far on `summit`, `theta`, standalone Linux computers
+   * It can also be installed with `spack`
 ## Setting up Cheetah environment
    ```
    cd <cheetah dir>
    source venv-cheetah/bin/activate
    ```
+## Structure of the campaign file
+   
 ## Examples
