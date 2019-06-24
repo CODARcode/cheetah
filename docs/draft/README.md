@@ -21,7 +21,7 @@
   for a certain number of reads by consumers or discard data after some timeout if consumers cannot keep up, etc.
 * To generate shell scripts and configuration files for all the specified experiments and a particular supercomputer,
   one executes  
-  ```
+  ```bash
   cheetah.py create-campaign -a <dir with configs & binaries> \
   	     -o <campaign dir> -e <specification>.py -m <supercomputer>
   ```  
@@ -38,7 +38,7 @@
   cheetah.py status <campaign dir>
   ```
   or generate a detailed report with
-  ```
+  ```bash
   cheetah.py generate-report <campaign dir>
   ```
   Use `-h` option for a particular command to learn more details
@@ -48,7 +48,7 @@
 * On supercomputers it should be installed on a parallel file system visible from compute/mother nodes
 * One can also run campaign on a standalone computer by using `local` as a supercomputer
 * To install cheetah, do:
-  ```
+  ```bash
   git clone git@github.com:CODARcode/cheetah.git
   cd cheetah          
   python3 -m venv venv-cheetah
@@ -57,13 +57,13 @@
   ```
 * Cheetah was tested so far on `Summit`, `Theta`, standalone Linux computers
 * It can also be installed with [spack](https://spack.io):
-  ```
+  ```bash
   spack install codar-cheetah
   ```
   (so far this does not work for me??)
 
 ## Setting up Cheetah environment
-   ```
+   ```bash
    cd <cheetah dir>
    source venv-cheetah/bin/activate
    ```
@@ -195,7 +195,7 @@
 
 ## Directory structure of the campaign
 * Once one creates a campaign with the above specification file, the following directory structure is created:
-  ```
+  ```bash
   <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
   ```
   - Here `campaign dir` is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
