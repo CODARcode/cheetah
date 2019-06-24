@@ -126,9 +126,9 @@ class GrayScott(Campaign):
      * Examples of parameter types:
        * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
        	 For example
-       	     ```
-	     p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
-	     ```
+	 ```
+	 p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
+	 ```
 	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
 	 "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
 	 of the first positional parameter with which you want to experiment.	 
