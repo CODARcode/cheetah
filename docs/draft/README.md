@@ -120,33 +120,31 @@ class GrayScott(Campaign):
      * `sweeps` is a list of `SweepGroups`
        * `SweepGroup` has a  name, a list of configuration files to copy into each experiment's directory,
        	 `parameter_groups`.
-	 * `parameter_groups` is a list of `Sweeps` where one specifies with which parameters to run experiments.
+         * `parameter_groups` is a list of `Sweeps` where one specifies with which parameters to run experiments.
 	 * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters are taken
 	   to compute the experiments to perform.
      * Examples of parameter types:
-       <ul>
-       <li> `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
-       	 For example
-	 ```python
-	 p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
-	 ```
-	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
-	 "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
-	 of the first positional parameter with which you want to experiment.	 
-       <li> `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files.
-       	 For example
-	 ```python
-       	 p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
-	 ```
-	 means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64.
-       <li> `ParamRunner` allows to specify resources for each program. For example
-       	 ```python
-	 p.ParamRunner('gray-scott', 'nprocs', [4] )
-	 ```
-	 means that "gray-scott" would use 4 MPI ranks. As with any other cheetah parameters, one can specify several
-	 values for such parameters as well which is needed for codesign studies.
-       <li> Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
-       	 between different parameters and define "derived" parameters by using expressions with names of other parameters.
-	 For example, ...
-       </ul>
+         * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
+       	   For example
+	   ```python
+	   p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
+	   ```
+	   means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
+	   "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
+	   of the first positional parameter with which you want to experiment.	 
+         * `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files.
+       	   For example
+	   ```python
+       	   p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
+	   ```
+	   means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64.
+         * `ParamRunner` allows to specify resources for each program. For example
+       	   ```python
+	   p.ParamRunner('gray-scott', 'nprocs', [4] )
+	   ```
+	   means that "gray-scott" would use 4 MPI ranks. As with any other cheetah parameters, one can specify several
+	   values for such parameters as well which is needed for codesign studies.
+       	 * Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
+       	   between different parameters and define "derived" parameters by using expressions with names of other parameters.
+	   For example, ...
 ## Examples
