@@ -1,10 +1,10 @@
-# Cheetah - The CODAR Experiment Harness
+# Cheetah - the CODAR Experiment Harness
 
 ## Overview
 * Cheetah is designed to run Exascale science applications
   using different parameters and components to determine the best combination
   for deployment on different supercomputers.
-* To use Cheetah, the user first writes a `campaign specification file` in python.
+* To use Cheetah, the user first writes a <b>campaign specification file</b> in python.
   In this file, one specifies:
   * which MPI programs to launch in parallel
   * what computing resources to give to those programs
