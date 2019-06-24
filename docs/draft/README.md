@@ -1,16 +1,16 @@
-# CODAR Cheetah - The CODAR Experiment Harness
+# Cheetah - The CODAR Experiment Harness
 
 ## Overview
-* Cheetah - the CODAR Experiment Harness - is designed to run Exascale science applications
+* Cheetah is designed to run Exascale science applications
   using different parameters and components to determine the best combination
   for deployment on different supercomputers.
 * To use Cheetah, the user first writes a `campaign specification file` in python.
   In this file, one specifies:
   * which MPI programs to launch in parallel
   * what computing resources to give to those programs
-  * which configuration files and binaries to copy to each experiment's directory
-  * lists of possible values for some parameters (including computing resources) over which to do a grid search
-  * how many times (iterations) to repeat each experiment to collect enough statistics
+  * which configuration files to copy to each experiment's directory
+  * lists of possible values for parameters (including computing resources); the cartesian product of those parameter spaces defines the number of experiments in the campaign 
+  * how many times to repeat each experiment to collect enough statistics
     to estimate the variability of the results.
 * The campaign specification file does not define how programs communicate with each other.
   This is done in `adios2.xml` that can be used to glue the input from one program
@@ -19,7 +19,7 @@
   ADIOS2 shields a user from I/O details. Without recompiling a program, in `adios2.xml` one
   can specify that output/input is written/read to/from a file or network socket, whether a producer should wait
   for a certain number of reads by consumers or discard data after some timeout if consumers cannot keep up, etc.
-* To generate shell scripts and configuration files for all the specified experiments and a particular supercomputer,
+* To generate shell scripts and configuration files for the campaign and the particular supercomputer,
   one executes  
   ```bash
   cheetah.py create-campaign -a <dir with configs & binaries> \
@@ -30,7 +30,7 @@
   Each such directory would also contain its own log files so that one can later examine what went
   wrong with a particular experiment.
 * The top level directory of the campaign contains `run-all.sh` file that one can use to launch
-  the whole set of experiments on the allocated resources. Allocation is done by a user outside of cheetah using
+  the whole set of experiments on the allocated resources. Allocation is done by a user outside of Cheetah using
   the resource manager of a particular supercomputer.
 * There is also `cancel.sh` that allows to stop the whole campaign.
 * As campaign runs, one can examine its progress with
@@ -64,8 +64,7 @@
 
 ## Setting up Cheetah environment
    ```bash
-   cd <cheetah dir>
-   source venv-cheetah/bin/activate
+   source <cheetah dir>/venv-cheetah/bin/activate
    ```
 
 ## Campaign specification file
@@ -120,15 +119,15 @@
     `gray-scott` started 1 second earlier than `compression` (is that right?? or the other way around??)
   - `supported_machines` - indicates for which supercomputer this campaign can be generated (why is it needed considering
     that it is defined when campaign is generated from the specification file??)
-  - `scheduler_options` - defines some extra options to the scheduler not defined in `savanna`
-    (used by `cheetah` to shield a user from the pecularities of a supercomputer), such as project
+  - `scheduler_options` - defines some extra options to the resource manager not defined in `Savanna` such as project to charge the run to;
+    note: `Savanna` is part of `Cheetah` to shield a user from the pecularities of a supercomputer
     to charge the run to
   - `umask` specifies the permissions for the newly created campaign files and directories.
   - `sweeps` is a list of `SweepGroups`
     + `SweepGroup` has a  name, a list of configuration files to copy into each experiment's directory,
       `parameter_groups`.
       * `parameter_groups` is a list of `Sweeps` where one specifies with which parameters to run experiments.
-      * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters are taken
+      * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters is taken
 	to compute the experiments to perform.
   - Examples of parameter types:
     + `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
@@ -136,15 +135,15 @@
       ```python
       p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
       ```
-      means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
+      means that the first parameter of "gray-scott" program, that in the campaign given a name "settings", has a value
       "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
-      of the first positional parameter with which you want to experiment.	 
-    + `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files.
+      of the first positional parameter with which you want to launch the corresponding executable.
+    + `ParamConfig` allows to deal with `*json` or `*ini` parameter files.
       For example
       ```python
       p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
       ```
-      means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64.
+      means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64 and is also called "L" inside the campaign.
     + `ParamRunner` allows to specify resources for each program.
       For example
       ```python
@@ -156,14 +155,14 @@
     + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
       between different parameters and define "derived" parameters by using expressions with names of other parameters.
       For example, ...
-    + To specify that each experiment should be repeated N times, one needs to set ``iterations``` field (??).
+    + `SweepGroup` has `run_repetitions=2` parameter that says that each experiment should be repeated twice.
     + In each experiment specified above there are two MPI jobs running:
       - ["gray-scott"](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott) simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
       - "compression" program at each time step
       	reads this 3D volume, compresses it with one of the compressors, such as [SZ](https://www.mcs.anl.gov/~shdi/download/sz-download.html),
 	[ZFP](https://github.com/LLNL/zfp), [MGARD](https://github.com/CODARcode/MGARD.git), decompresses it back,
-	runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) to decide on the quality of
-      	the compression, this job has 1 MPI rank.
+	runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) on the original and lossy data to decide on the quality of
+      	the compression; this job has 1 MPI rank.
   - Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
     let us look into `adios2.xml` configuration file:
     ```xml
@@ -186,9 +185,10 @@
     </adios-config>
     ```
     + Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
-      without knowing what kind of I/O object it is: BP file, HDF5 file,
+      without knowing what I/O backend is used: BP file, HDF5 file,
       network socket (SST, SSC), etc.
     + Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
+    + Of course, both the reader and the writer should be told to use the same `adios2.xml` file.
     + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
     + "CompressionOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
     + Engines can be changed in XML file without rebuilding the programs.
