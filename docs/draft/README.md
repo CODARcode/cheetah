@@ -64,7 +64,7 @@
    ```
 ## Structure of the campaign file
    Here is a small example of a campaign file:
-   ```
+   ```python
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 from datetime import timedelta
@@ -126,7 +126,7 @@ class GrayScott(Campaign):
      * Examples of parameter types:
        * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
        	 For example
-	 ```
+	 ```python
 	 p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
 	 ```
 	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
@@ -134,12 +134,12 @@ class GrayScott(Campaign):
 	 of the first positional parameter with which you want to experiment.	 
        * `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files.
        	 For example
-	 ```
+	 ```python
        	 p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
 	 ```
 	 means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64.
        * `ParamRunner` allows to specify resources for each program. For example
-       	 ```
+       	 ```python
 	 p.ParamRunner('gray-scott', 'nprocs', [4] )
 	 ```
 	 means that "gray-scott" would use 4 MPI ranks. As with any other cheetah parameters, one can specify several
