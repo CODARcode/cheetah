@@ -8,14 +8,20 @@ class Brusselator(Campaign):
     # A name for the campaign
     name = "Brusselator"
 
+    # WORKFLOW SETUP
+    #---------------
     # A list of the codes that will be part of the workflow
     # If there is an adios xml file associated with the codes, list it here
     # 'sleep_after' represents the time gap after which the next code is spawned
+    # Use runner_override to run the code without the default launcher (mpirun/aprun/jsrun etc.). This runs the 
+    #   code as a serial application
     codes = [ ("simulation", dict(exe="simulation/Brusselator", adios_xml_file='adios2.xml', sleep_after=None)),
               ("norm_calc",  dict(exe="analysis/norm_calc",     adios_xml_file='adios2.xml', runner_override=False))
             ]
 
-    # A list of machines that this campaign must be supported on
+    # CAMPAIGN SETTINGS
+    #------------------
+    # A list of machines that this campaign is supported on
     supported_machines = ['local', 'titan', 'theta']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
@@ -39,9 +45,13 @@ class Brusselator(Campaign):
     # Ensure this script is executable
     app_config_scripts = {'local': 'setup.sh', 'titan': 'env_setup.sh'}
 
-    # Create the sweep parameters for a sweep 
+    # PARAMETER SWEEPS
+    #-----------------
+    # Setup how the workflow is run, and what values to 'sweep' over
+    # Use ParamCmdLineArg to setup a command line arg, ParamCmdLineOption to setup a command line option, and so on.
     sweep1_parameters = [
-            p.ParamRunner        ('simulation', 'nprocs', [4,]), # <-- how to sweep over values
+            # ParamRunner with 'nprocs' sets the number of MPI processes
+            p.ParamRunner        ('simulation', 'nprocs', [4,8]), # <-- how to sweep over values
             p.ParamCmdLineArg    ('simulation', 'output', 1, ['bru.bp']),
             p.ParamCmdLineArg    ('simulation', 'nx', 2, [32]),
             p.ParamCmdLineArg    ('simulation', 'ny', 3, [32]),
@@ -54,7 +64,7 @@ class Brusselator(Campaign):
             p.ParamCmdLineArg    ('norm_calc', 'outfile', 2, ['norm_calc.out.bp']),
             p.ParamCmdLineArg    ('norm_calc', 'write_norms_only', 3, [1]),
             
-            # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"InSituMPI": {}} ]),
+            # ParamADIOS2XML can be used to setup a value in the ADIOS xml file for the application
             p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {}} ]),
             p.ParamADIOS2XML     ('simulation', 'AnalysisOutput', 'engine', [ {"BPFile": {}} ]),
             # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}},
@@ -63,7 +73,7 @@ class Brusselator(Campaign):
             # Use ParamCmdLineOption for named arguments
             # p.ParamCmdLineOption ('plotting', 'input_stream', '-i', ['bru.bp']),
 
-            # How to set options in a key-value configuration file. Input file can be a json file.
+            # Use ParamKeyValue to set options in a key-value configuration file. Input file can be a json file.
             # File path can be relative to the path specified in '-a' or it can be absolute.
             # File will be copied to the working_dir automatically by Cheetah.
             # p.ParamKeyValue   ('simulation', 'feed_rate', 'input.conf', 'key', ['value']),
