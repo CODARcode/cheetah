@@ -151,11 +151,36 @@
     + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
       between different parameters and define "derived" parameters by using expressions with names of other parameters.
       For example, ...
-    + To specify that each experiment should be repeated N times, one needs to set <??> field.
-    + In each experiment there are two MPI jobs running:
-      - "gray-scott" simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
+    + To specify that each experiment should be repeated N times, one needs to set ``iterations``` field (??).
+    + In each experiment specified above there are two MPI jobs running:
+      - ["gray-scott"](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott) simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
       - "compression" program at each time step
-      	reads this 3D volume, compresses it with one of the compressors, such as SZ, ZFP, MGARD, decompresses it back, runs Z-Checker and FTK to decide on the quality of
+      	reads this 3D volume, compresses it with one of the compressors, such as [SZ](https://www.mcs.anl.gov/~shdi/download/sz-download.html),
+	[ZFP](https://github.com/LLNL/zfp), [MGARD](https://github.com/CODARcode/MGARD.git), decompresses it back,
+	runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) to decide on the quality of
       	the compression, this job has 1 MPI rank.
     + Although ADIOS2 is not part of Cheetah, to understand how the programs communicate with each other, let us show `adios2.xml` configuration file that describes it:
+      ```
+      <adios-config>
+        <io name="SimulationOutput">
+    	  <engine type="SST">
+      	    <parameter key="RendezvousReaderCount" value="1"/>
+      	    <parameter key="QueueLimit" value="15"/>
+      	    <parameter key="QueueFullPolicy" value="Block"/>
+    	  </engine>
+  	</io>                                                                                                                                                                              
+       <io name="CompressionOutput">                                                                                                                                                      
+         <engine type="BPFile">                                                                                                                                                           
+           <parameter key="RendezvousReaderCount" value="1"/>                                                                                                                             
+           <parameter key="QueueLimit" value="15"/>
+           <parameter key="QueueFullPolicy" value="Discard"/>
+         </engine>
+       </io>
+     </adios-config>
+      ```
+    + Inside Gray-Scott program, using ADIOS2 API, a user would open "SimulationOutput" stream and write to it at each time step without know what kind of I/O object it is: BP file, HDF5,
+      network socket, etc.
+    + Inside compression program, using ADIOS2 API, a user would open "SimulationOutput" stream and read from it at each time step
+    + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
+    + "CompressioOutput" stream is used by compression program to write its output into BP file (native output format of ADIOS2).
 ## Examples
