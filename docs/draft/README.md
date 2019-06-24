@@ -206,4 +206,10 @@
   - `<campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>` has the parameter files for this particular run.
   - The corresponding subdirectories for the particular programs in the experiment would also contain their parameter files and the logs would be created there for stdout, stderr,
     return status, walltime, etc.
+    
 ## Examples
+* For more examples of using Cheetah, see
+  - [Calculating Euler's number](https://github.com/CODARcode/cheetah/tree/dev/examples/eulers_number)
+  - [The Gray-Scott Reaction-Diffusion Benchmark](https://github.com/CODARcode/cheetah/tree/dev/examples/gray-scott)
+  - [Brusselator](https://github.com/CODARcode/cheetah/tree/dev/examples/brusselator)
+  - [Gray-Scott with compression, Z-Checker and FTK]()
