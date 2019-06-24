@@ -23,7 +23,7 @@
 * To generate shell scripts for all the specified experiments and a particular supercomputer,
   one executes  
   ```
-  cheetah.py create-campaign -a <dir with configs & binaries> -o <top campaign dir> -e <specification file>.py -m <supercomputer>
+  cheetah.py create-campaign -a <dir with configs & binaries> -o <campaign dir> -e <specification>.py -m <supercomputer>
   ```  
 * The experiments are organized into separate subdirectories that contain
   all the necessary executables and configuration files to run each experiment separately if necessary.
@@ -38,7 +38,7 @@
   ```
   or generate a detailed report with
   ```
-  cheetah.py generate-report
+  cheetah.py generate-report <campaign dir>
   ```
   Use `-h` option for a particular command to learn more details
 
