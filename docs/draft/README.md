@@ -162,23 +162,23 @@
   - Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
     let us look into `adios2.xml` configuration file:
     ```
-      <?xml version="1.0"?>
-      <adios-config>
-        <io name="SimulationOutput">
-    	  <engine type="SST">
-      	    <parameter key="RendezvousReaderCount" value="1"/>
-      	    <parameter key="QueueLimit" value="15"/>
-      	    <parameter key="QueueFullPolicy" value="Block"/>
-    	  </engine>
-  	</io>
-        <io name="CompressionOutput">
-          <engine type="BPFile">
-            <parameter key="RendezvousReaderCount" value="1"/>
-            <parameter key="QueueLimit" value="15"/>
-            <parameter key="QueueFullPolicy" value="Discard"/>
-          </engine>
-        </io>
-      </adios-config>
+    <?xml version="1.0"?>
+    <adios-config>
+      <io name="SimulationOutput">
+        <engine type="SST">
+          <parameter key="RendezvousReaderCount" value="1"/>
+          <parameter key="QueueLimit" value="15"/>
+          <parameter key="QueueFullPolicy" value="Block"/>
+        </engine>
+      </io>
+      <io name="CompressionOutput">
+        <engine type="BPFile">
+          <parameter key="RendezvousReaderCount" value="1"/>
+          <parameter key="QueueLimit" value="15"/>
+          <parameter key="QueueFullPolicy" value="Discard"/>
+        </engine>
+      </io>
+    </adios-config>
     ```
     + Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
       without knowing what kind of I/O object it is: BP file, HDF5 file,
