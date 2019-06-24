@@ -117,4 +117,10 @@ class GrayScott(Campaign):
        (used by `cheetah` to shield a user from the pecularities of a supercomputer), such as project
        to charge the run to
      * `umask` specifies the permissions for the newly created campaign files and directories.
+     * `sweeps` is a list of `SweepGroup`s
+       * `SweepGroup` has a  name, the list of configuration files to copy to into each experiment's directory,
+       	 `parameter_groups`.
+	 * `parameter_groups` is a list of `Sweep`s where one specify with which parameters to run experiments.
+	 * Some parameters are fixed values, and some are a list. A cartesian product of all the parameters are taken
+	   to compute the experiments to perform.
 ## Examples
