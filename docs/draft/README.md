@@ -170,21 +170,21 @@
       	    <parameter key="QueueLimit" value="15"/>
       	    <parameter key="QueueFullPolicy" value="Block"/>
     	  </engine>
-  	</io>                                                                                                                                                                              
-        <io name="CompressionOutput">                                                                                                                                                      
-          <engine type="BPFile">                                                                                                                                                           
-            <parameter key="RendezvousReaderCount" value="1"/>                                                                                                                             
+  	</io>
+        <io name="CompressionOutput">
+          <engine type="BPFile">
+            <parameter key="RendezvousReaderCount" value="1"/>
             <parameter key="QueueLimit" value="15"/>
             <parameter key="QueueFullPolicy" value="Discard"/>
           </engine>
         </io>
       </adios-config>
     ```
-  - Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
-    without knowing what kind of I/O object it is: BP file, HDF5 file,
-    network socket (SST, SSC), etc.
-  - Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
-  - The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
-  - "CompressioOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
-  - Engines can be changed in XML file without rebuilding the programs.
+    + Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
+      without knowing what kind of I/O object it is: BP file, HDF5 file,
+      network socket (SST, SSC), etc.
+    + Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
+    + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
+    + "CompressioOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
+    + Engines can be changed in XML file without rebuilding the programs.
 ## Examples
