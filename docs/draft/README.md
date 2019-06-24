@@ -225,6 +225,8 @@
    <li><b>two</b>
    <li><b style="color:rgb(255, 0, 0);">red</b>
    <li><b style="color:rgb(0, 0, 255);">blue</b>
-   <li><b style="color:rgb(0,255,0);">green</b>      
+   <li><b style="color:rgb(0,255,0);">green</b>
+   <li><mark>marked default</mark>
+   <li><mark color=red background-color=blue>marked custom</mark>   
    </ol>
    
