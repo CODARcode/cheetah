@@ -64,7 +64,7 @@
    source venv-cheetah/bin/activate
    ```
 
-## Structure of the campaign file
+## Campaign specification file
 * Here is a small example of a campaign file:
   ```python
   from codar.cheetah import Campaign
@@ -87,6 +87,7 @@
      p.SweepGroup(name="Gray-Scott",
                   walltime=timedelta(minutes=30),
                   component_subdirs=True,
+		  run_repetitions=2,
                   component_inputs={
                       'gray-scott': ['settings.json','adios2.xml'],
                       'compression': ['adios2.xml','sz.config','zc.config']
@@ -187,4 +188,18 @@
     + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
     + "CompressioOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
     + Engines can be changed in XML file without rebuilding the programs.
+
+## Directory structure of the campaign
+* Once one creates a campaign with the above specification file, the following directory structure is created:
+  ```
+  <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
+  ```
+  - Here `campaign dir` is what is specified with `-o` option in `cheetah.py create-campaign -a . -o <campaign dir> ...`.
+  - `campaign name` is what is set as `name` field in the specification file
+  - `X` enumerates all possible combinations of parameters
+  - `Y` goes over `run_repetitions` in SweepGroup
+* Inside each `run-<X>.iteration-<Y>` there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
+  are `gray-scott` and `compression` directories. There are also corresponding subdirectories with `codar.cheetah.tau-` prefix, which corresponds to the runs
+  of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, log files appropriate for the corresponding level.
+
 ## Examples
