@@ -108,7 +108,7 @@ class GrayScott(Campaign):
    * To create your own campaign, you need to inherit from `Campaign` class and overwrite some of its fields:
      * `name` - campaign name
      * `codes` - what MPI programs to run in parallel.
-       It is a dictionary mapping the campaign name of a program with the corresponding binary
+       It is a dictionary mapping the campaign name of a program to the corresponding binary,
        possibly setting up some other parameters. In this example, `sleep_after=1` means that
        `gray-scott` started 1 second earlier than `compression` (is that right?? or the other way around??)
      * `supported_machines` - indicates for which supercomputer this campaign can be generated (why is it needed considering
@@ -117,10 +117,32 @@ class GrayScott(Campaign):
        (used by `cheetah` to shield a user from the pecularities of a supercomputer), such as project
        to charge the run to
      * `umask` specifies the permissions for the newly created campaign files and directories.
-     * `sweeps` is a list of `SweepGroup`s
-       * `SweepGroup` has a  name, the list of configuration files to copy to into each experiment's directory,
+     * `sweeps` is a list of `SweepGroups`
+       * `SweepGroup` has a  name, a list of configuration files to copy into each experiment's directory,
        	 `parameter_groups`.
-	 * `parameter_groups` is a list of `Sweep`s where one specify with which parameters to run experiments.
-	 * Some parameters are fixed values, and some are a list. A cartesian product of all the parameters are taken
+	 * `parameter_groups` is a list of `Sweeps` where one specifies with which parameters to run experiments.
+	 * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters are taken
 	   to compute the experiments to perform.
+     * Examples of parameter types:
+       * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program. For example
+       	 ```
+	 p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
+	 ```
+	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
+	 "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
+	 of the first positional parameter with which you want to experiment.
+	 
+       * `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files. For example
+	 ```
+       	 p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
+	 ```
+	 means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64.
+       * `ParamRunner` allows to specify resources for each program. For example
+       	 ```
+	 p.ParamRunner('gray-scott', 'nprocs', [4] )
+	 ```
+	 means that "gray-scott" would run using 4 MPI ranks. As with any other cheetah parameters, one can specify several
+	 values for such parameters as well which is needed for codesign studies.
+       * Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
+       	 between different parameters.
 ## Examples
