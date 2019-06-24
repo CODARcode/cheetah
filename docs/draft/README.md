@@ -194,12 +194,16 @@
   ```
   <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
   ```
-  - Here `campaign dir` is what is specified with `-o` option in `cheetah.py create-campaign -a . -o <campaign dir> ...`.
+  - Here `campaign dir` is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
   - `campaign name` is what is set as `name` field in the specification file
   - `X` enumerates all possible combinations of parameters
-  - `Y` goes over `run_repetitions` in SweepGroup
+  - `Y` goes over `run_repetitions` from `SweepGroup`
 * Inside each `run-<X>.iteration-<Y>` there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
   are `gray-scott` and `compression` directories. There are also corresponding subdirectories with `codar.cheetah.tau-` prefix, which corresponds to the runs
-  of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, log files appropriate for the corresponding level.
-
+  of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
+  - `<campaign dir>/<username>` has `run-all.sh` that can be used to start the whole campaign.
+  - `<campaign dir>/<username>/<campaign name>` has `cancel.sh` and `status.sh` that can be used to stop or monitor the campaign.
+  - `<campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>` has the parameter files for this particular run.
+  - The corresponding subdirectories for the particular programs in the experiment would also contain their parameter files and the logs would be created there for stdout, stderr,
+    return status, walltime, etc.
 ## Examples
