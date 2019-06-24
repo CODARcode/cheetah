@@ -152,7 +152,7 @@
       values for such parameters as well which is needed for codesign studies.
     + When one creates a campaign with the above specification file, the campaign will have 4 experiments (2x2 parameter combinations).
     + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
-      between different parameters and define "derived" parameters by using expressions with names of other parameters.
+      between different parameters and define <b>derived parameters</b> by using expressions with names of other parameters.
       For example, ...
     + <b>SweepGroup</b> has <b>run_repetitions=2</b> parameter that says that each experiment should be repeated twice.
     + In each experiment specified above there are two MPI jobs running:
@@ -201,12 +201,12 @@
   - <b>campaign name</b> is what is set as `name` field in the specification file
   - <b>X</b> enumerates all possible combinations of parameters
   - <b>Y</b> goes over <b>run_repetitions</b> from <b>SweepGroup</b>
-* Inside each `run-<X>.iteration-<Y>` there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
-  are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with `codar.cheetah.tau-` prefix, which corresponds to the runs
+* Inside each <b>run-<X>.iteration-<Y></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
+  are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with <b>codar.cheetah.tau-</b> prefix, which corresponds to the runs
   of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
-  - `<campaign dir>/<username>` has `run-all.sh` that can be used to start the whole campaign.
-  - `<campaign dir>/<username>/<campaign name>` has `cancel.sh` and `status.sh` that can be used to stop or monitor the campaign.
-  - `<campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>` has the parameter files for this particular run.
+  - <b><campaign dir>/<username></b> has <b>run-all.sh</b> that can be used to start the whole campaign.
+  - <b><campaign dir>/<username>/<campaign name></b> has <b>cancel.sh</b> and <b>status.sh</b> that can be used to stop or monitor the campaign.
+  - <b><campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y></b> has the parameter files for this particular run.
   - The corresponding subdirectories for the particular programs in the experiment would also contain their parameter files and the logs would be created there for stdout, stderr,
     return status, walltime, etc.
     
@@ -217,15 +217,4 @@
   - [Brusselator](https://github.com/CODARcode/cheetah/tree/dev/examples/brusselator)
   - [Gray-Scott with compression, Z-Checker and FTK]()
 
-## Testing HTML
-
-   <ol>
-   <li>one
-   <li><b>two</b>
-   <li><b style="color:rgb(255, 0, 0);">red</b>
-   <li><b style="color:rgb(0, 0, 255);">blue</b>
-   <li><b style="color:rgb(0,255,0);">green</b>
-   <li><mark>marked default</mark>
-   <li><mark color=red background-color=blue>marked custom</mark>   
-   </ol>
    
