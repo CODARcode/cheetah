@@ -124,13 +124,14 @@ class GrayScott(Campaign):
 	 * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters are taken
 	   to compute the experiments to perform.
      * Examples of parameter types:
-       * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program. For example
-       	  ```
-	  p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
-	  ```
-	  means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
-	  "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
-	  of the first positional parameter with which you want to experiment.	 
+       * `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
+       	 For example
+       	     ```
+	     p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
+	     ```
+	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
+	 "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
+	 of the first positional parameter with which you want to experiment.	 
        * `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files. For example
 	  ```
        	  p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
