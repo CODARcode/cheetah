@@ -130,8 +130,7 @@ class GrayScott(Campaign):
 	 ```
 	 means that the first parameter of "gray-scott" program that in the campaign given a name "settings", has a value
 	 "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
-	 of the first positional parameter with which you want to experiment.
-	 
+	 of the first positional parameter with which you want to experiment.	 
        * `ParamConfig` allows to deal with `*json` or `*ini` kind of parameter files. For example
 	 ```
        	 p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
