@@ -6,12 +6,12 @@
   for deployment on different supercomputers.
 * To use Cheetah, the user first writes a `campaign specification file` in python.
   In this file, one specifies:
-     * which MPI programs to launch in parallel
-     * what computing resources to give to those programs
-     * which configuration files and binaries to copy to each experiment's directory
-     * lists of possible values for some parameters (including computing resources) over which to do a grid search
-     * how many times (iterations) to repeat each experiment to collect enough statistics
-       to estimate the variability of the results.
+  * which MPI programs to launch in parallel
+  * what computing resources to give to those programs
+  * which configuration files and binaries to copy to each experiment's directory
+  * lists of possible values for some parameters (including computing resources) over which to do a grid search
+  * how many times (iterations) to repeat each experiment to collect enough statistics
+    to estimate the variability of the results.
 * The campaign specification file does not define how programs communicate with each other.
   This is done in `adios2.xml` file that can be used to glue the input from one program
   with the output from another provided that all the involved programs are doing I/O using adios2.
@@ -66,11 +66,11 @@
 ## Structure of the campaign file
 * Here is a small example of a campaign file:
   ```python
-from codar.cheetah import Campaign
-from codar.cheetah import parameters as p
-from datetime import timedelta
+  from codar.cheetah import Campaign
+  from codar.cheetah import parameters as p
+  from datetime import timedelta
 
-class GrayScott(Campaign):
+  class GrayScott(Campaign):
     name = "Gray-Scott-A"
     codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("compression", dict(exe="compression")) ]
     supported_machines = ['local', 'theta']
