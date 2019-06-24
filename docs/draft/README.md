@@ -112,25 +112,24 @@
   ```
 * One needs to import <b>Campaign</b> and <b>parameters</b> modules.
 * To create your own campaign, you need to inherit from <b>Campaign</b> class and overwrite some of its fields:
-  - `name` - campaign name
-  - `codes` - what MPI programs to run in parallel.
+  - <b>name</b> - campaign name
+  - <b>codes</b> - what MPI programs to run in parallel.
     It is a dictionary mapping the campaign name of a program to the corresponding binary,
     possibly setting up some other parameters. In this example, `sleep_after=1` means that
-    `gray-scott` started 1 second earlier than `compression` (is that right?? or the other way around??)
-  - `supported_machines` - indicates for which supercomputer this campaign can be generated (why is it needed considering
+    <b>gray-scott</b> started 1 second earlier than <b>compression</b> (is that right?? or the other way around??)
+  - <b>supported_machines</b> - indicates for which supercomputer this campaign can be generated (why is it needed considering
     that it is defined when campaign is generated from the specification file??)
-  - `scheduler_options` - defines some extra options to the resource manager not defined in `Savanna` such as project to charge the run to;
-    note: `Savanna` is part of `Cheetah` to shield a user from the pecularities of a supercomputer
-    to charge the run to
-  - `umask` specifies the permissions for the newly created campaign files and directories.
-  - `sweeps` is a list of `SweepGroups`
-    + `SweepGroup` has a  name, a list of configuration files to copy into each experiment's directory,
-      `parameter_groups`.
-      * `parameter_groups` is a list of `Sweeps` where one specifies with which parameters to run experiments.
+  - <b>scheduler_options</b> - defines some extra options to the resource manager not defined in <b>Savanna</b> such as project to charge the run to;
+    note: <b>Savanna</b> is part of Cheetah that shields a user from the pecularities of a supercomputer
+  - <b>umask</b> specifies the permissions for the newly created campaign files and directories.
+  - <b>sweeps</b> is a list of <b>SweepGroups</b>
+    + <b>SweepGroup</b> has a  name, a list of configuration files to copy into each experiment's directory,
+      <b>parameter_groups</b>.
+      * <b>parameter_groups</b> is a list of `Sweeps` where one specifies with which parameters to run experiments.
       * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters is taken
 	to compute the experiments to perform.
   - Examples of parameter types:
-    + `ParamCmdLineArg` allows to specify command line positional parameter for a particular program.
+    + <b>ParamCmdLineArg</b> allows to specify command line positional parameter for a particular program.
       For example
       ```python
       p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
@@ -138,13 +137,13 @@
       means that the first parameter of "gray-scott" program, that in the campaign given a name "settings", has a value
       "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
       of the first positional parameter with which you want to launch the corresponding executable.
-    + `ParamConfig` allows to deal with `*json` or `*ini` parameter files.
+    + <b>ParamConfig</b> allows to deal with `*json` or `*ini` parameter files.
       For example
       ```python
       p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
       ```
       means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64 and is also called "L" inside the campaign.
-    + `ParamRunner` allows to specify resources for each program.
+    + <b>ParamRunner</b> allows to specify resources for each program.
       For example
       ```python
       p.ParamRunner('gray-scott', 'nprocs', [4] )
@@ -155,7 +154,7 @@
     + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
       between different parameters and define "derived" parameters by using expressions with names of other parameters.
       For example, ...
-    + `SweepGroup` has `run_repetitions=2` parameter that says that each experiment should be repeated twice.
+    + <b>SweepGroup</b> has <b>run_repetitions=2</b> parameter that says that each experiment should be repeated twice.
     + In each experiment specified above there are two MPI jobs running:
       - ["gray-scott"](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott) simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
       - "compression" program at each time step
@@ -164,7 +163,7 @@
 	runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) on the original and lossy data to decide on the quality of
       	the compression; this job has 1 MPI rank.
   - Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
-    let us look into `adios2.xml` configuration file:
+    let us look into <b>adios2.xml</b> configuration file:
     ```xml
     <?xml version="1.0"?>
     <adios-config>
@@ -184,13 +183,13 @@
       </io>
     </adios-config>
     ```
-    + Inside Gray-Scott program, using ADIOS2 API, a user opens "SimulationOutput" stream and writes to it at each time step
+    + Inside Gray-Scott program, using ADIOS2 API, a user opens <b>SimulationOutput</b> stream and writes to it at each time step
       without knowing what I/O backend is used: BP file, HDF5 file,
       network socket (SST, SSC), etc.
-    + Inside compression program, using ADIOS2 API, a user  opens "SimulationOutput" stream and reads from it at each time step
-    + Of course, both the reader and the writer should be told to use the same `adios2.xml` file.
-    + The above XML file specifies that  "SimulationOutput" uses "SST" engine (network socket) and that a producer should block until somebody reads its output.
-    + "CompressionOutput" stream is used by compression program to write its output into BP file (ADIOS2's native output format).
+    + Inside compression program, using ADIOS2 API, a user  opens <b>SimulationOutput</b> stream and reads from it at each time step
+    + Of course, both the reader and the writer should be told to use the same <b>adios2.xml</b> file.
+    + The above XML file specifies that  <b>SimulationOutput</b> uses <b>SST</b> engine (network socket) and that a producer should block until somebody reads its output.
+    + <b>CompressionOutput</b> stream is used by compression program to write its output into BP file (ADIOS2's native output format).
     + Engines can be changed in XML file without rebuilding the programs.
 
 ## Directory structure of the campaign
@@ -198,12 +197,12 @@
   ```bash
   <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
   ```
-  - Here `campaign dir` is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
-  - `campaign name` is what is set as `name` field in the specification file
-  - `X` enumerates all possible combinations of parameters
-  - `Y` goes over `run_repetitions` from `SweepGroup`
+  - Here <b>campaign dir</b> is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
+  - <b>campaign name</b> is what is set as `name` field in the specification file
+  - <b>X</b> enumerates all possible combinations of parameters
+  - <b>Y</b> goes over <b>run_repetitions</b> from <b>SweepGroup</b>
 * Inside each `run-<X>.iteration-<Y>` there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
-  are `gray-scott` and `compression` directories. There are also corresponding subdirectories with `codar.cheetah.tau-` prefix, which corresponds to the runs
+  are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with `codar.cheetah.tau-` prefix, which corresponds to the runs
   of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
   - `<campaign dir>/<username>` has `run-all.sh` that can be used to start the whole campaign.
   - `<campaign dir>/<username>/<campaign name>` has `cancel.sh` and `status.sh` that can be used to stop or monitor the campaign.
