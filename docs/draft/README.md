@@ -153,7 +153,6 @@
     + When one creates a campaign with the above specification file, the campaign will have 4 experiments (2x2 parameter combinations).
     + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
       between different parameters and define <b>derived parameters</b> by using expressions with names of other parameters.
-      For example, ...
     + <b>SweepGroup</b> has <b>run_repetitions=2</b> parameter that says that each experiment should be repeated twice.
     + In each experiment specified above there are two MPI jobs running:
       - ["gray-scott"](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott) simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
