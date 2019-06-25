@@ -220,4 +220,4 @@
 ## API
 * [Cheetah](https://codarcode.github.io/cheetah/cheetah/html/index.html)
 * [Savanna](https://codarcode.github.io/cheetah/savanna/html/index.html)
-* [Cheetah/Savanna](https://codarcode.github.io/cheetah/cheetah_savanna/html/index.html)
+* [Cheetah/Savanna]( https://codarcode.github.io/cheetah/cheetah_savanna/html )
