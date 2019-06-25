@@ -1,0 +1,73 @@
+\hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param}{}\section{codar.\+cheetah.\+parameters.\+Param Class Reference}
+\label{classcodar_1_1cheetah_1_1parameters_1_1_param}\index{codar.\+cheetah.\+parameters.\+Param@{codar.\+cheetah.\+parameters.\+Param}}
+
+
+Inheritance diagram for codar.\+cheetah.\+parameters.\+Param\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classcodar_1_1cheetah_1_1parameters_1_1_param__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for codar.\+cheetah.\+parameters.\+Param\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=213pt]{classcodar_1_1cheetah_1_1parameters_1_1_param__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_a4c91917ddd306f143286037d02b78034}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_a4c91917ddd306f143286037d02b78034}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, target, name, values)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_ae946fbe90ee7212325e58c9c609b9f60}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_ae946fbe90ee7212325e58c9c609b9f60}} 
+def {\bfseries \+\_\+\+\_\+get\+\_\+\+\_\+} (self, idx)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_afe606f18a69519800e93596c1532af8d}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_afe606f18a69519800e93596c1532af8d}} 
+def {\bfseries \+\_\+\+\_\+len\+\_\+\+\_\+} (self)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_a5603d43a20cfc6447c3718406ce0669e}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_a5603d43a20cfc6447c3718406ce0669e}} 
+{\bfseries target}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_ac9982d62cd18a368a3fbc26541e14209}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_ac9982d62cd18a368a3fbc26541e14209}} 
+{\bfseries name}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1parameters_1_1_param_aefcc82658f511bddd6605e6ac6e74fbf}\label{classcodar_1_1cheetah_1_1parameters_1_1_param_aefcc82658f511bddd6605e6ac6e74fbf}} 
+{\bfseries values}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Abstract base class representing a parameter to an application. This
+includes any method for modifying the run characteristics of an
+application - command line, config file, environment variables, different
+executable built with diffrent compiler flags.
+
+Every parameter must have a unique name, and must target a specific
+application or middleware, e.g. pbs, aprun, or one of the science
+codes that make up an application.
+
+Note that if a science application has only one code, it will likely still
+involve middlewhere targets like PBS. Using a different target is one way
+to model those.
+
+TODO: is it useful to separate the definition of a param and it's values?
+
+TODO: should we require that the name be unique across all targets, or
+just within each target? Global uniqueness allows for a simple list of
+dict representation of instances, but two level nested dicts may be
+more powerful (first level is target, second level is params).\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+parameters.\+py\end{DoxyCompactItemize}

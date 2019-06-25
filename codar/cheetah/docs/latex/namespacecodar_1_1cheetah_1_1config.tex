@@ -1,0 +1,55 @@
+\hypertarget{namespacecodar_1_1cheetah_1_1config}{}\section{codar.\+cheetah.\+config Namespace Reference}
+\label{namespacecodar_1_1cheetah_1_1config}\index{codar.\+cheetah.\+config@{codar.\+cheetah.\+config}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_ae1608746b2c45e5199964e986dbc66da}\label{namespacecodar_1_1cheetah_1_1config_ae1608746b2c45e5199964e986dbc66da}} 
+def {\bfseries scheduler\+\_\+path} (scheduler\+\_\+name)
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a906f4dbe8936921e615b9cc8eae8383f}\label{namespacecodar_1_1cheetah_1_1config_a906f4dbe8936921e615b9cc8eae8383f}} 
+def {\bfseries machine\+\_\+submit\+\_\+env\+\_\+path} (machine\+\_\+name)
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a1028977b1cc5dc7f54bd65cb46256c8d}\label{namespacecodar_1_1cheetah_1_1config_a1028977b1cc5dc7f54bd65cb46256c8d}} 
+def {\bfseries etc\+\_\+path} (conf\+\_\+name)
+\item 
+def \hyperlink{namespacecodar_1_1cheetah_1_1config_a777b4339975017c9521b943afd76748d}{get\+\_\+dataspaces\+\_\+num\+\_\+servers} (num\+\_\+dimes\+\_\+clients, num\+\_\+dataspaces\+\_\+clients)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_ac3d4a0bd20d4e47ccdcd4ddb6303c1ab}\label{namespacecodar_1_1cheetah_1_1config_ac3d4a0bd20d4e47ccdcd4ddb6303c1ab}} 
+{\bfseries P\+A\+C\+K\+A\+G\+E\+\_\+\+P\+A\+TH} = os.\+path.\+realpath(os.\+path.\+dirname(\+\_\+\+\_\+file\+\_\+\+\_\+))
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a87c807c2d48e4f9bb206c1d6afde26b5}\label{namespacecodar_1_1cheetah_1_1config_a87c807c2d48e4f9bb206c1d6afde26b5}} 
+{\bfseries D\+A\+T\+A\+\_\+\+P\+A\+TH} = os.\+path.\+join(P\+A\+C\+K\+A\+G\+E\+\_\+\+P\+A\+TH, \char`\"{}data\char`\"{})
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a4ee1eac654271fe0e95d5c67599937a1}\label{namespacecodar_1_1cheetah_1_1config_a4ee1eac654271fe0e95d5c67599937a1}} 
+{\bfseries C\+O\+D\+A\+R\+\_\+\+P\+A\+TH} = os.\+path.\+realpath(os.\+path.\+join(P\+A\+C\+K\+A\+G\+E\+\_\+\+P\+A\+TH, \char`\"{}..\char`\"{}))
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_ae6c35df28d3aa0b6f7095d2d0c7d3dc8}\label{namespacecodar_1_1cheetah_1_1config_ae6c35df28d3aa0b6f7095d2d0c7d3dc8}} 
+{\bfseries C\+H\+E\+E\+T\+A\+H\+\_\+\+P\+A\+T\+H\+\_\+\+S\+C\+H\+E\+D\+U\+L\+ER} = os.\+path.\+join(D\+A\+T\+A\+\_\+\+P\+A\+TH, \char`\"{}scheduler\char`\"{})
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a5d735d6f2f43c555f2e137b38af7fc94}\label{namespacecodar_1_1cheetah_1_1config_a5d735d6f2f43c555f2e137b38af7fc94}} 
+{\bfseries C\+H\+E\+E\+T\+A\+H\+\_\+\+P\+A\+T\+H\+\_\+\+M\+A\+C\+H\+I\+N\+E\+\_\+\+C\+O\+N\+F\+IG} = os.\+path.\+join(D\+A\+T\+A\+\_\+\+P\+A\+TH, \char`\"{}machine\+\_\+config\char`\"{})
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a069e6b421b6b35917575637b5fe64409}\label{namespacecodar_1_1cheetah_1_1config_a069e6b421b6b35917575637b5fe64409}} 
+{\bfseries W\+O\+R\+K\+F\+L\+O\+W\+\_\+\+S\+C\+R\+I\+PT} = os.\+path.\+join(C\+O\+D\+A\+R\+\_\+\+P\+A\+TH, \char`\"{}savanna\char`\"{}, \char`\"{}main.\+py\char`\"{})
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Cheetah paths and (in future) features for loading site configuration.
+\end{DoxyVerb}
+ 
+
+\subsection{Function Documentation}
+\mbox{\Hypertarget{namespacecodar_1_1cheetah_1_1config_a777b4339975017c9521b943afd76748d}\label{namespacecodar_1_1cheetah_1_1config_a777b4339975017c9521b943afd76748d}} 
+\index{codar\+::cheetah\+::config@{codar\+::cheetah\+::config}!get\+\_\+dataspaces\+\_\+num\+\_\+servers@{get\+\_\+dataspaces\+\_\+num\+\_\+servers}}
+\index{get\+\_\+dataspaces\+\_\+num\+\_\+servers@{get\+\_\+dataspaces\+\_\+num\+\_\+servers}!codar\+::cheetah\+::config@{codar\+::cheetah\+::config}}
+\subsubsection{\texorpdfstring{get\+\_\+dataspaces\+\_\+num\+\_\+servers()}{get\_dataspaces\_num\_servers()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+config.\+get\+\_\+dataspaces\+\_\+num\+\_\+servers (\begin{DoxyParamCaption}\item[{}]{num\+\_\+dimes\+\_\+clients,  }\item[{}]{num\+\_\+dataspaces\+\_\+clients }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get the number of dataspaces server instances that must be created for a
+given number of client processes.
+\end{DoxyVerb}
+ 
