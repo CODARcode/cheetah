@@ -10,6 +10,7 @@ var menudata={children:[
 {text:"Class Index",url:"classes.html"},
 {text:"Class Hierarchy",url:"inherits.html"},
 {text:"Class Members",url:"functions.html",children:[
+<<<<<<< HEAD
 {text:"All",url:"functions.html",children:[
 {text:"_",url:"functions.html#index__"},
 {text:"a",url:"functions.html#index_a"},
@@ -36,3 +37,7 @@ var menudata={children:[
 {text:"s",url:"functions_func.html#index_s"},
 {text:"v",url:"functions_func.html#index_v"},
 {text:"w",url:"functions_func.html#index_w"}]}]}]}]}
+=======
+{text:"All",url:"functions.html"},
+{text:"Functions",url:"functions_func.html"}]}]}]}
+>>>>>>> doxygen

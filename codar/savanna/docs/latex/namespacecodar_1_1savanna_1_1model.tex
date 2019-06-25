@@ -1,0 +1,52 @@
+\hypertarget{namespacecodar_1_1savanna_1_1model}{}\section{codar.\+savanna.\+model Namespace Reference}
+\label{namespacecodar_1_1savanna_1_1model}\index{codar.\+savanna.\+model@{codar.\+savanna.\+model}}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classcodar_1_1savanna_1_1model_1_1_node_config}{Node\+Config}
+\item 
+class \hyperlink{classcodar_1_1savanna_1_1model_1_1_pipeline}{Pipeline}
+\item 
+class \hyperlink{classcodar_1_1savanna_1_1model_1_1_run}{Run}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a0d566ad370f638d17d805dce32b4bbce}\label{namespacecodar_1_1savanna_1_1model_a0d566ad370f638d17d805dce32b4bbce}} 
+string {\bfseries S\+T\+D\+O\+U\+T\+\_\+\+N\+A\+ME} = \textquotesingle{}codar.\+workflow.\+stdout\textquotesingle{}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a979eae72abc6932f745c4d4c300f06e7}\label{namespacecodar_1_1savanna_1_1model_a979eae72abc6932f745c4d4c300f06e7}} 
+string {\bfseries S\+T\+D\+E\+R\+R\+\_\+\+N\+A\+ME} = \textquotesingle{}codar.\+workflow.\+stderr\textquotesingle{}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a375dfbe6e7e59d827254d61f41c881f7}\label{namespacecodar_1_1savanna_1_1model_a375dfbe6e7e59d827254d61f41c881f7}} 
+string {\bfseries R\+E\+T\+U\+R\+N\+\_\+\+N\+A\+ME} = \textquotesingle{}codar.\+workflow.\+return\textquotesingle{}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a24dd8e3ab8d3d0fd004bcd54ce016fbc}\label{namespacecodar_1_1savanna_1_1model_a24dd8e3ab8d3d0fd004bcd54ce016fbc}} 
+string {\bfseries W\+A\+L\+L\+T\+I\+M\+E\+\_\+\+N\+A\+ME} = \textquotesingle{}codar.\+workflow.\+walltime\textquotesingle{}
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a5c2add528fd0ef347e5ff8deb12e9ada}\label{namespacecodar_1_1savanna_1_1model_a5c2add528fd0ef347e5ff8deb12e9ada}} 
+int {\bfseries K\+I\+L\+L\+\_\+\+W\+A\+IT} = 30
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_acf527a4d78021abd552f51e81830a7d4}\label{namespacecodar_1_1savanna_1_1model_acf527a4d78021abd552f51e81830a7d4}} 
+int {\bfseries W\+A\+I\+T\+\_\+\+D\+E\+L\+A\+Y\+\_\+\+K\+I\+LL} = 30
+\item 
+\mbox{\Hypertarget{namespacecodar_1_1savanna_1_1model_a131cd01c29206f90bc9505d9b50f1ff6}\label{namespacecodar_1_1savanna_1_1model_a131cd01c29206f90bc9505d9b50f1ff6}} 
+int {\bfseries W\+A\+I\+T\+\_\+\+D\+E\+L\+A\+Y\+\_\+\+G\+I\+V\+E\+\_\+\+UP} = 120
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Classes for tracking pipelines and the runs within each pipeline in separate
+monitor threads that synchronize state.
+
+Note that there is state tracked in these classes which is not available just
+by looking at the return code. In particular, a run my be killed for several
+different reasons: external signal, run timeout reached, other run in pipeline
+failed (when kill on partial fail is set), or if the entire workflow is killed.
+
+The goal here is to provide as much information as possible about why a
+pipeline failed, to make an informed decision about whether it is worth
+running again when the workflow is restarted, or if it's failure was more
+permanent and not subject to outside forces like the job walltime expiring.
+\end{DoxyVerb}
+ 

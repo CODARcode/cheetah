@@ -72,9 +72,15 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<<<<<<< HEAD
 <tr class="memitem:aaecac5db531a7ad2e0a6cb121a7ee640"><td class="memItemLeft" align="right" valign="top"><a id="aaecac5db531a7ad2e0a6cb121a7ee640"></a>
 def&#160;</td><td class="memItemRight" valign="bottom"><b>script_path</b> (script_name)</td></tr>
 <tr class="separator:aaecac5db531a7ad2e0a6cb121a7ee640"><td class="memSeparator" colspan="2">&#160;</td></tr>
+=======
+<tr class="memitem:ae1608746b2c45e5199964e986dbc66da"><td class="memItemLeft" align="right" valign="top"><a id="ae1608746b2c45e5199964e986dbc66da"></a>
+def&#160;</td><td class="memItemRight" valign="bottom"><b>scheduler_path</b> (scheduler_name)</td></tr>
+<tr class="separator:ae1608746b2c45e5199964e986dbc66da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+>>>>>>> doxygen
 <tr class="memitem:a906f4dbe8936921e615b9cc8eae8383f"><td class="memItemLeft" align="right" valign="top"><a id="a906f4dbe8936921e615b9cc8eae8383f"></a>
 def&#160;</td><td class="memItemRight" valign="bottom"><b>machine_submit_env_path</b> (machine_name)</td></tr>
 <tr class="separator:a906f4dbe8936921e615b9cc8eae8383f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -86,6 +92,7 @@ def&#160;</td><td class="memItemRight" valign="bottom"><b>etc_path</b> (conf_nam
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
+<<<<<<< HEAD
 <tr class="memitem:ab966b03187d09c54028d73f6bf908598"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><b>CHEETAH_PATH</b></td></tr>
 <tr class="separator:ab966b03187d09c54028d73f6bf908598"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a326d76d724a30795d5e2b25c59a1454a"><td class="memItemLeft" align="right" valign="top"><a id="a326d76d724a30795d5e2b25c59a1454a"></a>
@@ -96,6 +103,25 @@ Variables</h2></td></tr>
 <tr class="separator:a5d735d6f2f43c555f2e137b38af7fc94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a069e6b421b6b35917575637b5fe64409"><td class="memItemLeft" align="right" valign="top"><a id="a069e6b421b6b35917575637b5fe64409"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>WORKFLOW_SCRIPT</b> = os.path.join(CHEETAH_PATH, &quot;workflow.py&quot;)</td></tr>
+=======
+<tr class="memitem:ac3d4a0bd20d4e47ccdcd4ddb6303c1ab"><td class="memItemLeft" align="right" valign="top"><a id="ac3d4a0bd20d4e47ccdcd4ddb6303c1ab"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>PACKAGE_PATH</b> = os.path.realpath(os.path.dirname(__file__))</td></tr>
+<tr class="separator:ac3d4a0bd20d4e47ccdcd4ddb6303c1ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87c807c2d48e4f9bb206c1d6afde26b5"><td class="memItemLeft" align="right" valign="top"><a id="a87c807c2d48e4f9bb206c1d6afde26b5"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>DATA_PATH</b> = os.path.join(PACKAGE_PATH, &quot;data&quot;)</td></tr>
+<tr class="separator:a87c807c2d48e4f9bb206c1d6afde26b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ee1eac654271fe0e95d5c67599937a1"><td class="memItemLeft" align="right" valign="top"><a id="a4ee1eac654271fe0e95d5c67599937a1"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>CODAR_PATH</b> = os.path.realpath(os.path.join(PACKAGE_PATH, &quot;..&quot;))</td></tr>
+<tr class="separator:a4ee1eac654271fe0e95d5c67599937a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6c35df28d3aa0b6f7095d2d0c7d3dc8"><td class="memItemLeft" align="right" valign="top"><a id="ae6c35df28d3aa0b6f7095d2d0c7d3dc8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>CHEETAH_PATH_SCHEDULER</b> = os.path.join(DATA_PATH, &quot;scheduler&quot;)</td></tr>
+<tr class="separator:ae6c35df28d3aa0b6f7095d2d0c7d3dc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d735d6f2f43c555f2e137b38af7fc94"><td class="memItemLeft" align="right" valign="top"><a id="a5d735d6f2f43c555f2e137b38af7fc94"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>CHEETAH_PATH_MACHINE_CONFIG</b> = os.path.join(DATA_PATH, &quot;machine_config&quot;)</td></tr>
+<tr class="separator:a5d735d6f2f43c555f2e137b38af7fc94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a069e6b421b6b35917575637b5fe64409"><td class="memItemLeft" align="right" valign="top"><a id="a069e6b421b6b35917575637b5fe64409"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>WORKFLOW_SCRIPT</b> = os.path.join(CODAR_PATH, &quot;savanna&quot;, &quot;main.py&quot;)</td></tr>
+>>>>>>> doxygen
 <tr class="separator:a069e6b421b6b35917575637b5fe64409"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -131,6 +157,7 @@ given number of client processes.
 </pre> 
 </div>
 </div>
+<<<<<<< HEAD
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="ab966b03187d09c54028d73f6bf908598"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab966b03187d09c54028d73f6bf908598">&#9670;&nbsp;</a></span>CHEETAH_PATH</h2>
@@ -146,6 +173,8 @@ given number of client processes.
 <b>Initial value:</b><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;=  os.path.realpath(os.path.join(</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;                     os.path.dirname(__file__), <span class="stringliteral">&quot;..&quot;</span>, <span class="stringliteral">&quot;..&quot;</span>))</div></div><!-- fragment -->
 </div>
 </div>
+=======
+>>>>>>> doxygen
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

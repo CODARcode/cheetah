@@ -1,9 +1,16 @@
 var indexSectionsWithContent =
 {
+<<<<<<< HEAD
   0: "_acdgilmnoprsvwx",
   1: "_cilmnprs",
   2: "c",
   3: "_acdgilmoprsvwx"
+=======
+  0: "_acgilmoprsvwx",
+  1: "_cilmprs",
+  2: "c",
+  3: "_acgilmoprsvwx"
+>>>>>>> doxygen
 };
 
 var indexSectionNames =
