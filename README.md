@@ -219,4 +219,5 @@
 
 ## API
 * [Doxygen documentation](https://codarcode.github.io/cheetah/)
-   
+* [Cheetah](https://codarcode.github.io/cheetah/cheetah/html/index.html)
+* [Savanna](https://codarcode.github.io/cheetah/savanna/html/index.html)
