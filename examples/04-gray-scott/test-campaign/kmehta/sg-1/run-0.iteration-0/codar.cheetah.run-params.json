@@ -1,0 +1,19 @@
+{
+  "simulation": {
+    "num_steps": 50,
+    "feed_rate_U": 0.01,
+    "domain_size": 64,
+    "plot_gap": 10,
+    "kill_rate_V": 0.048,
+    "SimulationOutput": {
+      "BPFile": {}
+    },
+    "nprocs": 2,
+    "settings": "settings.json"
+  },
+  "pdf_calc": {
+    "outfile": "pdf",
+    "nprocs": 1,
+    "infile": "gs.bp"
+  }
+}
