@@ -1,7 +1,9 @@
-# How to run
+# Gray-Scott simulation with compression
 
 The output from Gray-Scott simulation is passed through compression/decompression with SZ, ZFP or MGARD
 and the results are compared with the original data using Z-Checker and FTK. The results are visualized with ParaView
+
+## How to run
 
 1. Modify `env.sh` to set the environment for your situation and source it
 1. Build Gray-Scott simulation as described [here](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott)
@@ -22,7 +24,7 @@ and the results are compared with the original data using Z-Checker and FTK. The
 8. To create a campaign: `make create`, to run a campaign: `make run`, etc.
 
 
-# References
+## References
 
 * Gray-Scott:  https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
 * SZ:  https://www.mcs.anl.gov/~shdi/download/sz-download.html
