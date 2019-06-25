@@ -211,9 +211,12 @@
     
 ## Examples
 * For more examples of using Cheetah, see
-  - [Calculating Euler's number](https://github.com/CODARcode/cheetah/tree/dev/examples/eulers_number)
-  - [The Gray-Scott Reaction-Diffusion Benchmark](https://github.com/CODARcode/cheetah/tree/dev/examples/gray-scott)
-  - [Brusselator](https://github.com/CODARcode/cheetah/tree/dev/examples/brusselator)
-  - [Gray-Scott with compression, Z-Checker and FTK](https://github.com/CODARcode/cheetah/tree/dev/examples/gray-scott-compression)
+  - [Calculating Euler's number](https://github.com/CODARcode/cheetah/tree/master/examples/01-eulers_number)
+  - [Using Cheetah to run coupled applications](https://github.com/CODARcode/cheetah/tree/master/examples/02-coupling)
+  - [Brusselator](https://github.com/CODARcode/cheetah/tree/master/examples/03-brusselator)
+  - [The Gray-Scott Reaction-Diffusion Benchmark](https://github.com/CODARcode/cheetah/tree/master/examples/04-gray-scott)
+  - [Gray-Scott with compression, Z-Checker and FTK](https://github.com/CODARcode/cheetah/tree/master/examples/05-gray-scott-compression)
 
+## API
+* [Doxygen documentation](https://codarcode.github.io/cheetah/)
    
