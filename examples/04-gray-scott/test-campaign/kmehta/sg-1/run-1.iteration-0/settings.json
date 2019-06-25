@@ -1,0 +1,13 @@
+{
+    "k": 0.048,
+    "noise": 0.01,
+    "Du": 0.2,
+    "steps": 50,
+    "Dv": 0.1,
+    "output": "gs.bp",
+    "plotgap": 10,
+    "dt": 1.0,
+    "adios_config": "adios2.xml",
+    "L": 64,
+    "F": 0.02
+}
