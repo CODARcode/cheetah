@@ -197,7 +197,7 @@
   <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
   ```
   - Here <b>campaign dir</b> is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
-  - <b>campaign name</b> is what is set as `name` field in the specification file
+  - <b>campaign name</b> is what is set as <b>name</b> field in the specification file
   - <b>X</b> enumerates all possible combinations of parameters
   - <b>Y</b> goes over <b>run_repetitions</b> from <b>SweepGroup</b>
 * Inside each <b>run-\<X\>.iteration-\<Y\></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
