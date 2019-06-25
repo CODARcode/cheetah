@@ -1,3 +1,5 @@
+# How to run
+
 The output from Gray-Scott simulation is passed through compression/decompression with SZ, ZFP or MGARD
 and the results are compared with the original data using Z-Checker and FTK. The results are visualized with ParaView
 
@@ -18,11 +20,15 @@ and the results are compared with the original data using Z-Checker and FTK. The
    directory for each experiment.
 7. `sz.config` and `zc.config` are configuration files for SZ compressor and Z-Checker.
 8. To create a campaign: `make create`, to run a campaign: `make run`, etc.
-9. Gray-Scott:  https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
-10. SZ:  https://www.mcs.anl.gov/~shdi/download/sz-download.html
-11. Z-Checker:  https://github.com/CODARcode/Z-checker
-12. MGARD:  https://github.com/CODARcode/MGARD.git
-13. FTK:  https://github.com/CODARcode/ftk
+
+
+# References
+
+* Gray-Scott:  https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
+* SZ:  https://www.mcs.anl.gov/~shdi/download/sz-download.html
+* MGARD:  https://github.com/CODARcode/MGARD.git
+* Z-Checker:  https://github.com/CODARcode/Z-checker
+* FTK:  https://github.com/CODARcode/ftk
 
 
 
