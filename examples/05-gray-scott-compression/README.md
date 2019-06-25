@@ -26,12 +26,13 @@ and the results are compared with the original data using Z-Checker and FTK. The
 
 ## References
 
-* Gray-Scott:  https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
-* SZ:  https://www.mcs.anl.gov/~shdi/download/sz-download.html
-* MGARD:  https://github.com/CODARcode/MGARD.git
-* Z-Checker:  https://github.com/CODARcode/Z-checker
-* FTK:  https://github.com/CODARcode/ftk
-* ADIOS2: https://adios2.readthedocs.io/en/latest/index.html
+* [Gray-Scott]( https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott )
+* [SZ]( https://www.mcs.anl.gov/~shdi/download/sz-download.html )
+* [ZFP]( https://zfp.readthedocs.io/en/release0.5.5/index.html )
+* [MGARD]( https://github.com/CODARcode/MGARD.git )
+* [Z-Checker]( https://github.com/CODARcode/Z-checker )
+* [FTK]( https://github.com/CODARcode/ftk )
+* [ADIOS2]( https://adios2.readthedocs.io/en/latest/index.html )
 
 
 
