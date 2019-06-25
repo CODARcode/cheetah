@@ -218,6 +218,5 @@
   - [Gray-Scott with compression, Z-Checker and FTK](https://github.com/CODARcode/cheetah/tree/master/examples/05-gray-scott-compression)
 
 ## API
-* [Doxygen documentation](https://codarcode.github.io/cheetah/)
 * [Cheetah](https://codarcode.github.io/cheetah/cheetah/html/index.html)
 * [Savanna](https://codarcode.github.io/cheetah/savanna/html/index.html)
