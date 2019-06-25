@@ -4,12 +4,12 @@ CXXFLAGS=`adios2-config --cxx-flags` -I${SZ_DIR}/include -I${Z_CHECKER_DIR}/incl
 LIBS=`adios2-config --cxx-libs` -L${SZ_DIR}/lib -lSZ -L${Z_CHECKER_DIR}/lib -lzc -L${ZFP_DIR}/lib -lzfp -L${MGARD_DIR}/lib -lmgard ${DEBUG}
 CXX=mpicxx
 
-zchecker: zchecker.o main.o ftk_3D.o
-	$(CXX) zchecker.o main.o ftk_3D.o $(LIBS) -o zchecker
+compression: zchecker.o main.o ftk_3D.o
+	$(CXX) zchecker.o main.o ftk_3D.o $(LIBS) -o compression
 
 %.o: %.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
 clean:
-	rm -f a.out zchecker *~ *.o *.ps
+	rm -f compression *~ *.o *.ps
 

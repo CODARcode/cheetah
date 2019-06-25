@@ -8,6 +8,6 @@
     "plotgap": 25,
     "steps": 600,
     "noise": 0.01,
-    "output": "gsA.bp",
+    "output": "gs.bp",
     "adios_config": "adios2.xml"
 }
