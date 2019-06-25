@@ -18,11 +18,11 @@ and the results are compared with the original data using Z-Checker and FTK. The
    directory for each experiment.
 7. `sz.config` and `zc.config` are configuration files for SZ compressor and Z-Checker.
 8. To create a campaign: `make create`, to run a campaign: `make run`, etc.
-9. Gray-Scott is taken from https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
-10. SZ is taken from https://www.mcs.anl.gov/~shdi/download/sz-download.html
-11. Z-Checker is taken from https://github.com/CODARcode/Z-checker
-12. MGARD is taken from https://github.com/CODARcode/MGARD.git
-13. FTK is taken from https://github.com/CODARcode/ftk
+9. Gray-Scott:  https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott
+10. SZ:  https://www.mcs.anl.gov/~shdi/download/sz-download.html
+11. Z-Checker:  https://github.com/CODARcode/Z-checker
+12. MGARD:  https://github.com/CODARcode/MGARD.git
+13. FTK:  https://github.com/CODARcode/ftk
 
 
 
