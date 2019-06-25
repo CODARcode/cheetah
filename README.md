@@ -203,7 +203,7 @@
 * Inside each <b>run-\<X\>.iteration-\<Y\></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
   are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with <b>codar.cheetah.tau-</b> prefix, which corresponds to the runs
   of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
-  - `<campaign dir>/<username>` has <b>run-all.sh</b> that can be used to start the whole campaign.
+  - <b>\<campaign dir\>/\<username\></b> has <b>run-all.sh</b> that can be used to start the whole campaign.
   - `<campaign dir>/<username>/<campaign name>` has <b>cancel.sh</b> and <b>status.sh</b> that can be used to stop or monitor the campaign.
   - `<campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>` has the parameter files for this particular run.
   - The corresponding subdirectories for the particular programs in the experiment would also contain their parameter files and the logs would be created there for stdout, stderr,
