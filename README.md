@@ -200,7 +200,7 @@
   - <b>campaign name</b> is what is set as `name` field in the specification file
   - <b>X</b> enumerates all possible combinations of parameters
   - <b>Y</b> goes over <b>run_repetitions</b> from <b>SweepGroup</b>
-* Inside each <b>run-<X>.iteration-<Y></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
+* Inside each <b>run-\<X\>.iteration-\<Y\></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
   are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with <b>codar.cheetah.tau-</b> prefix, which corresponds to the runs
   of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
   - `<campaign dir>/<username>` has <b>run-all.sh</b> that can be used to start the whole campaign.
