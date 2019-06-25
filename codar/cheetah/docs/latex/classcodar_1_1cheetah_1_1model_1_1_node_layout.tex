@@ -1,0 +1,121 @@
+\hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout}{}\section{codar.\+cheetah.\+model.\+Node\+Layout Class Reference}
+\label{classcodar_1_1cheetah_1_1model_1_1_node_layout}\index{codar.\+cheetah.\+model.\+Node\+Layout@{codar.\+cheetah.\+model.\+Node\+Layout}}
+
+
+Inheritance diagram for codar.\+cheetah.\+model.\+Node\+Layout\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=214pt]{classcodar_1_1cheetah_1_1model_1_1_node_layout__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for codar.\+cheetah.\+model.\+Node\+Layout\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=214pt]{classcodar_1_1cheetah_1_1model_1_1_node_layout__coll__graph}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_ae2945079ee29179931152b676bd2811d}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_ae2945079ee29179931152b676bd2811d}} 
+def {\bfseries \+\_\+\+\_\+init\+\_\+\+\_\+} (self, layout\+\_\+list)
+\item 
+def \hyperlink{classcodar_1_1cheetah_1_1model_1_1_node_layout_a60ed0982c3837eb355a4d6011e4f33ea}{add\+\_\+node} (self, node\+\_\+dict)
+\item 
+def \hyperlink{classcodar_1_1cheetah_1_1model_1_1_node_layout_a68224168f338df09ab150d5db29daa6b}{get\+\_\+node\+\_\+containing\+\_\+code} (self, code)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a96d59b730f1373d3528e439d00e335ef}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a96d59b730f1373d3528e439d00e335ef}} 
+def {\bfseries codes\+\_\+per\+\_\+node} (self)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a790a390f6d7c0a1f49eeab9fdc4bc6dc}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a790a390f6d7c0a1f49eeab9fdc4bc6dc}} 
+def {\bfseries shared\+\_\+nodes} (self)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a9892640e32e869d90c67206fdb3b4910}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a9892640e32e869d90c67206fdb3b4910}} 
+def {\bfseries ppn} (self)
+\item 
+def \hyperlink{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7571a9432cf5f4e35ae885ccc8f8db15}{validate} (self, ppn, codes\+\_\+per\+\_\+node, shared\+\_\+nodes)
+\item 
+def \hyperlink{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7cba8a865e3556a1892b4b5ae5dd2f25}{as\+\_\+data\+\_\+list} (self)
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a93a22d0e1ec5e1a136842193299b38b3}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a93a22d0e1ec5e1a136842193299b38b3}} 
+def {\bfseries copy} (self)
+\item 
+def \hyperlink{classcodar_1_1cheetah_1_1model_1_1_node_layout_a0273ea3cc0134d39e7a6017b593bc0a7}{default\+\_\+no\+\_\+share\+\_\+layout} (cls, ppn, code\+\_\+names)
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a3a2dd51c52a932bafd122b358607582c}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a3a2dd51c52a932bafd122b358607582c}} 
+{\bfseries layout\+\_\+list}
+\item 
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_aa4d0e912fa0c19e4cf7b3b0203e6a6b4}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_aa4d0e912fa0c19e4cf7b3b0203e6a6b4}} 
+{\bfseries layout\+\_\+map}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\begin{DoxyVerb}Class representing options on how to organize a multi-exe task across
+many nodes. It is the scheduler model's job to take this and produce the
+correct scheduler and runner options to make this happen, or raise an error
+if it's not possible. Note that this will generally be different for each
+machine unless it is very simple and suppored uniformly by all desired
+machines.
+
+A layout is represented as a list of dictionaries, where each dictionary
+described codes to be run together on a single node. The keys are
+the names of the codes, and the values are the number of processes to
+assign to each.
+\end{DoxyVerb}
+ 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a60ed0982c3837eb355a4d6011e4f33ea}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a60ed0982c3837eb355a4d6011e4f33ea}} 
+\index{codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}!add\+\_\+node@{add\+\_\+node}}
+\index{add\+\_\+node@{add\+\_\+node}!codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}}
+\subsubsection{\texorpdfstring{add\+\_\+node()}{add\_node()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+model.\+Node\+Layout.\+add\+\_\+node (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{node\+\_\+dict }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Add a node to an existing layout, e.g. add sosflow.\end{DoxyVerb}
+ \mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7cba8a865e3556a1892b4b5ae5dd2f25}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7cba8a865e3556a1892b4b5ae5dd2f25}} 
+\index{codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}!as\+\_\+data\+\_\+list@{as\+\_\+data\+\_\+list}}
+\index{as\+\_\+data\+\_\+list@{as\+\_\+data\+\_\+list}!codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}}
+\subsubsection{\texorpdfstring{as\+\_\+data\+\_\+list()}{as\_data\_list()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+model.\+Node\+Layout.\+as\+\_\+data\+\_\+list (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get a copy of the data list passed to the constructor,
+suitable for JSON serialization.\end{DoxyVerb}
+ \mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a0273ea3cc0134d39e7a6017b593bc0a7}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a0273ea3cc0134d39e7a6017b593bc0a7}} 
+\index{codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}!default\+\_\+no\+\_\+share\+\_\+layout@{default\+\_\+no\+\_\+share\+\_\+layout}}
+\index{default\+\_\+no\+\_\+share\+\_\+layout@{default\+\_\+no\+\_\+share\+\_\+layout}!codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}}
+\subsubsection{\texorpdfstring{default\+\_\+no\+\_\+share\+\_\+layout()}{default\_no\_share\_layout()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+model.\+Node\+Layout.\+default\+\_\+no\+\_\+share\+\_\+layout (\begin{DoxyParamCaption}\item[{}]{cls,  }\item[{}]{ppn,  }\item[{}]{code\+\_\+names }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Create a layout object for the specified codes and ppn, where each
+code uses max procs on it's own node.\end{DoxyVerb}
+ \mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a68224168f338df09ab150d5db29daa6b}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a68224168f338df09ab150d5db29daa6b}} 
+\index{codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}!get\+\_\+node\+\_\+containing\+\_\+code@{get\+\_\+node\+\_\+containing\+\_\+code}}
+\index{get\+\_\+node\+\_\+containing\+\_\+code@{get\+\_\+node\+\_\+containing\+\_\+code}!codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}}
+\subsubsection{\texorpdfstring{get\+\_\+node\+\_\+containing\+\_\+code()}{get\_node\_containing\_code()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+model.\+Node\+Layout.\+get\+\_\+node\+\_\+containing\+\_\+code (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{code }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Get node dict containing the specified code. Raises KeyError if
+not found.\end{DoxyVerb}
+ \mbox{\Hypertarget{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7571a9432cf5f4e35ae885ccc8f8db15}\label{classcodar_1_1cheetah_1_1model_1_1_node_layout_a7571a9432cf5f4e35ae885ccc8f8db15}} 
+\index{codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}!validate@{validate}}
+\index{validate@{validate}!codar\+::cheetah\+::model\+::\+Node\+Layout@{codar\+::cheetah\+::model\+::\+Node\+Layout}}
+\subsubsection{\texorpdfstring{validate()}{validate()}}
+{\footnotesize\ttfamily def codar.\+cheetah.\+model.\+Node\+Layout.\+validate (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{ppn,  }\item[{}]{codes\+\_\+per\+\_\+node,  }\item[{}]{shared\+\_\+nodes }\end{DoxyParamCaption})}
+
+\begin{DoxyVerb}Given a machine ppn and max numer of codes (e.g. 4 on cori),
+raise a ValueError if the specified layout won't fit.\end{DoxyVerb}
+ 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+model.\+py\end{DoxyCompactItemize}
