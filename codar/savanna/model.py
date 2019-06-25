@@ -66,7 +66,8 @@ class Run(threading.Thread):
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, sched_args, env, working_dir,
-                 timeout=None, nprocs=1, stdout_path=None, stderr_path=None,
+                 timeout=None, nprocs=1, res_set=None,
+                 stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
                  depends_on_runs=None, hostfile=None,
