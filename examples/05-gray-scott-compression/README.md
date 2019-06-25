@@ -1,7 +1,7 @@
 The output from Gray-Scott simulation is passed through compression/decompression with SZ, ZFP or MGARD
 and the results are compared with the original data using Z-Checker and FTK. The results are visualized with ParaView
 
-3. Modify `env.sh` to set the environment for your situation and source it
+1. Modify `env.sh` to set the environment for your situation and source it
 1. Build gray-scott simulation as described [here](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott)
    and create a symbolic link to the gray-scott binary from the current directory. It should be called `gray-scott`.
 2. In the `analysis` subdirectory, build `compression` executable and create a symbolic link to it from the current directory. It should be called `compression`.
