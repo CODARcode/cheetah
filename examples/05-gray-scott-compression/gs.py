@@ -32,7 +32,8 @@ class GrayScott(Campaign):
                           [0.01, 0.1]),
           p.ParamRunner('gray-scott', 'nprocs', [4] ),
           p.ParamCmdLineArg("compression", "input", 1, ["../gray-scott/gs.bp"]),
-          p.ParamCmdLineArg("compression", "output", 2, ["compression.bp"]),
+          p.ParamCmdLineArg("compression", "output", 2, ["CompressionOutput.bp"]),
+          p.ParamCmdLineArg("compression", "compressor", 3, ["1"]),          
           p.ParamRunner('compression', 'nprocs', [1] )          
         ]),
       ]),
