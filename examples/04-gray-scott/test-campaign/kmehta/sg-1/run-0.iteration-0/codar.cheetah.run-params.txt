@@ -1,2 +1,0 @@
-/home/kmehta/vshare/applications/adiosvm/Tutorial/gray-scott/build/gray-scott settings.json
-/home/kmehta/vshare/applications/adiosvm/Tutorial/gray-scott/build/pdf_calc gs.bp pdf
