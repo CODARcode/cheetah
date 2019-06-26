@@ -18,3 +18,6 @@ To create a campaign endpoint from the specification, run the following command
 This will create a campaign directory in the current directory.
 To run the campaign,  
 `cd ./campaign/[your_username] and run `run-all.sh`.
+
+The status of the experiments can be queried as:  
+`cheetah status <campaign-dir> -n`
