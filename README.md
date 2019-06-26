@@ -1,7 +1,7 @@
 # Cheetah - the CODAR Experiment Harness
 
 ## Overview
-Cheetah is an experiment harness for running codesign experiments to study the effects of online data analysis at the exascale. It provides a way to run large campaigns of experiments to understand the advantages and tradeoffs of different compression and reduction algorithms run using different orchestration mechanisms. Experiments can be run to analyze data offline, in situ (via a function that is part of the application), or online (in a separate, stand-alone application).
+Cheetah is an experiment harness for running codesign experiments to study the effects of online data analysis at the exascale. It provides a way to run large campaigns of experiments to understand the advantages and tradeoffs of different compression and reduction algorithms run using different orchestration mechanisms. Experiments can be run to analyze data offline, in situ (via a function that is part of the application), or online (in a separate, stand-alone application). The workflow may be composed so that different executables reside on separate nodes, or share compute nodes, in addition to fine-tuning the number of processes per node.
 
 Users create a campaign specification file in Python that describes the applications that form the workflow, and the parameters that they are interested in exploring. Cheetah creates the campaign endpoint on the target machine, and users can then launch experiments using the generated submission script.
 
@@ -50,8 +50,15 @@ Each SweepGroup consists of one or more **Sweep** objects which represent a coll
 
 [examples/03-brusselator/cheetah-campaign.py](examples/03-brusselator/cheetah-campaign.py) explains the format of the specification file in detail. 
 
+#### Node Sharing
+A workflow may be composed so that multiple applications share a compute node if the underlying system permits it. Of the supercomputers currently supported by Cheetah, Summit and Cori allow node sharing, whereas Titan and Theta do not. As of now, Cheetah supports node sharing on Summit, whereas node sharing for Cori is currently under development. Additionally, users may want to set the number of processes spawned per node, as all cores of a node are used to spawn MPI processes by default.
+
+To do so, users must utilize the `node-layout` property of a Sweep that sets up the orchestration mechanism for all experiments in the Sweep.  
+[examples/03-brusselator/cheetah-campaign.py](examples/03-brusselator/cheetah-campaign.py) shows how to use `node-layout` to set the number of MPI processes per node.
+
 #### Running on Summit
 Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
+
 
 ## Usage
 * To generate a campaign, run
