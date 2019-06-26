@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(comm, &rank);
     MPI_Comm_size(comm, &comm_size);
 
-    char szconfig[1024] = "sz.config";
     char zcconfig[1024] = "zc.config";
 
 
@@ -80,7 +79,7 @@ int main(int argc, char *argv[])
 
     if(compressor == 1)
       {
-	SZ_Init(szconfig);
+	SZ_Init("sz.config");
       }
     ZC_Init(zcconfig);
 
@@ -229,15 +228,13 @@ int main(int argc, char *argv[])
 	  }
 	else if(compressor == 2)
 	  {
-	    //todo: return array
-	    z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
-	    z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
+	    lossy_u = z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
+	    lossy_v = z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 	  }
 	else if(compressor == 3)
 	  {
-	    //todo: return array	    
-	    z_check_mgard(stepAnalysis, u, std::string("u_mgard"), shape);
-	    z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);
+	    lossy_u = z_check_mgard(stepAnalysis, u, std::string("u_mgard"), shape);
+	    lossy_v = z_check_mgard(stepAnalysis, v, std::string("v_mgard"), shape);
 	  }
 	else
 	  {
