@@ -61,7 +61,8 @@ Due to the highly heterogeneous architecture of Summit and the associated `jsrun
 
 
 ## Usage
-* To generate a campaign, run
+* **Creating a Campaign**:  
+  To generate a campaign, run
   ```bash
   cheetah create-campaign -a <dir with configs & binaries> \
   	     -o <campaign-dir> -e <specification>.py -m <supercomputer>
@@ -72,18 +73,34 @@ Due to the highly heterogeneous architecture of Summit and the associated `jsrun
   all the necessary executables and configuration files to run each experiment separately if necessary.
   Each such directory would also contain its own log files so that one can later examine what went
   wrong with a particular experiment.
-* The top level directory of the campaign contains <b>run-all.sh</b> file that one can use to launch
+
+* **Launching the Campaign**  
+  The top level directory of the campaign contains <b>run-all.sh</b> file that one can use to launch
   the whole set of experiments on the allocated resources.
-* As campaign runs, one can examine its progress with
-  ```bash
-  cheetah status <campaign dir>
-  ```  
-  When the campaign is done, a detailed performance report can be generated using 
-  ```bash
-  cheetah generate-report <campaign dir>
-  ```  
-  This creates a csv file with metadata and performance information for all experiments.  
-  Use `-h` option for a particular command to learn more details
+
+    ```bash
+    cd <campaign>/<username>  
+    ./run-all.sh  
+    ```
+  
+    Users may explicitly set the number of nodes in the specification file, or allow Cheetah to calculate the minimum number of nodes required to run a SweepGroup.
+
+    All SweepGroups in the campaign can be launched using the `run-all.sh` script or a SweepGroup can be launched independently using its `submit.sh` launch script.  
+    
+    ** **Pro Tip** ** : If all experiments within a group do not complete in the allotted time, re-launching the group will only run the experiments that were not run.  
+
+* **Campaign Monitoring**  
+    As campaign runs, one can examine its progress with
+    ```bash
+    cheetah status <campaign dir> -n
+    ```  
+
+* **Generating a Performance Report**  
+    When the campaign is done, a detailed performance report can be generated using 
+    ```bash
+    cheetah generate-report <campaign dir>
+    ```  
+    This creates a csv file with metadata and performance information for the entire campaign. 
 
 
 ## Directory structure of the campaign
@@ -95,8 +112,7 @@ Cheetah allows multiple users to run under the same campaign. Thus, when a campa
 
 Every SweepGroup in the specification file is generated as a sub-directory in the campaign with a submit script for launching the group.
 
-** **Pro Tip** ** : All SweepGroups in the campaign can be launched using the `run-all.sh` script or a SweepGroup can be launched independently using its `submit.sh` launch script.  
-** **Pro Tip** ** : If all experiments within a group do not complete in the alloted time, re-launching the group will only run the experiments that were not run.
+
 
 All Sweeps in a SweepGroups are serialized into experiments with a unique name of the format `run-<x>.iteration-<y>`, where `x` represents the run id in increasing order starting from 0, and
   `y` represents its repetition index.  

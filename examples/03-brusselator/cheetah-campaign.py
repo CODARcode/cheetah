@@ -87,6 +87,7 @@ class Brusselator(Campaign):
 
     # Create a sweep
     # node_layout represents no. of processes per node
+    # rc_dependency denotes dependency between run components. Here, norm_calc will run after simulation has finished
     sweep1 = p.Sweep (node_layout = {'titan': [{'simulation':16}, {'norm_calc': 4}] },  # simulation: 16 ppn, norm_calc: 4 ppn
                       parameters = sweep1_parameters, rc_dependency={'norm_calc':'simulation'})
 
