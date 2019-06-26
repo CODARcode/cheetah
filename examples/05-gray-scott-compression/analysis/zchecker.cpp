@@ -3,7 +3,8 @@
 
 void printUsage()
 {
-  std::cout<<"./zchecker <input>"<<std::endl;
+  std::cout<<"./compressor <input> <output> <compressor>"<<std::endl;
+  std::cout<<"  compressor = 1 - SZ, 2 - ZFP, 3 - MGARD" << std::endl;
 }
 
 void z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution,

@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
     SZ_Init(szconfig);
     ZC_Init(zcconfig);
 
-    if (argc < 3)
+    if (argc < 4)
     {
         std::cout << "Not enough arguments\n";
         if (rank == 0)
@@ -37,12 +37,13 @@ int main(int argc, char *argv[])
     }
 
     std::string in_filename;
-    //std::string out_filename;
-
-    //    bool write_inputvars = false;
+    std::string out_filename;
+    int compressor; // 1 - SZ, 2 - ZFP, 3 - MGARD
+    
     in_filename = argv[1];
-    //out_filename = argv[2];
-
+    out_filename = argv[2];
+    compressor = std::stoi(argv[3]);
+    
     std::size_t u_global_size, v_global_size;
     std::size_t u_local_size, v_local_size;
     
@@ -54,42 +55,40 @@ int main(int argc, char *argv[])
     std::vector<double> v;
     int simStep;
 
-    // adios2 variable declarations
     adios2::Variable<double> var_u_in, var_v_in;
     adios2::Variable<int> var_step_in;
     adios2::Variable<int> var_step_out;
     adios2::Variable<double> var_u_original_out, var_v_original_out;
     adios2::Variable<double> var_u_lossy_out, var_v_lossy_out;
-    
     adios2::Variable<double> var_u_original_features_out, var_v_original_features_out;
     adios2::Variable<double> var_u_lossy_features_out, var_v_lossy_features_out;    
 
-    // adios2 io object and engine init
     adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
 
-    // IO objects for reading and writing
     adios2::IO reader_io = ad.DeclareIO("SimulationOutput");
     adios2::IO writer_io = ad.DeclareIO("CompressionOutput");
     if (!rank) 
     {
-        std::cout << "zchecker reads from Gray-Scott simulation using engine type:  "
+        std::cout << "compressor reads from Gray-Scott simulation using engine type:  "
 		  << reader_io.EngineType() << std::endl;
         std::cout << "Compression data is written using engine type:  "
 		  << writer_io.EngineType() << std::endl;
     }
 
-    // Engines for reading and writing
     adios2::Engine reader = reader_io.Open(in_filename,
 					   adios2::Mode::Read, comm);
-    adios2::Engine writer = writer_io.Open("CompressionOutput",
+    adios2::Engine writer = writer_io.Open(out_filename,
 					   adios2::Mode::Write, comm);
 
     int stepAnalysis = 0;
     while(true) {
 
         // Begin step
-        adios2::StepStatus read_status = reader.BeginStep(adios2::StepMode::NextAvailable,
-							  10.0f);
+        //adios2::StepStatus read_status = reader.BeginStep(adios2::StepMode::NextAvailable,
+	//						  10.0f);
+
+        adios2::StepStatus read_status = reader.BeginStep();
+	
         if (read_status == adios2::StepStatus::NotReady)
         {
             // std::cout << "Stream not ready yet. Waiting...\n";
@@ -165,6 +164,21 @@ int main(int argc, char *argv[])
 					      { 1, 4},
 					      { 0, 0},
 					      { 1, 4} );
+	  var_v_original_features_out =
+	    writer_io.DefineVariable<double> ("V/features/original",
+					      { 1, 4},
+					      { 0, 0},
+					      { 1, 4} );
+	  var_u_lossy_features_out =
+	    writer_io.DefineVariable<double> ("U/features/lossy",
+					      { 1, 4},
+					      { 0, 0},
+					      { 1, 4} );
+	  var_v_lossy_features_out =
+	    writer_io.DefineVariable<double> ("V/features/lossy",
+					      { 1, 4},
+					      { 0, 0},
+					      { 1, 4} );
 
 	  
 	  firstStep = false;
@@ -184,8 +198,10 @@ int main(int argc, char *argv[])
 	std::vector<critical_point_t> features_original_v =
 	  extract_features(v.data(), shape[2], shape[1], shape[0]);	
 
-	std::cout<<"step = " << stepAnalysis << " features_original_u " << features_original_u.size() << std::endl;
-	std::cout<<"step = " << stepAnalysis << " features_original_v " << features_original_v.size() << std::endl;	
+	std::cout<<"step = " << stepAnalysis << " features_original_u "
+		 << features_original_u.size() << std::endl;
+	std::cout<<"step = " << stepAnalysis << " features_original_v "
+		 << features_original_v.size() << std::endl;	
 	
 	
 	auto lossy_u = z_check_sz(stepAnalysis, u, std::string("u_sz"), shape);
@@ -197,15 +213,18 @@ int main(int argc, char *argv[])
 	  extract_features(lossy_v, shape[2], shape[1], shape[0]);	
 
 
-	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_u " << features_lossy_sz_u.size() << std::endl;
-	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_v " << features_lossy_sz_v.size() << std::endl;	
+	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_u "
+		 << features_lossy_sz_u.size() << std::endl;
+	std::cout<<"step = " << stepAnalysis << " features_lossy_sz_v "
+		 << features_lossy_sz_v.size() << std::endl;	
 
 	
-	double distance_sz_u = distance_between_features(features_original_u, features_lossy_sz_u);
-	double distance_sz_v = distance_between_features(features_original_v, features_lossy_sz_v);	
-	//	std::cout << "distance_sz_u = " << distance_sz_u << std::endl;
-	//	std::cout << "distance_sz_v = " << distance_sz_v << std::endl;	
-
+	double distance_sz_u = distance_between_features(features_original_u,
+							 features_lossy_sz_u);
+	double distance_sz_v = distance_between_features(features_original_v,
+							 features_lossy_sz_v);	
+	std::cout << "distance_sz_u = " << distance_sz_u << std::endl;
+	std::cout << "distance_sz_v = " << distance_sz_v << std::endl;	
 	
 	z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
 	z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
@@ -222,20 +241,30 @@ int main(int argc, char *argv[])
         writer.Put<double> (var_u_lossy_out, lossy_u);
         writer.Put<double> (var_v_lossy_out, lossy_v);
 
-	int Ny = features_original_u.size()/comm_size;
-	const adios2::Dims start = {rank*Ny, 0};
+	int Ny_uo = features_original_u.size()/comm_size;
+	int Ny_vo = features_original_v.size()/comm_size;
+	int Ny_ul = features_lossy_sz_u.size()/comm_size;
+	int Ny_vl = features_lossy_sz_v.size()/comm_size;	
 	if(rank == comm_size - 1)
-	  Ny = features_original_u.size() - Ny*rank;
-	if(Ny > 0)
 	  {
-	    const adios2::Dims count = {Ny, 4};
+	    Ny_uo = features_original_u.size() - Ny_uo*rank;
+	    Ny_vo = features_original_v.size() - Ny_vo*rank;
+	    Ny_ul = features_lossy_sz_u.size() - Ny_ul*rank;
+	    Ny_vl = features_lossy_sz_v.size() - Ny_vl*rank;	    
+	  }
+	
+	if(Ny_uo > 0)
+	  {
+	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_uo), 0};
+	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_uo), 4};
 	    const adios2::Box<adios2::Dims> sel(start, count);
 	    var_u_original_features_out.SetSelection(sel);
 	
 	    const adios2::Dims shape = {features_original_u.size(), 4};
 	    var_u_original_features_out.SetShape(shape);
 
-	    adios2::Variable<double>::Span features_original_u_span = writer.Put<double>(var_u_original_features_out);
+	    adios2::Variable<double>::Span features_original_u_span =
+	      writer.Put<double>(var_u_original_features_out);
 	    for(int i = 0; i < features_original_u.size(); ++i)
 	      {
 		features_original_u_span.at(i+0) = features_original_u[i].x[0];
@@ -244,6 +273,72 @@ int main(int argc, char *argv[])
 		features_original_u_span.at(i+3) = features_original_u[i].v;	    
 	      }
 	  }
+
+
+	if(Ny_vo > 0)
+	  {
+	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_vo), 0};
+	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_vo), 4};
+	    const adios2::Box<adios2::Dims> sel(start, count);
+	    var_v_original_features_out.SetSelection(sel);
+	
+	    const adios2::Dims shape = {features_original_v.size(), 4};
+	    var_v_original_features_out.SetShape(shape);
+
+	    adios2::Variable<double>::Span features_original_v_span =
+	      writer.Put<double>(var_v_original_features_out);
+	    for(int i = 0; i < features_original_v.size(); ++i)
+	      {
+		features_original_v_span.at(i+0) = features_original_v[i].x[0];
+		features_original_v_span.at(i+1) = features_original_v[i].x[1];
+		features_original_v_span.at(i+2) = features_original_v[i].x[2];
+		features_original_v_span.at(i+3) = features_original_v[i].v;	    
+	      }
+	  }
+
+
+	if(Ny_ul > 0)
+	  {
+	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_ul), 0};
+	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_ul), 4};
+	    const adios2::Box<adios2::Dims> sel(start, count);
+	    var_u_lossy_features_out.SetSelection(sel);
+	
+	    const adios2::Dims shape = {features_lossy_sz_u.size(), 4};
+	    var_u_lossy_features_out.SetShape(shape);
+
+	    adios2::Variable<double>::Span features_lossy_u_span =
+	      writer.Put<double>(var_u_lossy_features_out);
+	    for(int i = 0; i < features_lossy_sz_u.size(); ++i)
+	      {
+		features_lossy_u_span.at(i+0) = features_lossy_sz_u[i].x[0];
+		features_lossy_u_span.at(i+1) = features_lossy_sz_u[i].x[1];
+		features_lossy_u_span.at(i+2) = features_lossy_sz_u[i].x[2];
+		features_lossy_u_span.at(i+3) = features_lossy_sz_u[i].v;	    
+	      }
+	  }
+
+
+	if(Ny_vl > 0)
+	  {
+	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_vl), 0};
+	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_vl), 4};
+	    const adios2::Box<adios2::Dims> sel(start, count);
+	    var_v_lossy_features_out.SetSelection(sel);
+	
+	    const adios2::Dims shape = {features_lossy_sz_v.size(), 4};
+	    var_v_lossy_features_out.SetShape(shape);
+
+	    adios2::Variable<double>::Span features_lossy_v_span =
+	      writer.Put<double>(var_v_lossy_features_out);
+	    for(int i = 0; i < features_lossy_sz_v.size(); ++i)
+	      {
+		features_lossy_v_span.at(i+0) = features_lossy_sz_v[i].x[0];
+		features_lossy_v_span.at(i+1) = features_lossy_sz_v[i].x[1];
+		features_lossy_v_span.at(i+2) = features_lossy_sz_v[i].x[2];
+		features_lossy_v_span.at(i+3) = features_lossy_sz_v[i].v;	    
+	      }
+	  }	
 	    
         writer.EndStep ();
 	
