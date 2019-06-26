@@ -8,6 +8,45 @@
 #include "zchecker.h"
 #include "ftk_3D_interface.h"
 
+void printUsage()
+{
+  std::cout<<"./compressor <input> <output> <compressor>"<<std::endl;
+  std::cout<<"  compressor = 1 - SZ, 2 - ZFP, 3 - MGARD" << std::endl;
+}
+
+void featurePut(std::vector<critical_point_t> & features, int comm_size, int rank,
+		adios2::Variable<double> & var_features_out, adios2::Engine & writer)
+{
+	int N = features.size()/comm_size;
+	if(rank == comm_size - 1)
+	  {
+	    N = features.size() - N*rank;
+	  }
+	
+	if(N > 0)
+	  {
+	    const adios2::Dims start = {static_cast<long unsigned int>(rank*N), 0};
+	    const adios2::Dims count = {static_cast<long unsigned int>(N), 4};
+	    const adios2::Box<adios2::Dims> sel(start, count);
+	    var_features_out.SetSelection(sel);
+	
+	    const adios2::Dims shape = {features.size(), 4};
+	    var_features_out.SetShape(shape);
+
+	    adios2::Variable<double>::Span features_span =
+	      writer.Put<double>(var_features_out);
+	    for(int i = 0; i < features.size(); ++i)
+	      {
+		features_span.at(i+0) = features[i].x[0];
+		features_span.at(i+1) = features[i].x[1];
+		features_span.at(i+2) = features[i].x[2];
+		features_span.at(i+3) = features[i].v;	    
+	      }
+	  }
+}
+
+
+
 int main(int argc, char *argv[])
 {
     MPI_Init(&argc, &argv);
@@ -241,105 +280,16 @@ int main(int argc, char *argv[])
         writer.Put<double> (var_u_lossy_out, lossy_u);
         writer.Put<double> (var_v_lossy_out, lossy_v);
 
-	int Ny_uo = features_original_u.size()/comm_size;
-	int Ny_vo = features_original_v.size()/comm_size;
-	int Ny_ul = features_lossy_sz_u.size()/comm_size;
-	int Ny_vl = features_lossy_sz_v.size()/comm_size;	
-	if(rank == comm_size - 1)
-	  {
-	    Ny_uo = features_original_u.size() - Ny_uo*rank;
-	    Ny_vo = features_original_v.size() - Ny_vo*rank;
-	    Ny_ul = features_lossy_sz_u.size() - Ny_ul*rank;
-	    Ny_vl = features_lossy_sz_v.size() - Ny_vl*rank;	    
-	  }
+
+	featurePut(features_original_u, comm_size, rank,
+		   var_u_original_features_out, writer);
+	featurePut(features_original_v, comm_size, rank,
+		   var_v_original_features_out, writer);
+	featurePut(features_lossy_sz_u, comm_size, rank,
+		   var_u_lossy_features_out, writer);
+	featurePut(features_lossy_sz_v, comm_size, rank,
+		   var_v_lossy_features_out, writer);
 	
-	if(Ny_uo > 0)
-	  {
-	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_uo), 0};
-	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_uo), 4};
-	    const adios2::Box<adios2::Dims> sel(start, count);
-	    var_u_original_features_out.SetSelection(sel);
-	
-	    const adios2::Dims shape = {features_original_u.size(), 4};
-	    var_u_original_features_out.SetShape(shape);
-
-	    adios2::Variable<double>::Span features_original_u_span =
-	      writer.Put<double>(var_u_original_features_out);
-	    for(int i = 0; i < features_original_u.size(); ++i)
-	      {
-		features_original_u_span.at(i+0) = features_original_u[i].x[0];
-		features_original_u_span.at(i+1) = features_original_u[i].x[1];
-		features_original_u_span.at(i+2) = features_original_u[i].x[2];
-		features_original_u_span.at(i+3) = features_original_u[i].v;	    
-	      }
-	  }
-
-
-	if(Ny_vo > 0)
-	  {
-	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_vo), 0};
-	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_vo), 4};
-	    const adios2::Box<adios2::Dims> sel(start, count);
-	    var_v_original_features_out.SetSelection(sel);
-	
-	    const adios2::Dims shape = {features_original_v.size(), 4};
-	    var_v_original_features_out.SetShape(shape);
-
-	    adios2::Variable<double>::Span features_original_v_span =
-	      writer.Put<double>(var_v_original_features_out);
-	    for(int i = 0; i < features_original_v.size(); ++i)
-	      {
-		features_original_v_span.at(i+0) = features_original_v[i].x[0];
-		features_original_v_span.at(i+1) = features_original_v[i].x[1];
-		features_original_v_span.at(i+2) = features_original_v[i].x[2];
-		features_original_v_span.at(i+3) = features_original_v[i].v;	    
-	      }
-	  }
-
-
-	if(Ny_ul > 0)
-	  {
-	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_ul), 0};
-	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_ul), 4};
-	    const adios2::Box<adios2::Dims> sel(start, count);
-	    var_u_lossy_features_out.SetSelection(sel);
-	
-	    const adios2::Dims shape = {features_lossy_sz_u.size(), 4};
-	    var_u_lossy_features_out.SetShape(shape);
-
-	    adios2::Variable<double>::Span features_lossy_u_span =
-	      writer.Put<double>(var_u_lossy_features_out);
-	    for(int i = 0; i < features_lossy_sz_u.size(); ++i)
-	      {
-		features_lossy_u_span.at(i+0) = features_lossy_sz_u[i].x[0];
-		features_lossy_u_span.at(i+1) = features_lossy_sz_u[i].x[1];
-		features_lossy_u_span.at(i+2) = features_lossy_sz_u[i].x[2];
-		features_lossy_u_span.at(i+3) = features_lossy_sz_u[i].v;	    
-	      }
-	  }
-
-
-	if(Ny_vl > 0)
-	  {
-	    const adios2::Dims start = {static_cast<long unsigned int>(rank*Ny_vl), 0};
-	    const adios2::Dims count = {static_cast<long unsigned int>(Ny_vl), 4};
-	    const adios2::Box<adios2::Dims> sel(start, count);
-	    var_v_lossy_features_out.SetSelection(sel);
-	
-	    const adios2::Dims shape = {features_lossy_sz_v.size(), 4};
-	    var_v_lossy_features_out.SetShape(shape);
-
-	    adios2::Variable<double>::Span features_lossy_v_span =
-	      writer.Put<double>(var_v_lossy_features_out);
-	    for(int i = 0; i < features_lossy_sz_v.size(); ++i)
-	      {
-		features_lossy_v_span.at(i+0) = features_lossy_sz_v[i].x[0];
-		features_lossy_v_span.at(i+1) = features_lossy_sz_v[i].x[1];
-		features_lossy_v_span.at(i+2) = features_lossy_sz_v[i].x[2];
-		features_lossy_v_span.at(i+3) = features_lossy_sz_v[i].v;	    
-	      }
-	  }	
-	    
         writer.EndStep ();
 	
 	
