@@ -113,6 +113,6 @@ For more examples of using Cheetah, see the examples directory.
   - [Gray-Scott with compression, Z-Checker and FTK](https://github.com/CODARcode/cheetah/tree/master/examples/05-gray-scott-compression)
 
 ## API
-* [Cheetah](https://codarcode.github.io/cheetah/cheetah/html/index.html)
-* [Savanna](https://codarcode.github.io/cheetah/savanna/html/index.html)
-* [Cheetah/Savanna]( https://codarcode.github.io/cheetah/cheetah_savanna/html )
+<!-- * [Cheetah](https://codarcode.github.io/cheetah/cheetah/html/index.html) -->
+<!-- * [Savanna](https://codarcode.github.io/cheetah/savanna/html/index.html) -->
+[Cheetah/Savanna]( https://codarcode.github.io/cheetah/cheetah_savanna/html )
