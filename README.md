@@ -21,135 +21,37 @@ To use Cheetah, users must first write a **campaign specification file** in Pyth
 * how many times to repeat each experiment to collect enough statistics to estimate the variability of the results.
 * Setting the coupling mechanism in ADIOS (SST, BPFile, SST RDMA, SSC, InsituMPI)  
 
-## Campaign specification file
-Here is a small example of a campaign file:
-```python
-from codar.cheetah import Campaign
-from codar.cheetah import parameters as p
-from datetime import timedelta
+## Cheetah installation
+* Dependency: Linux, python 3.5+
+* On supercomputers it should be installed on a parallel file system visible from compute/mother nodes
+* One can also run campaign on a standalone computer by using <b>local</b> as a supercomputer
+* To install Cheetah, do:
+  ```bash
+  git clone git@github.com:CODARcode/cheetah.git
+  cd cheetah          
+  python3 -m venv venv-cheetah
+  source venv-cheetah/bin/activate
+  pip install --editable .
+  ```
+* Cheetah has been tested so far on Summit, Theta, Cori, and standalone Linux computers
 
-class GrayScott(Campaign):
-  name = "Gray-Scott-A"
-  codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)),
-           ("compression", dict(exe="compression")) ]
-  supported_machines = ['local', 'theta']
-  scheduler_options = {
-      "theta": {
-          "queue": "debug-flat-quad",
-          "project": "XXXX",
-      }
-  }
-  umask = '027'
-  sweeps = [
-   p.SweepGroup(name="Gray-Scott",
-                walltime=timedelta(minutes=30),
-                component_subdirs=True,
-                run_repetitions=2,
-                component_inputs={
-                    'gray-scott': ['settings.json','adios2.xml'],
-                    'compression': ['adios2.xml','sz.config','zc.config']
-                },
-    parameter_groups=
-    [p.Sweep([
-        p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"]),
-        p.ParamConfig("gray-scott", "L", "settings.json", "L",
-                        [32, 64]),
-        p.ParamConfig("gray-scott", "noise", "settings.json", "noise",
-                        [0.01, 0.1]),
-        p.ParamRunner('gray-scott', 'nprocs', [4] ),
-        p.ParamCmdLineArg("compression", "input", 1, ["../gray-scott/gs.bp"]),
-        p.ParamCmdLineArg("compression", "output", 2, ["compression.bp"]),
-        p.ParamRunner('compression', 'nprocs', [1] )          
-      ]),
-    ]),
-  ]
-```
+##### Setting up a Cheetah environment
+   ```bash
+   source <cheetah dir>/venv-cheetah/bin/activate
+   ```
+
+## Campaign specification file
 
 ![Cheetah Object Model](docs/cheetah-model.jpg?raw=true "Cheetah Object Model")
 
 The campaign specification file allows various options to setup and execute the workflow.
 A campaign is a collection of **SweepGroup** objects which represent a batch job for the underlying system.
-Each SweepGroup consists of one or more **Sweep** objects which represent a collection of parameter values that must be explored.  
-[spec-format.py](examples/spec-format.py) explains the format of the specification file in detail.
+Each SweepGroup consists of one or more **Sweep** objects which represent a collection of parameter values that must be explored.
 
-  - <b>name</b> - campaign name
-  - <b>codes</b> - what MPI programs to run in parallel.
-    It is a dictionary mapping the campaign name of a program to the corresponding binary,
-    possibly setting up some other parameters. In this example, `sleep_after=1` means that
-    <b>gray-scott</b> started 1 second earlier than <b>compression</b> (is that right?? or the other way around??)
-  - <b>supported_machines</b> - indicates for which supercomputer this campaign can be generated (why is it needed considering
-    that it is defined when campaign is generated from the specification file??)
-  - <b>scheduler_options</b> - defines some extra options to the resource manager not defined in <b>Savanna</b> such as project to charge the run to;
-    note: <b>Savanna</b> is part of Cheetah that shields a user from the pecularities of a supercomputer
-  - <b>umask</b> specifies the permissions for the newly created campaign files and directories.
-  - <b>sweeps</b> is a list of <b>SweepGroups</b>
-    + <b>SweepGroup</b> has a  name, a list of configuration files to copy into each experiment's directory,
-      <b>parameter_groups</b>.
-      * <b>parameter_groups</b> is a list of `Sweeps` where one specifies with which parameters to run experiments.
-      * Some parameters are fixed values, and some are lists. A cartesian product of all the parameters is taken
-  to compute the experiments to perform.
-  - Examples of parameter types:
-    + <b>ParamCmdLineArg</b> allows to specify command line positional parameter for a particular program.
-      For example
-      ```python
-      p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"])
-      ```
-      means that the first parameter of "gray-scott" program, that in the campaign given a name "settings", has a value
-      "settings.json". Notice that the value is given as a list suggesting that you can list here all possible values
-      of the first positional parameter with which you want to launch the corresponding executable.
-    + <b>ParamConfig</b> allows to deal with `*json` or `*ini` parameter files.
-      For example
-      ```python
-      p.ParamConfig("gray-scott", "L", "settings.json", "L", [32, 64])
-      ```
-      means that parameter "L" from "settings.json" (that "gray-scott" reads) can take values 32 and 64 and is also called "L" inside the campaign.
-    + <b>ParamRunner</b> allows to specify resources for each program.
-      For example
-      ```python
-      p.ParamRunner('gray-scott', 'nprocs', [4] )
-      ```
-      means that "gray-scott" would use 4 MPI ranks. As with any other cheetah parameters, one can specify several
-      values for such parameters as well which is needed for codesign studies.
-    + When one creates a campaign with the above specification file, the campaign will have 4 experiments (2x2 parameter combinations).
-    + Notice that parameters are given internal campaign name because one can use lambda functions to generate dependencies
-      between different parameters and define <b>derived parameters</b> by using expressions with names of other parameters.
-    + <b>SweepGroup</b> has <b>run_repetitions=2</b> parameter that says that each experiment should be repeated twice.
-    + In each experiment specified above there are two MPI jobs running:
-      - ["gray-scott"](https://github.com/pnorbert/adiosvm/tree/master/Tutorial/gray-scott) simulation  generates values on 3D grid at each time step, it uses 4 MPI ranks,
-      - "compression" program at each time step
-        reads this 3D volume, compresses it with one of the compressors, such as [SZ](https://www.mcs.anl.gov/~shdi/download/sz-download.html),
-  [ZFP](https://github.com/LLNL/zfp), [MGARD](https://github.com/CODARcode/MGARD.git), decompresses it back,
-  runs [Z-Checker](https://github.com/CODARcode/Z-checker) and [FTK](https://github.com/CODARcode/ftk) on the original and lossy data to decide on the quality of
-        the compression; this job has 1 MPI rank.
-  - Although ADIOS2 is not part of Cheetah, to understand how the programs, launched in parallel by Cheetah, communicate with each other,
-    let us look into <b>adios2.xml</b> configuration file:
-    ```xml
-    <?xml version="1.0"?>
-    <adios-config>
-      <io name="SimulationOutput">
-        <engine type="SST">
-          <parameter key="RendezvousReaderCount" value="1"/>
-          <parameter key="QueueLimit" value="15"/>
-          <parameter key="QueueFullPolicy" value="Block"/>
-        </engine>
-      </io>
-      <io name="CompressionOutput">
-        <engine type="BPFile">
-          <parameter key="RendezvousReaderCount" value="1"/>
-          <parameter key="QueueLimit" value="15"/>
-          <parameter key="QueueFullPolicy" value="Discard"/>
-        </engine>
-      </io>
-    </adios-config>
-    ```
-    + Inside Gray-Scott program, using ADIOS2 API, a user opens <b>SimulationOutput</b> stream and writes to it at each time step
-      without knowing what I/O backend is used: BP file, HDF5 file,
-      network socket (SST, SSC), etc.
-    + Inside compression program, using ADIOS2 API, a user  opens <b>SimulationOutput</b> stream and reads from it at each time step
-    + Of course, both the reader and the writer should be told to use the same <b>adios2.xml</b> file.
-    + The above XML file specifies that  <b>SimulationOutput</b> uses <b>SST</b> engine (network socket) and that a producer should block until somebody reads its output.
-    + <b>CompressionOutput</b> stream is used by compression program to write its output into BP file (ADIOS2's native output format).
-    + Engines can be changed in XML file without rebuilding the programs.
+[examples/03-brusselator/cheetah-campaign.py](examples/03-brusselator/cheetah-campaign.py) explains the format of the specification file in detail. 
+
+#### Running on Summit
+Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
 
 ## Usage
 * To generate a campaign, run
@@ -176,47 +78,34 @@ Each SweepGroup consists of one or more **Sweep** objects which represent a coll
   This creates a csv file with metadata and performance information for all experiments.  
   Use `-h` option for a particular command to learn more details
 
-## Cheetah installation
-* Dependency: Linux, python 3.5+
-* On supercomputers it should be installed on a parallel file system visible from compute/mother nodes
-* One can also run campaign on a standalone computer by using <b>local</b> as a supercomputer
-* To install Cheetah, do:
-  ```bash
-  git clone git@github.com:CODARcode/cheetah.git
-  cd cheetah          
-  python3 -m venv venv-cheetah
-  source venv-cheetah/bin/activate
-  pip install --editable .
-  ```
-* Cheetah was tested so far on <b>Summit</b>, <b>Theta</b>, standalone Linux computers
-
-## Setting up Cheetah environment
-   ```bash
-   source <cheetah dir>/venv-cheetah/bin/activate
-   ```
-
-
 
 ## Directory structure of the campaign
-* Once one creates a campaign with the above specification file, the following directory structure is created:
-  ```bash
-  <campaign dir>/<username>/<campaign name>/run-<X>.iteration-<Y>
-  ```
-  - Here <b>campaign dir</b> is what is specified with `-o` option when running `cheetah.py create-campaign -o <campaign dir> ...`.
-  - <b>campaign name</b> is what is set as <b>name</b> field in the specification file
-  - <b>X</b> enumerates all possible combinations of parameters
-  - <b>Y</b> goes over <b>run_repetitions</b> from <b>SweepGroup</b>
-* Inside each <b>run-\<X\>.iteration-\<Y\></b> there are subdirectories corresponding to the programs in the experiment. For example, for the above speficiation file, there
-  are <b>gray-scott</b> and <b>compression</b> directories. There are also corresponding subdirectories with <b>codar.cheetah.tau-</b> prefix, which corresponds to the runs
-  of the programs in which tau was used for profiling. Each subdirectory might contain configuration, launch, monitor, log files appropriate for the corresponding level.
-  - <b>\<campaign dir\>/\<username\></b> has <b>run-all.sh</b> that can be used to start the whole campaign.
-  - <b>\<campaign dir\>/\<username\>/\<campaign name\></b> has <b>cancel.sh</b> and <b>status.sh</b> that can be used to stop or monitor the campaign.
-  - <b>\<campaign dir\>/\<username\>/\<campaign name\>/run-\<X\>.iteration-\<Y\></b> has the parameter files for this particular run.
-  - The corresponding subdirectories for the particular programs in the experiment would also contain their parameter files and the logs would be created there for stdout, stderr,
-    return status, walltime, etc.
+
+Cheetah allows multiple users to run under the same campaign. Thus, when a campaign is created, Cheetah generates a user directory at the top-level by default.
+```bash
+<campaign dir>/<username>
+```
+
+Every SweepGroup in the specification file is generated as a sub-directory in the campaign with a submit script for launching the group.
+
+** **Pro Tip** ** : All SweepGroups in the campaign can be launched using the `run-all.sh` script or a SweepGroup can be launched independently using its `submit.sh` launch script.  
+** **Pro Tip** ** : If all experiments within a group do not complete in the alloted time, re-launching the group will only run the experiments that were not run.
+
+All Sweeps in a SweepGroups are serialized into experiments with a unique name of the format `run-<x>.iteration-<y>`, where `x` represents the run id in increasing order starting from 0, and
+  `y` represents its repetition index.  
+All experiments have their own directory and can be run concurrently and independently of each other if there are sufficient compute resources available for Savanna to launch them.
+
+Each group contains `fobs.json`, which is a group-level metadata file describing all experiments and global options of the group. Other files such as `campaign-env.sh` and `group-env.sh` contain additional Cheetah metadata.
+`codar.FOBrun.log` is a log file maintained by Savanna to log runtime execution of experiments.  
+The stdout and stderr of each application in an experiment is redirected to `codar.workflow.stdout.<app-name>` and `codar.workflow.stderr.<app-name>` respectively.  
+Similarly, Savanna creates files to store the runtime of each workflow component and its return code.
+
+** **Pro Tip** ** : Use the `run_post_process_script` experiment option in the specification file to cleanup large files after an experiment completes.
+Cheetah automatically captures the sizes of all output ADIOS files when the experiment completes.
     
 ## Examples
-* For more examples of using Cheetah, see
+For more examples of using Cheetah, see the examples directory.
+
   - [Calculating Euler's number](https://github.com/CODARcode/cheetah/tree/master/examples/01-eulers_number)
   - [Using Cheetah to run coupled applications](https://github.com/CODARcode/cheetah/tree/master/examples/02-coupling)
   - [Brusselator](https://github.com/CODARcode/cheetah/tree/master/examples/03-brusselator)
