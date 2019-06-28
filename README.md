@@ -56,7 +56,18 @@ A workflow may be composed so that multiple applications share a compute node if
 To do so, users must utilize the `node-layout` property of a Sweep that sets up the orchestration mechanism for all experiments in the Sweep.  
 [examples/03-brusselator/cheetah-campaign.py](examples/03-brusselator/cheetah-campaign.py) shows how to use `node-layout` to set the number of MPI processes per node.
 
-#### Running on Summit
+
+#### Supported Systems
+System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Sharing Support 
+:-----------| :---------------| :----------------------------| :---------------------------
+Local Linux machines | :heavy_check_mark: | N/A | N/A
+Summit | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
+Titan | :heavy_check_mark: | :x: | N/A
+Theta | :heavy_check_mark: | :x: | N/A
+Cori | :heavy_check_mark: | :heavy_check_mark: | In progress
+
+
+### Running on Summit
 Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
 
 
