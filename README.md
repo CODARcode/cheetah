@@ -21,7 +21,7 @@ To use Cheetah, users must first write a **campaign specification file** in Pyth
 * how many times to repeat each experiment to collect enough statistics to estimate the variability of the results.
 * Setting the coupling mechanism in ADIOS (SST, BPFile, SST RDMA, SSC, InsituMPI)  
 
-## Cheetah installation
+## Installation
 * Dependency: Linux, python 3.5+
 * On supercomputers it should be installed on a parallel file system visible from compute/mother nodes
 * One can also run campaign on a standalone computer by using <b>local</b> as a supercomputer
