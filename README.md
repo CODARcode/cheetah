@@ -62,8 +62,8 @@ System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Shar
 :-----------| :---------------| :----------------------------| :---------------------------
 Local Linux machines | :white_check_mark: | N/A | N/A
 Summit | :white_check_mark: | :white_check_mark: | :white_check_mark:
-Titan | :white_check_mark: | :negative_squared_cross_mark: | N/A
-Theta | :white_check_mark: | :negative_squared_cross_mark: | N/A
+Titan | :white_check_mark: | :x: | N/A
+Theta | :white_check_mark: | :x: | N/A
 Cori | :white_check_mark: | :white_check_mark: | In progress
 
 
