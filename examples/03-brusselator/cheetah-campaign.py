@@ -103,6 +103,7 @@ class Brusselator(Campaign):
                                 launch_mode='default',  # or MPMD
                                 # optional:
                                 # nodes=10,
+                                # run_repetitions=2, # no. of times each experiment must be repeated (here, total runs = 3)
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
                                 # component_inputs = {'simulation': ['some_input_file'], 'norm_calc': [SymLink('some_large_file')] } <-- inputs required by codes
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
