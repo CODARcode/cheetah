@@ -67,8 +67,8 @@ Theta | :white_check_mark: | :x: | N/A
 Cori | :white_check_mark: | :white_check_mark: | In progress
 
 
-###white_check_mark Running on Summit
-Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
+### Running on Summit
+Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep where users have to map processes to resources on a node. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
 
 
 ## Usage
