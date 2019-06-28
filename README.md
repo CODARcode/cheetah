@@ -60,14 +60,14 @@ To do so, users must utilize the `node-layout` property of a Sweep that sets up 
 #### Supported Systems
 System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Sharing Support 
 :-----------| :---------------| :----------------------------| :---------------------------
-Local Linux machines | :heavy_check_mark: | N/A | N/A
-Summit | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
-Titan | :heavy_check_mark: | :x: | N/A
-Theta | :heavy_check_mark: | :x: | N/A
-Cori | :heavy_check_mark: | :heavy_check_mark: | In progress
+Local Linux machines | :white_check_mark: | N/A | N/A
+Summit | :white_check_mark: | :white_check_mark: | :white_check_mark:
+Titan | :white_check_mark: | :negative_squared_cross_mark: | N/A
+Theta | :white_check_mark: | :negative_squared_cross_mark: | N/A
+Cori | :white_check_mark: | :white_check_mark: | In progress
 
 
-### Running on Summit
+###white_check_mark Running on Summit
 Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
 
 
