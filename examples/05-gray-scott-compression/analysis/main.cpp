@@ -56,9 +56,9 @@ void featurePut(std::vector<critical_point_t> & features, int offset, int total,
 
 int main(int argc, char *argv[])
 {
-    MPI_Init(&argc, &argv);
-    int rank, comm_size, wrank;
-
+  int provided;
+  MPI_Init_thread( &argc, &argv, MPI_THREAD_FUNNELED, &provided );
+  int rank, comm_size, wrank;
 
     MPI_Comm_rank(MPI_COMM_WORLD, &wrank);
 
