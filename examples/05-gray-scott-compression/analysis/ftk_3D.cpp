@@ -185,15 +185,19 @@ std::vector<critical_point_t> extract_features(double *data, const size_t DW,
   return features;
 }
 
-//How to define it?
-double distance_between_features(std::vector<critical_point_t>& features1,
-				 std::vector<critical_point_t>& features2)
+void distance_between_features(std::vector<critical_point_t>& features1,
+			       std::vector<critical_point_t>& features2,
+			       int * difference, double * normalized)
 {
-  double distance = features1.size() - features2.size();
-
-  std::cout << "features1.size() = " << features1.size() << std::endl;
-  std::cout << "features2.size() = " << features2.size() << std::endl;
-  std::cout << "distance = " << distance << std::endl;    
-  
-  return distance;
+  double norm = (features1.size() + features2.size())/2;
+  if(norm == 0.0)
+    {
+      *difference = 0;
+      *normalized = 0.0;
+    }
+  else
+    {
+      *difference = features1.size() - features2.size();
+      *normalized = *difference/norm;
+    }
 }

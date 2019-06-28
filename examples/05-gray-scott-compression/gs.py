@@ -27,14 +27,14 @@ class GrayScott(Campaign):
       [p.Sweep([
           p.ParamCmdLineArg("gray-scott", "settings", 1, ["settings.json"]),
           p.ParamConfig("gray-scott", "L", "settings.json", "L",
-                          [32, 64]),
+                          [32]),
           p.ParamConfig("gray-scott", "noise", "settings.json", "noise",
-                          [0.01, 0.1]),
+                          [0.01]),
           p.ParamRunner('gray-scott', 'nprocs', [4] ),
           p.ParamCmdLineArg("compression", "input", 1, ["../gray-scott/gs.bp"]),
           p.ParamCmdLineArg("compression", "output", 2, ["CompressionOutput.bp"]),
           p.ParamCmdLineArg("compression", "compressor", 3, ["1"]),          
-          p.ParamRunner('compression', 'nprocs', [1] )          
+          p.ParamRunner('compression', 'nprocs', [2] )          
         ]),
       ]),
     ]
