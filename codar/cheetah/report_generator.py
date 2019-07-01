@@ -14,7 +14,6 @@ from pathlib import Path
 import json
 import csv
 import subprocess
-from codar.cheetah.sos_flow_analysis import sos_flow_analysis
 from codar.cheetah.helpers import get_immediate_subdirs, \
                                   require_campaign_directory
 
