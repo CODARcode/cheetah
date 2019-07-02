@@ -7,6 +7,7 @@
 
 #include "zchecker.h"
 #include "ftk_3D_interface.h"
+//#include "ftk_debug.h"
 
 int scan(int *sizes, int rank, int n, int *total)
 {
@@ -36,21 +37,23 @@ void featurePut(std::vector<critical_point_t> & features, int offset, int total,
 		adios2::Variable<double> & var_features_out, adios2::Engine & writer)
 {
   int N = features.size();
+  //  std::cout<<"In featurePut N = " << N << " total = " << total << " offset=" << offset << std::endl;
   const adios2::Dims start = {static_cast<long unsigned int>(offset), 0};
   const adios2::Dims count = {static_cast<long unsigned int>(N), 4};
-  const adios2::Dims shape = {static_cast<long unsigned int>(N), 4};
+  const adios2::Dims shape = {static_cast<long unsigned int>(total), 4};
   var_features_out.SetShape(shape);
   const adios2::Box<adios2::Dims> sel(start, count);
   var_features_out.SetSelection(sel);
   
   adios2::Variable<double>::Span features_span =
     writer.Put<double>(var_features_out);
-  for(int i = 0; i < N; ++i)
+  
+  for(int i = 0, j = 0; i < N; ++i, j+=4)
     {
-      features_span.at(i+0) = features[i].x[0];
-      features_span.at(i+1) = features[i].x[1];
-      features_span.at(i+2) = features[i].x[2];
-      features_span.at(i+3) = features[i].v;	    
+      features_span.at(j+0) = features[i].x[0];
+      features_span.at(j+1) = features[i].x[1];
+      features_span.at(j+2) = features[i].x[2];
+      features_span.at(j+3) = features[i].v;	    
     }
 }
 
@@ -140,14 +143,6 @@ int main(int argc, char *argv[])
 
     adios2::IO reader_io = ad.DeclareIO("SimulationOutput");
     adios2::IO writer_io = ad.DeclareIO("CompressionOutput");
-
-    if (!rank) 
-    {
-        std::cout << "compression reads from Gray-Scott simulation using engine type:  "
-		  << reader_io.EngineType() << std::endl;
-        std::cout << "compression data is written using engine type:  "
-		  << writer_io.EngineType() << std::endl;
-    }
 
     adios2::Engine reader = reader_io.Open(in_filename,
 					   adios2::Mode::Read, comm);
@@ -267,6 +262,10 @@ int main(int argc, char *argv[])
 
 	print_step_rank(stepAnalysis, rank, "features_original_u", features_original_u.size());
 	print_step_rank(stepAnalysis, rank, "features_original_v", features_original_v.size());	
+
+	//features2file(stepAnalysis, "features_orginal_u", features_original_u);
+	//features2file(stepAnalysis, "features_orginal_v", features_original_v);	
+
 	
 	double *lossy_u = nullptr;
 	double *lossy_v = nullptr;
@@ -297,6 +296,9 @@ int main(int argc, char *argv[])
 	std::vector<critical_point_t> features_lossy_v =
 	  extract_features(lossy_v, local_shape[0], local_shape[1], local_shape[2]);	
 
+	// features2file(stepAnalysis, "features_lossy_u", features_lossy_u);
+	// features2file(stepAnalysis, "features_lossy_v", features_lossy_v);	
+	
 
 	print_step_rank(stepAnalysis, rank, "features_lossy_u", features_lossy_u.size());
 	print_step_rank(stepAnalysis, rank, "features_lossy_v", features_lossy_v.size());	
@@ -314,21 +316,23 @@ int main(int argc, char *argv[])
 	print_step_rank(stepAnalysis, rank, "distance_u_norm", distance_u_norm);
 	print_step_rank(stepAnalysis, rank, "distance_v_diff", distance_v_norm);		
 
-	int nuo = features_original_u.size();
-	int nul = features_lossy_u.size();
-	int nvo = features_original_v.size();
-	int nvl = features_lossy_v.size();
+	const int nuo = features_original_u.size();
+	const int nul = features_lossy_u.size();
+	const int nvo = features_original_v.size();
+	const int nvl = features_lossy_v.size();
 
 	int *nuo_a = new int[comm_size];
 	int *nul_a = new int[comm_size];
 	int *nvo_a = new int[comm_size];
 	int *nvl_a = new int[comm_size];	
 
-	MPI_Allgather(&nuo, 1, MPI_INT, nuo_a, comm_size, MPI_INT, comm);
-	MPI_Allgather(&nul, 1, MPI_INT, nul_a, comm_size, MPI_INT, comm);
-	MPI_Allgather(&nvo, 1, MPI_INT, nvo_a, comm_size, MPI_INT, comm);
-	MPI_Allgather(&nvl, 1, MPI_INT, nvl_a, comm_size, MPI_INT, comm);	
 
+	MPI_Allgather(&nuo, 1, MPI_INT, nuo_a, 1, MPI_INT, comm);
+	MPI_Allgather(&nul, 1, MPI_INT, nul_a, 1, MPI_INT, comm);
+	MPI_Allgather(&nvo, 1, MPI_INT, nvo_a, 1, MPI_INT, comm);
+	MPI_Allgather(&nvl, 1, MPI_INT, nvl_a, 1, MPI_INT, comm);
+
+	
 	int nuo_n, nuo_offset;
 	nuo_offset = scan(nuo_a, rank, comm_size, &nuo_n);
 	int nul_n, nul_offset;
@@ -338,12 +342,24 @@ int main(int argc, char *argv[])
 	int nvl_n, nvl_offset;
 	nvl_offset = scan(nvl_a, rank, comm_size, &nvl_n);	
 
+	print_step_rank(stepAnalysis, rank, "nuo_n = ", nuo_n);
+	print_step_rank(stepAnalysis, rank, "nuo_offset = ", nuo_offset);	
     
         writer.BeginStep ();
         writer.Put<double> (var_u_original_out, u.data());
         writer.Put<double> (var_v_original_out, v.data());
         writer.Put<double> (var_u_lossy_out, lossy_u);
         writer.Put<double> (var_v_lossy_out, lossy_v);
+
+	writer.Put<int>(var_u_original_features_n_out, &nuo);
+	writer.Put<int>(var_v_original_features_n_out, &nvo);
+	writer.Put<int>(var_u_lossy_features_n_out, &nul);
+	writer.Put<int>(var_v_lossy_features_n_out, &nvl);	
+
+	writer.Put<int>(var_u_distance_d_features_out, distance_u_diff);
+	writer.Put<int>(var_v_distance_d_features_out, distance_v_diff);
+	writer.Put<double>(var_u_distance_n_features_out, distance_u_norm);
+	writer.Put<double>(var_v_distance_n_features_out, distance_v_norm);		
 	
 	featurePut(features_original_u, nuo_offset, nuo_n,
 		   var_u_original_features_out, writer);
