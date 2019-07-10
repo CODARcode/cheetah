@@ -1,4 +1,7 @@
 from paraview.simple import *
+import commands
+
+commands.getstatusoutput("mkdir -p movies")
 
 vars = ['U', 'V']
 Xs = [1, 16]

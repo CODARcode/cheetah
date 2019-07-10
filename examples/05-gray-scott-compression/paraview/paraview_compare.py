@@ -84,6 +84,8 @@ def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True, FT
 
         UpdatePipeline(proxy=csv1)
         UpdatePipeline(proxy=csv2)
+        UpdatePipeline(proxy=tableToPoints1)
+        UpdatePipeline(proxy=tableToPoints2)        
         
         renderView1.Update()
         renderView2.Update()
