@@ -81,6 +81,9 @@ def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True, FT
         tableToPointsDisplay2.GaussianRadius = 0.4    
         tableToPointsDisplay2.SetScalarBarVisibility(renderView2, True)    
         ColorBy(tableToPointsDisplay2, ('POINTS', 'Field 3'))
+
+        UpdatePipeline(proxy=csv1)
+        UpdatePipeline(proxy=csv2)
         
         renderView1.Update()
         renderView2.Update()
@@ -88,6 +91,9 @@ def compareX(var='U', step=23, fn='CompressionOutput.h5', nx = 32, play=True, FT
     renderView1.ResetCamera()
     renderView2.ResetCamera()
 
+    Show()
+    Render()
+    
     AddCameraLink(renderView1, renderView2, "view 1-2")
 
     r1Display1 = Show(r1, renderView1)
@@ -254,6 +260,9 @@ def compareT(var='U', X=16, fn='CompressionOutput.h5', steps=24, play=True, nx =
         
         renderView1.Update()
         renderView2.Update()
+        Show()
+        Render()
+        
 
     scene = GetAnimationScene()
 
@@ -282,6 +291,8 @@ def tick(self):
         csv2.FileName = 'FEATURES/%s/d.csv' % variable2f
         views[0].Update()
         views[1].Update()
+        Show()
+        Render()
 def end_cue(self): pass
 """.replace("VAR", var).replace("FTK", str(FTK))
     scene.Cues.append(pycue)

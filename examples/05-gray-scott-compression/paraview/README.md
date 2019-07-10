@@ -9,11 +9,13 @@
 * In ParaView Python shell you can now call these functions. `compareX()` shows 2D slice animation over `X` with fixed `T` for both original and lossy data.
   `compareT()` shows 2D slice animation over `T` with fixed `X` for both original and lossy data.
 * By default, the camera is over `X` and only one side of the cube will be seen. If you want to change view in a predictable way, you can use `angle.py` macro, for example.
-* If FTK=True, local maxima found by FTK are plotted as well. As a prerequisite, run `features2csv.py` in the same directory as `CompressionOutput.h5` to convert features from hdf5
+* If `FTK=True`, local maxima found by FTK are plotted as well.
+  As a prerequisite, run `features2csv.py` in the same directory as `CompressionOutput.h5` to convert features from hdf5
   file into csv files (easier to handle in paraview).
 * The scripts were tested with ParaView 5.6.1 under Ubuntu 18.0.4
 * One can find links to some animations in `movies` directory.
 * `animations.py` script automates movie generation: first run `paraview_compare.py` in python shell, then run `animations.py`.
+* Similarly one can run `animations_FTK.py` to generate movies with local maxima added.
 
 
 
