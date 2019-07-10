@@ -5,8 +5,15 @@
  * Writes zchecker statistics to separate files per variable, per step
  */
 
+#include <fstream>
+#include <iostream>
+#include <regex>
+#include <string>
+
+
 #include "zchecker.h"
 #include "ftk_3D_interface.h"
+
 //#include "ftk_debug.h"
 
 int scan(int *sizes, int rank, int n, int *total)
@@ -57,62 +64,81 @@ void featurePut(std::vector<critical_point_t> & features, int offset, int total,
     }
 }
 
+void mgard_Init(std::string & config_file, double & tolerance)
+{
+  std::ifstream in(config_file);
+  std::string line;
+  std::regex e1 ("tolerance");
+  std::regex e2 (".*\\s*=\\s*(.+)");
+  std::smatch m;
+  while(std::getline(in, line))
+    {
+      if(std::regex_search(line, m, e1))
+	{
+	  tolerance = std::stod(regex_replace(line, e2, "$1"));
+	}
+    }
+  in.close();
+}
+
 int main(int argc, char *argv[])
 {
   int provided;
   MPI_Init_thread( &argc, &argv, MPI_THREAD_FUNNELED, &provided );
   int rank, comm_size, wrank;
 
-    MPI_Comm_rank(MPI_COMM_WORLD, &wrank);
+  MPI_Comm_rank(MPI_COMM_WORLD, &wrank);
 
-    const unsigned int color = 2;
-    MPI_Comm comm;
-    MPI_Comm_split(MPI_COMM_WORLD, color, wrank, &comm);
-
-    //    MPI_Comm comm = MPI_COMM_WORLD;
-    MPI_Comm_rank(comm, &rank);
-    MPI_Comm_size(comm, &comm_size);
-
-    if(!rank)
-      std::cout<<"comm_size = " << comm_size << std::endl;
-    
-    char zcconfig[1024] = "zc.config";
-
-    if (argc < 4)
+  const unsigned int color = 2;
+  MPI_Comm comm;
+  MPI_Comm_split(MPI_COMM_WORLD, color, wrank, &comm);
+  
+  //    MPI_Comm comm = MPI_COMM_WORLD;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &comm_size);
+  
+  if(!rank)
+    std::cout<<"comm_size = " << comm_size << std::endl;
+  
+  char zcconfig[1024] = "zc.config";
+  std::string  mgardconfig("mgard.config");
+  
+  if (argc < 4)
     {
-        std::cout << "Not enough arguments\n";
-        if (rank == 0)
-            printUsage();
-        MPI_Finalize();
-        return 0;
+      std::cout << "Not enough arguments\n";
+      if (rank == 0)
+	printUsage();
+      MPI_Finalize();
+      return 0;
     }
-
-    std::string in_filename;
-    std::string out_filename;
-    int compressor; // 1 - SZ, 2 - ZFP, 3 - MGARD
+  
+  std::string in_filename;
+  std::string out_filename;
+  int compressor; // 1 - SZ, 2 - ZFP, 3 - MGARD
     
-    in_filename = argv[1];
-    out_filename = argv[2];
-    compressor = std::stoi(argv[3]);
+  in_filename = argv[1];
+  out_filename = argv[2];
+  compressor = std::stoi(argv[3]);
 
-    std::cout << "compressor = " << compressor << std::endl;
-
-    switch(compressor)
-      {
-      case 1:
-	SZ_Init("sz.config");
-	break;
-      case 2: //todo
-	break;
-      case 3: //todo
-	break;
-      default:
-	if(!rank)
-	  printUsage();
-	MPI_Finalize();
-	return 0;
-      }
-    ZC_Init(zcconfig);
+  std::cout << "compressor = " << compressor << std::endl;
+  double mgard_tolerance;
+  switch(compressor)
+    {
+    case 1:
+      SZ_Init("sz.config");
+      break;
+    case 2: //todo
+      break;
+    case 3: //todo
+      mgard_Init(mgardconfig, mgard_tolerance);
+      break;
+    default:
+      if(!rank)
+	printUsage();
+      MPI_Finalize();
+      return 0;
+    }
+  ZC_Init(zcconfig);
 
     
     std::size_t u_global_size, v_global_size;
@@ -281,8 +307,8 @@ int main(int argc, char *argv[])
 	    lossy_v = z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
 	    break;
 	  case 3:
-	    lossy_u = z_check_mgard(stepAnalysis, u, std::string("u_mgard"), local_shape);
-	    lossy_v = z_check_mgard(stepAnalysis, v, std::string("v_mgard"), local_shape);
+	    lossy_u = z_check_mgard(stepAnalysis, u, std::string("u_mgard"), local_shape, mgard_tolerance);
+	    lossy_v = z_check_mgard(stepAnalysis, v, std::string("v_mgard"), local_shape, mgard_tolerance);
 	    break;
 	  default:
 	    if(!rank)

@@ -19,7 +19,7 @@ extern "C" {
 }
 
 double * z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution,
-		   const std::vector<std::size_t>& shape);
+		       const std::vector<std::size_t>& shape, double tolerance);
 double * z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution);
 double * z_check_sz(int stepAnalysis, std::vector<double>& u,
 			      const std::string &solution,

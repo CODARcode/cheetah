@@ -3,7 +3,7 @@
 
 
 double * z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::string &solution,
-		       const std::vector<std::size_t>& shape)
+		       const std::vector<std::size_t>& shape, double tolerance=1.e-8)
 {
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
@@ -19,7 +19,6 @@ double * z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::stri
   for(int i = 0; i < u.size(); ++i) tmp[i] = u[i];
   // necessary?
   
-  double tolerance = 1.e-8; // pass it as an argument to function and exe
   int outSize;
   int nfib=1;
   /* Is the order of shapes correct? Is nfib the 3rd dim? */
