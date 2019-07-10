@@ -34,6 +34,7 @@ class GrayScott(Campaign):
           p.ParamCmdLineArg("compression", "input", 1, ["../gray-scott/gs.bp"]),
           p.ParamCmdLineArg("compression", "output", 2, ["CompressionOutput.bp"]),
           p.ParamCmdLineArg("compression", "compressor", 3, ["1"]),          
+          p.ParamKeyValue("compression", "pw_relBoundRatio", "sz.config", "pw_relBoundRatio", [5E-5, 1E-2, 5E-2]), 
           p.ParamRunner('compression', 'nprocs', [1] )          
         ]),
       ]),
