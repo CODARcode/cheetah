@@ -49,7 +49,7 @@ double * z_check_mgard(int stepAnalysis, std::vector<double>& u, const std::stri
 }
 
 // pass shape, tolerance
-double * z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution)
+double * z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string &solution, double tolerance=1.e-8)
 {
   std::string tstr = std::to_string(stepAnalysis);
   char varName[1024];
@@ -57,7 +57,6 @@ double * z_check_zfp(int stepAnalysis, std::vector<double>& u, const std::string
   ZC_DataProperty* dataProperty = ZC_startCmpr(varName, ZC_DOUBLE, u.data(),
 					       0, 0, 0, 0, u.size());
 
-  double tolerance = 1.e-8;
   zfp_type type = zfp_type_double;
   zfp_field* field = zfp_field_1d(u.data(), type, u.size());
   zfp_stream* zfp = zfp_stream_open(NULL);

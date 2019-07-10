@@ -64,7 +64,24 @@ void featurePut(std::vector<critical_point_t> & features, int offset, int total,
     }
 }
 
-void mgard_Init(std::string & config_file, double & tolerance)
+void MGARD_Init(std::string & config_file, double & tolerance)
+{
+  std::ifstream in(config_file);
+  std::string line;
+  std::regex e1 ("tolerance");
+  std::regex e2 (".*\\s*=\\s*(.+)");
+  std::smatch m;
+  while(std::getline(in, line))
+    {
+      if(std::regex_search(line, m, e1))
+	{
+	  tolerance = std::stod(regex_replace(line, e2, "$1"));
+	}
+    }
+  in.close();
+}
+
+void ZFP_Init(std::string & config_file, double & tolerance)
 {
   std::ifstream in(config_file);
   std::string line;
@@ -102,6 +119,7 @@ int main(int argc, char *argv[])
   
   char zcconfig[1024] = "zc.config";
   std::string  mgardconfig("mgard.config");
+  std::string zfpconfig("zfp.config");
   
   if (argc < 4)
     {
@@ -121,16 +139,18 @@ int main(int argc, char *argv[])
   compressor = std::stoi(argv[3]);
 
   std::cout << "compressor = " << compressor << std::endl;
-  double mgard_tolerance;
+  double mgard_tolerance = 1.e-9;
+  double zfp_tolerance = 1.e-9;
   switch(compressor)
     {
     case 1:
       SZ_Init("sz.config");
       break;
-    case 2: //todo
+    case 2:
+      ZFP_Init(zfpconfig, zfp_tolerance);
       break;
-    case 3: //todo
-      mgard_Init(mgardconfig, mgard_tolerance);
+    case 3:
+      MGARD_Init(mgardconfig, mgard_tolerance);
       break;
     default:
       if(!rank)
@@ -303,8 +323,8 @@ int main(int argc, char *argv[])
 	    lossy_v = z_check_sz(stepAnalysis, v, std::string("v_sz"), local_shape);	
 	    break;
 	  case 2:
-	    lossy_u = z_check_zfp(stepAnalysis, u, std::string("u_zfp"));
-	    lossy_v = z_check_zfp(stepAnalysis, v, std::string("v_zfp"));
+	    lossy_u = z_check_zfp(stepAnalysis, u, std::string("u_zfp"), zfp_tolerance);
+	    lossy_v = z_check_zfp(stepAnalysis, v, std::string("v_zfp"), zfp_tolerance);
 	    break;
 	  case 3:
 	    lossy_u = z_check_mgard(stepAnalysis, u, std::string("u_mgard"), local_shape, mgard_tolerance);
