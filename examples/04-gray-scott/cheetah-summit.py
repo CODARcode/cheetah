@@ -1,3 +1,4 @@
+import math
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 from codar.savanna.machines import SummitNode
@@ -42,7 +43,7 @@ class GrayScott(Campaign):
     # Setup the sweep parameters for a Sweep
     sweep1_parameters = [
             # ParamRunner 'nprocs' specifies the no. of ranks to be spawned 
-            p.ParamRunner       ('simulation', 'nprocs', [512]),
+            p.ParamRunner       ('simulation', 'nprocs', [32]),
 
             # Create a ParamCmdLineArg parameter to specify a command line argument to run the application
             p.ParamCmdLineArg   ('simulation', 'settings', 1, ["settings.json"]),
@@ -51,7 +52,7 @@ class GrayScott(Campaign):
             # Sweep over two values for the F key in the json file.
             p.ParamConfig       ('simulation', 'feed_rate_U', 'settings.json', 'F', [0.01,0.02]),
             p.ParamConfig       ('simulation', 'kill_rate_V', 'settings.json', 'k', [0.048]),
-            p.ParamConfig       ('simulation', 'domain_size', 'settings.json', 'L', [1024]),
+            p.ParamConfig       ('simulation', 'domain_size', 'settings.json', 'L', [32]),
             p.ParamConfig       ('simulation', 'num_steps', 'settings.json', 'steps', [50]),
             p.ParamConfig       ('simulation', 'plot_gap', 'settings.json', 'plotgap', [10]),
 
@@ -64,54 +65,35 @@ class GrayScott(Campaign):
 
             # Now setup options for the pdf_calc application.
             # Sweep over four values for the nprocs 
-            p.ParamRunner       ('pdf_calc', 'nprocs', [32,64]),
+            p.ParamRunner       ('pdf_calc', 'nprocs', [8]),
             p.ParamCmdLineArg   ('pdf_calc', 'infile', 1, ['gs.bp']),
             p.ParamCmdLineArg   ('pdf_calc', 'outfile', 2, ['pdf']),
     ]
 
-    # Create the node-layout to run on summit
-    # Place the simulation and the analysis codes on separate nodes
-    # On Summit, create a 'node' object and manually map ranks to cpus and gpus using the convention
-    # cpu[index] = code_name:rank_id
-    # Given this node mapping and the 'nprocs' property, Cheetah will automatically spawn the correct no. 
-    # of nodes. For example, for the simulation, we have 32 ranks on one node and 512 nprocs, so Cheetah
-    # will create 16 nodes of type 'sim_node'
-    sim_node = SummitNode()
-    pdf_node = SummitNode()
-    for i in range(32):
-        sim_node.cpu[i] = "simulation:{}".format(i)
-    for i in range(32):
-        pdf_node.cpu[i] = "pdf_calc:{}".format(i)
-    separate_node_layout = [sim_node, pdf_node]
+    shared_node = SummitNode()
+    for i in range(18):
+        shared_node.cpu[i] = "simulation:{}".format(math.floor(i / 6))
+        shared_node.cpu[i + 21] = "simulation:{}".format(math.floor((i + 18) /
+                                                                  6))
+    for i in range(2):
+        shared_node.cpu[i + 18] = "pdf_calc:0"
+        shared_node.cpu[i + 18 + 21] = "pdf_calc:0"
+    for i in range(6):
+        shared_node.gpu[i] = ["simulation:{}".format(i)]
+    shared_node_layout = [shared_node]
 
     # Create a Sweep object. This one does not define a node-layout, and thus, all cores of a compute node will be 
     #   utilized and mapped to application ranks.
-    sweep1 = p.Sweep (parameters = sweep1_parameters, node_layout={'summit':separate_node_layout})
-
-    # Create another Sweep object and set its node-layout to spawn 16 simulation processes per node, and 
-    #   4 processes of pdf_calc per node. On Theta, different executables reside on separate nodes as node-sharing 
-    #   is not permitted on Theta.
-    sweep2_parameters = copy.deepcopy(sweep1_parameters)
-
-    # Now create a shared node layout where ranks from different codes are placed on the node
-    # Lets place 32 ranks of the simulation and 8 ranks of pdf_calc on the same node
-    shared_node = SummitNode()
-    for i in range(32):
-        shared_node.cpu[i] = "simulation:{}".format(i)
-    for i in range(8):
-        shared_node.cpu[i+32] = "pdf_calc:{}".format(i)
-    shared_node_layout = [shared_node]
-
-    sweep2 = p.Sweep (parameters = sweep2_parameters, node_layout = {'summit': shared_node_layout})
+    sweep1 = p.Sweep (parameters = sweep1_parameters, node_layout={'summit':shared_node_layout})
+                      # rc_dependency={'pdf_calc':'simulation',}, # Specify dependencies between workflow components
 
     # Create a SweepGroup and add the above Sweeps. Set batch job properties such as the no. of nodes, 
     sweepGroup1 = p.SweepGroup ("sg-1", # A unique name for the SweepGroup
                                 walltime=3600,  # Total runtime for the SweepGroup
                                 per_run_timeout=600,    # Timeout for each experiment                                
-                                parameter_groups=[sweep1,sweep2],   # Sweeps to include in this group
+                                parameter_groups=[sweep1],   # Sweeps to include in this group
                                 launch_mode='default',  # Launch mode: default, or MPMD if supported
                                 nodes=128,  # No. of nodes for the batch job.
-                                # rc_dependency={'pdf_calc':'simulation',}, # Specify dependencies between workflow components
                                 run_repetitions=2,  # No. of times each experiment in the group must be repeated (Total no. of runs here will be 3)
                                 )
     

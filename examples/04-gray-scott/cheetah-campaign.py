@@ -75,6 +75,7 @@ class GrayScott(Campaign):
     sweep2_parameters = copy.deepcopy(sweep1_parameters)
     sweep2 = p.Sweep (node_layout = {'theta': [{'simulation':16}, {'pdf_calc':4} ] },
                       parameters = sweep2_parameters)
+                      # rc_dependency={'pdf_calc':'simulation',}, # Specify dependencies between workflow components
 
     # Create a SweepGroup and add the above Sweeps. Set batch job properties such as the no. of nodes, 
     sweepGroup1 = p.SweepGroup ("sg-1", # A unique name for the SweepGroup
@@ -83,7 +84,6 @@ class GrayScott(Campaign):
                                 parameter_groups=[sweep1,sweep2],   # Sweeps to include in this group
                                 launch_mode='default',  # Launch mode: default, or MPMD if supported
                                 nodes=128,  # No. of nodes for the batch job.
-                                # rc_dependency={'pdf_calc':'simulation',}, # Specify dependencies between workflow components
                                 run_repetitions=2,  # No. of times each experiment in the group must be repeated (Total no. of runs here will be 3)
                                 )
     
