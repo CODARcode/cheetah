@@ -10,6 +10,7 @@ import json
 import shlex
 import subprocess
 import math
+import pdb
 
 from codar.cheetah import adios_params, config, templates, exc
 from codar.cheetah.parameters import ParamAdiosXML, ParamADIOS2XML, \
@@ -189,12 +190,6 @@ class Launcher(object):
                                                  var_name,
                                                  var_operation_value,
                                                  parameters)
-
-            # Insert dataspaces server instances if RCs will couple
-            # using dataspaces.
-            # This must be called after the ADIOS params are parsed and
-            # the final ADIOS XML is generated
-            run.add_dataspaces_support(machine)\
 
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
