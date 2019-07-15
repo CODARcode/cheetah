@@ -235,7 +235,8 @@ class Launcher(object):
                 src_filepath = relative_or_absolute_path(app_dir,
                                                          pv.config_filename)
                 kv_filepath = os.path.join(working_dir, pv.config_filename)
-                copy_to_path(src_filepath, kv_filepath)
+                if not os.path.isfile(kv_filepath):
+                    copy_to_path(src_filepath, kv_filepath)
                 lines = []
                 # read and modify lines
                 with open(kv_filepath) as kv_f:
