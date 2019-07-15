@@ -21,6 +21,7 @@ from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
+from codar.cheetah.exc import CheetahException as exc
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
@@ -121,16 +122,24 @@ class Launcher(object):
                 # now copy other inputs marked under component_inputs
                 if rc.component_inputs is not None:
                     for input_file in rc.component_inputs:
+                        dest = os.path.join(rc.working_dir,
+                                            os.path.basename(
+                                                input_file))
                         # input type is symlink
                         if type(input_file) == SymLink:
-                            dest = os.path.join(rc.working_dir,
-                                                os.path.basename(
-                                                    input_file))
                             os.symlink(input_file, dest)
 
                         # input type is a regular file
-                        else:
+                        elif os.path.isfile(input_file):
                             copy_to_dir(input_file, rc.working_dir)
+
+                        # Input file is a directory
+                        elif os.path.isdir(input_file):
+                            copytree_to_dir(input_file, dest)
+
+                        else:
+                            raise exc("Could not determine the type for "
+                                      "component input {}").format(input_file)
 
             # ADIOS XML param support
             adios_xml_params = \
