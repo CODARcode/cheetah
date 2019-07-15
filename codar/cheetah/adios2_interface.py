@@ -13,20 +13,65 @@ Questions for myself:
 """
 
 # A list of valid engines in adios2 and their parameters
-_engines={"BPFile":["Threads",
-                    "ProfileUnits",
-                    "InitialBufferSize",
-                    "MaxBufferSize",
-                    "BufferGrowthFactor",
-                    "FlushStepsCount"],
-          "SST":["MarshalMethod"],
-          "InSituMPI":[]}
+_engines = {
+    "BPFile": [
+        "Threads",
+        "Profile",
+        "CollectiveMetadata",
+        "ProfileUnits",
+        "InitialBufferSize",
+        "MaxBufferSize",
+        "BufferGrowthFactor",
+        "FlushStepsCount",
+        "SubStreams",
+        "node-local",
+    ],
+    "SST": [
+        "RendezvousReaderCount",
+        "RegistrationMethod",
+        "QueueLimit",
+        "QueueFullPolicy",
+        "ReserveQueueLimit",
+        "DataTransport",
+        "ControlTransport",
+        "NetworkInterface",
+        "ControlInterface",
+        "DataInterface",
+        "FirstTimestepPrecious",
+        "AlwaysProvideLatestTimestep",
+        "OpenTimeoutSecs",
+    ],
+    "InSituMPI": [],
+    "HDF5": [],
+    "DataMan": [],
+    "Inline": [
+        "writerID",
+    ],
+}
 
 # A list of valid transports and their parameters
-_transports={"File":["Library"], "WAN":["Library"]}
+_transports = {
+    "File": [
+        "Library",
+    ],
+    "WAN": [
+        "Library",
+    ],
+}
 
 # A list of valid variable operations and their parameters
-_var_operations={"zfp":["rate", "Tolerance", "Precision"]}
+_var_operations = {
+    "zfp": [
+        "rate",
+        "Tolerance",
+        "Precision",
+    ],
+    "sz": [],
+    "blosc": [],
+    "mgard": [],
+    "png": [],
+    "bzip2": [],
+}
 
 
 def get_adios_version(xml_file):
