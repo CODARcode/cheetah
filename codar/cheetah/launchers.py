@@ -239,6 +239,7 @@ class Launcher(object):
                     copy_to_path(src_filepath, kv_filepath)
                 lines = []
                 # read and modify lines
+                key_found = False
                 with open(kv_filepath) as kv_f:
                     for line in kv_f:
                         parts = line.split('=', 1)
@@ -247,8 +248,17 @@ class Launcher(object):
                             if k == pv.key_name:
                                 # assume all k=v type formats will
                                 # support no spaces around equals
-                                line = k + '=' + str(pv.value) + '\n'
+                                line = k + '=' + str(pv.value)
+                                # preserve a user comment if it exists
+                                if '!' in parts[1]:
+                                    line = line + " !" + \
+                                           parts[1].strip().split('!')[1]
+                                line = line + '\n'
+                                key_found = True
                         lines.append(line)
+                    assert key_found, \
+                        "Issue parsing a ParamKeyValue: Could not find key {}"\
+                        " in config file {}".format(pv.key_name, src_filepath)
                 # rewrite file with modified lines
                 with open(kv_filepath, 'w') as kv_f:
                     kv_f.write("".join(lines))
