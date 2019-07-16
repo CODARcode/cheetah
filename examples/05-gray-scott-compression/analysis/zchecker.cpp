@@ -55,8 +55,8 @@ int main(int argc, char **argv)
   adios2::Variable<int> var_step_lossy;  
  
   adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
-  adios2::IO reader_original_io = ad.DeclareIO("Original");
-  adios2::IO reader_lossy_io = ad.DeclareIO("Lossy");  
+  adios2::IO reader_original_io = ad.DeclareIO("OriginalOutput");
+  adios2::IO reader_lossy_io = ad.DeclareIO("DecompressedOutput");  
 
   adios2::Engine reader_original = reader_original_io.Open(original_fn,
 						  adios2::Mode::Read, comm);
