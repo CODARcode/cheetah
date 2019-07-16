@@ -140,20 +140,20 @@ int main(int argc, char **argv)
       char varNameU[] = "U";
       char varNameV[] = "V";
       ZC_CompareData * compareU =  ZC_compareData(varNameU, ZC_DOUBLE , u_original.data(),
-						  u_lossy.data(), 0, 0, shape[0], shape[1], shape[2]);
-      //ZC_printCompressionResult(compareU);
+						  u_lossy.data(), 0, 0, local_shape[0], local_shape[1], local_shape[2]);
       ZC_CompareData * compareV =  ZC_compareData(varNameV, ZC_DOUBLE , v_original.data(),
-						  v_lossy.data(), 0, 0, shape[0], shape[1], shape[2]);
-      //ZC_printCompressionResult(compareV);
-      //ZC_writeCompressionResult(ZC_CompareData* compareResult, char* solution, char* varName, char* tgtWorkspaceDir);
-      char dirU[]="outputU";
-      char dirV[]="outputV";
-      char solutionU[16];
-      sprintf(solutionU, "%d", stepAnalysis);
-      char solutionV[16];
-      sprintf(solutionV, "%d", stepAnalysis);      
-      ZC_writeCompressionResult(compareU, solutionU, varNameU, dirU);
-      ZC_writeCompressionResult(compareV, solutionV, varNameV, dirV);      
+						  v_lossy.data(), 0, 0, local_shape[0], local_shape[1], local_shape[2]);
+      if(!rank)
+	{
+	  char dirU[]="outputU";
+	  char dirV[]="outputV";
+	  char solutionU[16];
+	  sprintf(solutionU, "%d", stepAnalysis);
+	  char solutionV[16];
+	  sprintf(solutionV, "%d", stepAnalysis);	  
+	  ZC_writeCompressionResult(compareU, solutionU, varNameU, dirU);
+	  ZC_writeCompressionResult(compareV, solutionV, varNameV, dirV);
+	}
 
       freeCompareResult(compareU);
       freeCompareResult(compareV);      
