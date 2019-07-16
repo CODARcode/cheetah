@@ -42,15 +42,12 @@ int main(int argc, char **argv)
 
   std::size_t u_global_size, v_global_size;
   std::size_t u_local_size, v_local_size;  
-  //bool firstStep = true;
   std::vector<std::size_t> shape;
     
   std::vector<double> u_original;
   std::vector<double> v_original;
   std::vector<double> u_lossy;
   std::vector<double> v_lossy;
-  
-  //int simStep_original;
 
   adios2::Variable<double> var_u_original, var_v_original;
   adios2::Variable<int> var_step_original;
