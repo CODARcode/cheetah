@@ -11,12 +11,11 @@
 
 void usage()
 {
-  std::cout << "./compress <compressor> <input_filename>"
-	    << "<original_output_file_name> <compressed_output_filename>"
-	    << "<decompressed_output_filename>" << std::endl;
-  std::cout << "   <compressor> can be: 1 (SZ), 2 (ZFP), 3 (MGARD)" << std::endl;
+  std::cout << "mpirun -n 1 compress <compressor> <input_filename>"
+	    << "  <original_output_file_name> <compressed_output_filename>"
+	    << "  <decompressed_output_filename>" << std::endl;
+  std::cout << "where <compressor> can be: 1 (SZ), 2 (ZFP), 3 (MGARD)" << std::endl;
 }
-
 
 int main(int argc, char **argv)
 {
