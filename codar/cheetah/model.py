@@ -590,7 +590,8 @@ class Run(object):
             group_max = 0
             for codename in code_group:
                 rc = self._get_rc_by_name(codename)
-                num_nodes_code = math.ceil(rc.nprocs/code_group[codename])
+                num_nodes_code = math.ceil(rc.nprocs/len(code_group[codename]))
+                rc.num_nodes = num_nodes_code
                 group_max = max(group_max, num_nodes_code)
             group_max_nodes.append(group_max)
 
@@ -643,6 +644,7 @@ class RunComponent(object):
         self.hostfile = hostfile
         self.after_rc_done = None
         self.runner_override = runner_override
+        self.num_nodes = 0
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -656,6 +658,7 @@ class RunComponent(object):
                     adios_xml_file=self.adios_xml_file,
                     hostfile=self.hostfile,
                     after_rc_done=None,
+                    num_nodes=self.num_nodes,
                     runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env
