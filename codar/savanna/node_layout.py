@@ -19,9 +19,11 @@ class NodeLayout(object):
 
     def __init__(self, layout_list):
         # TODO: better validation
-        assert isinstance(layout_list, list)
+        assert isinstance(layout_list, list), "Node Layout must be a list"
         for item in layout_list:
-            assert isinstance(item, dict) or isinstance(item, MachineNode)
+            assert isinstance(item, dict) or isinstance(item, MachineNode), \
+                "Items in a node layout must be a dict or a Machine Node " \
+                "depending on your target system"
 
         # # For now, only allow codes to be in one node grouping
         # key_sets = [set(d.keys()) for d in layout_list]
