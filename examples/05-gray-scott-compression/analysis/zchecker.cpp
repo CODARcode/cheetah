@@ -49,11 +49,19 @@ int main(int argc, char **argv)
   std::vector<double> u_lossy;
   std::vector<double> v_lossy;
 
+  double u_compress_ratio, v_compress_ratio;
+  long u_compress_time, v_compress_time;
+  long u_decompress_time, v_decompress_time;  
+
   adios2::Variable<double> var_u_original, var_v_original;
   adios2::Variable<int> var_step_original;
   adios2::Variable<double> var_u_lossy, var_v_lossy;
   adios2::Variable<int> var_step_lossy;  
- 
+
+  adios2::Variable<double> var_u_compress_ratio, var_v_compress_ratio;
+  adios2::Variable<long> var_u_compress_time, var_v_compress_time;  
+  adios2::Variable<long> var_u_decompress_time, var_v_decompress_time;  
+  
   adios2::ADIOS ad ("adios2.xml", comm, adios2::DebugON);
   adios2::IO reader_original_io = ad.DeclareIO("OriginalOutput");
   adios2::IO reader_lossy_io = ad.DeclareIO("DecompressedOutput");  
@@ -121,6 +129,13 @@ int main(int argc, char **argv)
       int step_lossy = reader_lossy.CurrentStep();
       var_u_lossy = reader_lossy_io.InquireVariable<double>("U/decompressed");
       var_v_lossy = reader_lossy_io.InquireVariable<double>("V/decompressed");
+      var_u_compress_ratio = reader_lossy_io.InquireVariable<double>("U/compress_ratio");
+      var_v_compress_ratio = reader_lossy_io.InquireVariable<double>("V/compress_ratio");
+      var_u_compress_time = reader_lossy_io.InquireVariable<long>("U/compress_time");
+      var_v_compress_time = reader_lossy_io.InquireVariable<long>("V/compress_time");
+      var_u_decompress_time = reader_lossy_io.InquireVariable<long>("U/decompress_time");
+      var_v_decompress_time = reader_lossy_io.InquireVariable<long>("V/decompress_time");            
+      
       var_step_lossy = reader_lossy_io.InquireVariable<int>("step");
 
       var_u_lossy.SetSelection(adios2::Box<adios2::Dims>(
@@ -132,6 +147,16 @@ int main(int argc, char **argv)
       
       reader_lossy.Get<double>(var_u_lossy, u_lossy);
       reader_lossy.Get<double>(var_v_lossy, v_lossy);
+
+      if(!rank)
+	{
+	  reader_lossy.Get<double>(var_u_compress_ratio, u_compress_ratio);
+	  reader_lossy.Get<double>(var_v_compress_ratio, v_compress_ratio);
+	  reader_lossy.Get<long>(var_u_compress_time, u_compress_time);
+	  reader_lossy.Get<long>(var_v_compress_time, v_compress_time);
+	  reader_lossy.Get<long>(var_u_decompress_time, u_decompress_time);
+	  reader_lossy.Get<long>(var_v_decompress_time, v_decompress_time);                  
+	}
       reader_lossy.EndStep();
 
       char varNameU[] = "U";
@@ -147,7 +172,13 @@ int main(int argc, char **argv)
 	  char solutionU[16];
 	  sprintf(solutionU, "%d", stepAnalysis);
 	  char solutionV[16];
-	  sprintf(solutionV, "%d", stepAnalysis);	  
+	  sprintf(solutionV, "%d", stepAnalysis);
+	  compareU->compressRatio = u_compress_ratio;
+	  compareV->compressRatio = v_compress_ratio;
+	  compareU->compressTime = u_compress_time*1.e-9;
+	  compareV->compressTime = v_compress_time*1.e-9;
+	  compareU->decompressTime = u_decompress_time*1.e-9;
+	  compareV->decompressTime = v_decompress_time*1.e-9;	  	  
 	  ZC_writeCompressionResult(compareU, solutionU, varNameU, dirU);
 	  ZC_writeCompressionResult(compareV, solutionV, varNameV, dirV);
 	}
