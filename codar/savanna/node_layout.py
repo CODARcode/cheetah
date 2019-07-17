@@ -147,9 +147,10 @@ class NodeLayout(object):
                 for core_mapping in layout_info.cpu:
                     if core_mapping is not None:
                         codename = core_mapping.split(':')[0]
+                        rank_id = int(core_mapping.split(':')[1])
                         if codename not in unique_codes:
-                            unique_codes[codename] = 0
-                        unique_codes[codename] += 1
+                            unique_codes[codename] = set()
+                        unique_codes[codename].add(rank_id)
                 code_groups.append(unique_codes)
 
             # if this is a dict
