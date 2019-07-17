@@ -251,6 +251,16 @@ class Campaign(object):
 
         # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
+            # Validate component inputs.
+            #   1. Ensure all keys are valid code names
+            code_names = list(self.codes.keys())
+            if group.component_inputs is not None:
+                c_input_keys = list(group.component_inputs.keys())
+                for key in c_input_keys:
+                    assert key in code_names, \
+                        "Error in component_inputs for {}. '{}' not a valid " \
+                        "code name".format(group.name, key)
+
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
             group_name = group.name
