@@ -7,7 +7,8 @@ struct critical_point_t {
 };
 
 std::vector<critical_point_t> extract_features(double *data, const size_t DW,
-					       const size_t DH, const size_t DD);
+					       const size_t DH, const size_t DD,
+					       int nthreads);
 
 void distance_between_features(std::vector<critical_point_t>& features1,
                                  std::vector<critical_point_t>& features2,

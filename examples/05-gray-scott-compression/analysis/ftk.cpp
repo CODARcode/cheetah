@@ -235,14 +235,14 @@ int main(int argc, char **argv)
       //FTK start
 
       std::vector<critical_point_t> features_original_u =
-	extract_features(u_original.data(), local_shape[0], local_shape[1], local_shape[2]);
+	extract_features(u_original.data(), local_shape[0], local_shape[1], local_shape[2], nthreads);
       std::vector<critical_point_t> features_original_v =
-	extract_features(v_original.data(), local_shape[0], local_shape[1], local_shape[2]);
+	extract_features(v_original.data(), local_shape[0], local_shape[1], local_shape[2], nthreads);
 
       std::vector<critical_point_t> features_lossy_u =
-	extract_features(u_lossy.data(), local_shape[0], local_shape[1], local_shape[2]);
+	extract_features(u_lossy.data(), local_shape[0], local_shape[1], local_shape[2], nthreads);
       std::vector<critical_point_t> features_lossy_v =
-	extract_features(v_lossy.data(), local_shape[0], local_shape[1], local_shape[2]);
+	extract_features(v_lossy.data(), local_shape[0], local_shape[1], local_shape[2], nthreads);
 
       int distance_u_diff, distance_v_diff;
       double distance_u_norm, distance_v_norm;

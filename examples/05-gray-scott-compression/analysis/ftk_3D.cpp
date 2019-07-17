@@ -141,7 +141,8 @@ void extract_critical_points(const size_t DW, const size_t DH, const size_t DD,
 			     hypermesh::ndarray<double> & scalar,
 			     hypermesh::ndarray<double> & grad,
 			     hypermesh::ndarray<double> & hess,
-			     hypermesh::regular_simplex_mesh & m
+			     hypermesh::regular_simplex_mesh & m,
+			     int nthreads
 			     )
 {
   using namespace std::placeholders;
@@ -150,12 +151,12 @@ void extract_critical_points(const size_t DW, const size_t DH, const size_t DD,
 	static_cast<int>(DH)-3, static_cast<int>(DD)-3}); // set the lower and upper bounds of the mesh
   auto my_check_simplex = std::bind(check_simplex,_1, std::ref(critical_points),
 				    std::ref(scalar), std::ref(grad), std::ref(hess)); 
-  m.element_for(3, my_check_simplex); // iterate over all 3-simplices
+  m.element_for(3, my_check_simplex, nthreads); // iterate over all 3-simplices
 }
 
 // public interface to ftk
 std::vector<critical_point_t> extract_features(double *data, const size_t DW,
-					       const size_t DH, const size_t DD)
+					       const size_t DH, const size_t DD, int nthreads)
 {
   hypermesh::ndarray<double> scalar, grad, hess;
   hypermesh::regular_simplex_mesh m(3); // the 3D spatial mesh
@@ -177,7 +178,7 @@ std::vector<critical_point_t> extract_features(double *data, const size_t DW,
   derive_gradients(DW, DH, DD, scalar, grad);
   derive_hessians(DW, DH, DD, grad, hess);
   
-  extract_critical_points(DW, DH, DD, critical_points, scalar, grad, hess, m);
+  extract_critical_points(DW, DH, DD, critical_points, scalar, grad, hess, m, nthreads);
 
   std::vector<critical_point_t> features;
   for(auto cp = critical_points.begin(); cp != critical_points.end(); ++cp)
