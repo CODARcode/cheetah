@@ -25,13 +25,17 @@ class MachineNode:
     def to_json(self):
         raise NotImplemented
 
+
 class SummitNode(MachineNode):
     def __init__(self):
         MachineNode.__init__(self, 42, 6)
 
     def validate_layout(self):
-        """Check that 1) the same rank of the same code is not repeated,
-        2) a gpu is not mapped to multiple executables."""
+        """Check that
+        1) the same rank of the same code is not repeated,
+        mapping the same core to multiple codes is permitted, as the codes
+        may have a dependency.
+        """
 
         # Assert node config is not empty
         assert not all(core_map is None for core_map in self.cpu), \
@@ -51,12 +55,13 @@ class SummitNode(MachineNode):
         # assert len(gpu_map) == len(set(gpu_map)), \
         #     "duplicated mapping found in node config"
 
-        # Assert that a gpu is not mapped to different executables
-        for l in self.gpu:
-            if l is not None:
-                gpu_code_map = [v.split(":")[0] for v in l]
-                assert all(x == gpu_code_map[0] for x in gpu_code_map), \
-                    "cannot map different executables to the same gpu"
+        # Assert that a gpu is not mapped to different executables - this
+        # should be allowed - so the block is commented.
+        # for l in self.gpu:
+        #     if l is not None:
+        #         gpu_code_map = [v.split(":")[0] for v in l]
+        #         assert all(x == gpu_code_map[0] for x in gpu_code_map), \
+        #             "cannot map different executables to the same gpu"
 
         # assert that all PEs from 0 through max are on the node and that
         # the user has not forgotten any
