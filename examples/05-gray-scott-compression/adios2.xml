@@ -27,6 +27,13 @@
         <parameter key="QueueLimit" value="15"/>
         <parameter key="QueueFullPolicy" value="Block"/>
         </engine>
+    </io>
+    <io name="FTK">
+        <engine type="BPFile">
+        <parameter key="RendezvousReaderCount" value="1"/>
+        <parameter key="QueueLimit" value="15"/>
+        <parameter key="QueueFullPolicy" value="Block"/>
+        </engine>
     </io>    
 </adios-config>
 

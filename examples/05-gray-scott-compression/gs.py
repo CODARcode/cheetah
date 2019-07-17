@@ -6,7 +6,8 @@ from datetime import timedelta
 
 class GrayScott(Campaign):
     name = "Gray-Scott-compression"
-    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("compress", dict(exe="compress")), ("zchecker", dict(exe="zchecker")) ]
+    codes = [("gray-scott", dict(exe="gray-scott", sleep_after=1)), ("compress", dict(exe="compress")),
+             ("zchecker", dict(exe="zchecker")), ("ftk", dict(exe="ftk")) ]
     supported_machines = ['local', 'theta']
     scheduler_options = {
         "theta": {
@@ -22,7 +23,8 @@ class GrayScott(Campaign):
                   component_inputs={
                       'gray-scott': ['settings.json','adios2.xml'],
                       'compress': ['adios2.xml','sz.config', 'zfp.config', 'mgard.config'],
-                      'zchecker': ['zc.config','adios2.xml']
+                      'zchecker': ['zc.config','adios2.xml'],
+                      'ftk': ['adios2.xml']                      
                   },
       parameter_groups=
       [p.Sweep([
@@ -41,7 +43,13 @@ class GrayScott(Campaign):
           p.ParamRunner('compress', 'nprocs', [1] ),
           p.ParamCmdLineArg("zchecker", "original", 1, ["../compress/OriginalOutput.bp"]),
           p.ParamCmdLineArg("zchecker", "decompressed", 2, ["../compress/DecompressedOutput.bp"]),
-          p.ParamRunner('zchecker', 'nprocs', [4] ),          
+          p.ParamRunner('zchecker', 'nprocs', [4] ),
+          p.ParamCmdLineArg("ftk", "original", 1, ["../compress/OriginalOutput.bp"]),
+          p.ParamCmdLineArg("ftk", "decompressed", 2, ["../compress/DecompressedOutput.bp"]),
+          p.ParamCmdLineArg("ftk", "ftk_output", 3, ["FTK.bp"]),
+          p.ParamCmdLineArg("ftk", "nthreads", 4, [4]),          
+          p.ParamRunner('ftk', 'nprocs', [1] ),          
+          
         ]),
       ]),
     ]
