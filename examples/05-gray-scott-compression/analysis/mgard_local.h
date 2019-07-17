@@ -17,4 +17,5 @@ struct MGARD_OUTPUT
 void MGARD_Init(const std::string & config_file, MGARD_PARAMETERS * parameters);
 
 void MGARD_Compress_Decompress(double *indata, std::vector<std::size_t> &shape,
-			       MGARD_PARAMETERS *params, MGARD_OUTPUT *out);
+			       MGARD_PARAMETERS *params, MGARD_OUTPUT *out,
+			       long *compressT, long* decompressT);

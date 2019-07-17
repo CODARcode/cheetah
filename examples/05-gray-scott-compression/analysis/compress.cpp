@@ -118,6 +118,10 @@ int main(int argc, char **argv)
   adios2::Variable<unsigned char> var_u_compressed_out, var_v_compressed_out;
   adios2::Variable<double> var_u_decompressed_out, var_v_decompressed_out;  
 
+  adios2::Variable<double>  var_u_compress_ratio, var_v_compress_ratio;
+  adios2::Variable<long>  var_u_compress_time, var_v_compress_time;
+  adios2::Variable<long>  var_u_decompress_time, var_v_decompress_time;    
+  
   adios2::Variable<int> var_u_size;
   adios2::Variable<int> var_v_size;
     
@@ -208,6 +212,20 @@ int main(int argc, char **argv)
 							     { count1, shape[1], shape[2] } );
 
 	    writer_compressed_io.DefineAttribute<std::size_t>("shape", shape.data(), 3);
+	    
+	    var_u_compress_ratio =
+	      writer_decompressed_io.DefineVariable<double>("U/compress_ratio", {adios2::LocalValueDim});
+	    var_v_compress_ratio =
+	      writer_decompressed_io.DefineVariable<double>("V/compress_ratio", {adios2::LocalValueDim});
+	    var_u_compress_time =
+	      writer_decompressed_io.DefineVariable<long>("U/compress_time", {adios2::LocalValueDim});
+	    var_v_compress_time =
+	      writer_decompressed_io.DefineVariable<long>("V/compress_time", {adios2::LocalValueDim});
+	    var_u_decompress_time =
+	      writer_decompressed_io.DefineVariable<long>("U/decompress_time", {adios2::LocalValueDim});
+	    var_v_decompress_time =
+	      writer_decompressed_io.DefineVariable<long>("V/decompress_time", {adios2::LocalValueDim});	    	    
+	    
 	    firstStep = false;
 	  }
 	
@@ -226,35 +244,61 @@ int main(int argc, char **argv)
 	void *bufferU = nullptr;
 	void *bufferV = nullptr;
 
-
+	long u_compress_time;
+	long v_compress_time;
+	long u_decompress_time;
+	long v_decompress_time;
+	std::chrono::steady_clock::time_point startT;
+	std::chrono::steady_clock::time_point endT;	
+	
+	
 	switch(compressor)
 	  {
 	  case 1:
+	    startT = std::chrono::steady_clock::now();
 	    bytesU = SZ_compress(SZ_DOUBLE, u.data(), &outSizeU,
 				 0, 0, shape[2], shape[1], shape[0]);
+	    endT = std::chrono::steady_clock::now();
+	    u_compress_time = std::chrono::duration_cast<std::chrono::nanoseconds>(endT - startT).count();
+	    
+	    startT = std::chrono::steady_clock::now();
 	    bytesV = SZ_compress(SZ_DOUBLE, v.data(), &outSizeV,
 				 0, 0, shape[2], shape[1], shape[0]);
+	    endT = std::chrono::steady_clock::now();
+	    v_compress_time = std::chrono::duration_cast<std::chrono::nanoseconds>(endT - startT).count();
+	    
+	    startT = std::chrono::steady_clock::now();	    
 	    decU = (double*)SZ_decompress(SZ_DOUBLE, bytesU, outSizeU,
 					  0, 0, shape[2], shape[1], shape[0]);
+	    endT = std::chrono::steady_clock::now();
+	    u_decompress_time = std::chrono::duration_cast<std::chrono::nanoseconds>(endT - startT).count();
+	    
+	    startT = std::chrono::steady_clock::now();    
 	    decV = (double*)SZ_decompress(SZ_DOUBLE, bytesV, outSizeV,
-					  0, 0, shape[2], shape[1], shape[0]);	    
+					  0, 0, shape[2], shape[1], shape[0]);
+	    endT = std::chrono::steady_clock::now();
+	    v_decompress_time = std::chrono::duration_cast<std::chrono::nanoseconds>(endT - startT).count();	    
 	    break;
 	  case 2:
-	    ZFP_Compress_Decompress(u.data(), shape, &zfp_parameters, &zfp_output_U);
+	    ZFP_Compress_Decompress(u.data(), shape, &zfp_parameters, &zfp_output_U,
+				    &u_compress_time, &u_decompress_time);
 	    bytesU = (unsigned char*)zfp_output_U.compressed;
 	    outSizeU = zfp_output_U.compressed_size;
 	    decU = (double*)zfp_output_U.decompressed;
-	    ZFP_Compress_Decompress(v.data(), shape, &zfp_parameters, &zfp_output_V);
+	    ZFP_Compress_Decompress(v.data(), shape, &zfp_parameters, &zfp_output_V,
+				    &v_compress_time, &v_decompress_time);
 	    bytesV = (unsigned char*)zfp_output_V.compressed;
 	    decV = (double*)zfp_output_V.decompressed;
 	    outSizeV = zfp_output_V.compressed_size;
 	    break;
 	  case 3:
-	    MGARD_Compress_Decompress(u.data(), shape, &mgard_parameters, &mgard_output_U);
+	    MGARD_Compress_Decompress(u.data(), shape, &mgard_parameters, &mgard_output_U,
+				      &u_compress_time, &u_decompress_time);
 	    bytesU = mgard_output_U.compressed;
 	    decU = mgard_output_U.decompressed;
 	    outSizeU = mgard_output_U.compressed_size;
-	    MGARD_Compress_Decompress(v.data(), shape, &mgard_parameters, &mgard_output_V);
+	    MGARD_Compress_Decompress(v.data(), shape, &mgard_parameters, &mgard_output_V,
+				      &v_compress_time, &v_decompress_time);
 	    bytesV = mgard_output_V.compressed;
 	    decV = mgard_output_V.decompressed;
 	    outSizeV = mgard_output_V.compressed_size;
@@ -264,6 +308,10 @@ int main(int argc, char **argv)
 	    MPI_Finalize();
 	    return 1;	    
 	  }
+
+	double u_compress_ratio = static_cast<double>(outSizeU)/(shape[0]*shape[1]*shape[2]*sizeof(double));
+	double v_compress_ratio = static_cast<double>(outSizeV)/(shape[0]*shape[1]*shape[2]*sizeof(double));
+
 	const adios2::Dims start = {0};
 	const adios2::Dims countU = {outSizeU};
 	const adios2::Dims shapeU = {outSizeU};
@@ -286,6 +334,12 @@ int main(int argc, char **argv)
 	writer_decompressed.BeginStep();
         writer_decompressed.Put<double> (var_u_decompressed_out, decU);
         writer_decompressed.Put<double> (var_v_decompressed_out, decV);
+	writer_decompressed.Put<double> (var_u_compress_ratio, u_compress_ratio);
+	writer_decompressed.Put<double> (var_v_compress_ratio, v_compress_ratio);
+	writer_decompressed.Put<long> (var_u_compress_time, u_compress_time);
+	writer_decompressed.Put<long> (var_v_compress_time, v_compress_time);
+	writer_decompressed.Put<long> (var_u_decompress_time, u_decompress_time);
+	writer_decompressed.Put<long> (var_v_decompress_time, v_decompress_time);	
 	writer_decompressed.EndStep();
 
 	switch(compressor)
