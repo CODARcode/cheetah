@@ -309,8 +309,8 @@ int main(int argc, char **argv)
 	    return 1;	    
 	  }
 
-	double u_compress_ratio = static_cast<double>(outSizeU)/(shape[0]*shape[1]*shape[2]*sizeof(double));
-	double v_compress_ratio = static_cast<double>(outSizeV)/(shape[0]*shape[1]*shape[2]*sizeof(double));
+	double u_compress_ratio = (shape[0]*shape[1]*shape[2]*sizeof(double))/static_cast<double>(outSizeU);
+	double v_compress_ratio = (shape[0]*shape[1]*shape[2]*sizeof(double))/static_cast<double>(outSizeV);
 
 	const adios2::Dims start = {0};
 	const adios2::Dims countU = {outSizeU};
