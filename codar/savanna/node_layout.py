@@ -135,7 +135,11 @@ class NodeLayout(object):
         """Return a list of dicts, where each list represents codes on a
         node, and a dict key for ppn
         Example: [ {sim,analysis1}, {analysis2}, {viz} ].
-        Must take Summit NodeConfigs into account"""
+        Must take Summit NodeConfigs into account
+
+        FIXME: Returns different things for different machines.
+        Returns a list of cpu mappings for Summit, and list of ppn for other
+        machines"""
 
         code_groups = []
 

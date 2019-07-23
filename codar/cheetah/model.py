@@ -590,7 +590,16 @@ class Run(object):
             group_max = 0
             for codename in code_group:
                 rc = self._get_rc_by_name(codename)
-                num_nodes_code = math.ceil(rc.nprocs/len(code_group[codename]))
+                # FIXME: Cleanup this hack
+                # For summit: its something like {'xgc':{0,1,2,4,5}}, i.e.
+                #   its a dict of sets. For other machines, its a dict of
+                #   int that represents ppn.
+                if 'summit' in self.machine.name.lower():
+                    num_nodes_code = math.ceil(
+                        rc.nprocs/len(code_group[codename]))
+                else:
+                    num_nodes_code = math.ceil(
+                        rc.nprocs / code_group[codename])
                 rc.num_nodes = num_nodes_code
                 group_max = max(group_max, num_nodes_code)
             group_max_nodes.append(group_max)
