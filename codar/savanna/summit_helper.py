@@ -45,7 +45,8 @@ def get_nodes_reqd(res_set, nrs):
 
 def create_erf_file(run):
     assert not ((run.res_set is None) and (run.node_config is None)), \
-        "Both resource set info and node config info cannot be none"
+        "Node Layout not found for Summit. Please provide a node layout " \
+        "to the Sweep using the SummitNode object."
 
     if run.node_config:
         _create_erf_file_node_config(run.erf_file, run.exe, run.args,
