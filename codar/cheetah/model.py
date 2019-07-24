@@ -279,6 +279,12 @@ class Campaign(object):
                         node_layout = None
                     else:
                         node_layout = sweep.node_layout.get(self.machine.name)
+
+                    # Summit requires a node layout
+                    if self.machine.name.lower() == "summit":
+                        assert node_layout is not None, \
+                            "Must provide a node layout for a Sweep on Summit"
+
                     if node_layout is None:
                         node_layout = NodeLayout.default_no_share_layout(
                                             self.machine.processes_per_node,
