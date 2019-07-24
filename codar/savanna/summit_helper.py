@@ -87,7 +87,7 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
 
                 # Remove the last comma
                 str = str[:-1]
-            str += "}"
+                str += "}"
 
             str += " } : app 0"
 
