@@ -44,6 +44,7 @@ _engines = {
     "Inline": [
         "writerID",
     ],
+    "BP4": ['node-local'],
 }
 
 # A list of valid transports and their parameters
