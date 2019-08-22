@@ -78,39 +78,6 @@ class _RunParser:
         # Serialize nested dict and add to list of parsed run dicts
         self.serialize_params_nested_dict(run_params_dict)
 
-    def read_sos_perf_data(self):
-        """
-
-        :return: True if sos data was found, False otherwise
-        """
-
-        # Don't look for any sosflow data if it's not enabled, i.e. if
-        # none of the run components is sosflow_aggregator_{N} or
-        # sosflow_analysis_{N}.
-        if not any(run['name'].startswith('sosflow_')
-                   for run in self.fob_dict['runs']):
-            print ("sos rc not found")
-            return False
-
-        sos_perf_results = sos_flow_analysis(self.run_dir)
-        if sos_perf_results is None:
-            print ("empty sos flow analysis")
-            return False
-
-        # keys in sos_perf_results are full exe paths. Get the rc name from
-        # the exe path
-        for rc_exe in sos_perf_results:
-            rc_name = self.rc_name_exe[rc_exe]
-            rc_timers_d = sos_perf_results[rc_exe]
-            for key in rc_timers_d:
-                self.serialized_run_params[rc_name + "__" + key] = \
-                    rc_timers_d[key]
-            # serialized_run_params[rc_name + "__adios_data"] = \
-            # sos_perf_results[rc_exe]["adios_data"]
-            self.serialized_run_params['timer_type'] = 'sosflow'
-
-        return True
-
     def get_cheetah_perf_data(self):
         for rc_name in self.rc_names:
             walltime_fname = "codar.workflow.walltime." + rc_name
@@ -364,8 +331,7 @@ class _ReportGenerator:
         if exit_status == 'succeeded':
             # Run sosflow analysis on the run_dir. If sos data is not
             # available, read timing information recorded by Cheetah
-            if not rp.read_sos_perf_data():
-                rp.get_cheetah_perf_data()
+            rp.get_cheetah_perf_data()
 
             # Get the sizes of the output adios files.
             # The sizes were calculated by the post-processing function
