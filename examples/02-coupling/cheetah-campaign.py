@@ -1,5 +1,6 @@
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
+from codar.savanna.machines import SummitNode
 from codar.cheetah.parameters import SymLink
 import copy
 
@@ -58,9 +59,16 @@ class ProducerConsumer(Campaign):
             p.ParamADIOS2XML    ('producer', 'producer', 'engine', [ {"SST": {}} ]),
     ]
 
+    # Summit node layout
+    shared_node_nc = SummitNode()
+    for i in range(32):
+        shared_node_nc.cpu[i] = 'producer:{}'.format(i)
+    for i in range(8):
+        shared_node_nc.cpu[i] = 'mean_calc:{}'.format(i)
+
     # Create a sweep
     # node_layout represents no. of processes per node
-    sweep1 = p.Sweep (node_layout = {'theta': [{'simulation':16}, {'norm_calc': 4}] },  # simulation: 16 ppn, norm_calc: 4 ppn
+    sweep1 = p.Sweep (node_layout = {'summit': [shared_node_nc] },  # simulation: 16 ppn, norm_calc: 4 ppn
                       parameters = sweep1_parameters, rc_dependency=None)
 
     # Create a sweep group from the above sweep. You can place multiple sweeps in the group.
@@ -72,6 +80,7 @@ class ProducerConsumer(Campaign):
                                 launch_mode='default',  # or MPMD
                                 # optional:
                                 # nodes=10,
+                                # run_repetitions=2, <-- repeat each experiment this many times
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
                                 # component_inputs = {'simulation': ['some_input_file'], 'norm_calc': [SymLink('some_large_file')] } <-- inputs required by codes
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
