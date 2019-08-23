@@ -493,6 +493,10 @@ class Pipeline(object):
         # have all Runs in a shared node release nodes just once.
         self._nodes_assigned = Queue()
 
+        # Reorder the runs list so that runs are listed according to their
+        # dependencies
+        self.reorder_runs_by_dependencies()
+
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -546,6 +550,35 @@ class Pipeline(object):
                         launch_mode=launch_mode,
                         total_nodes=total_nodes,
                         machine_name=machine_name)
+
+    def reorder_runs_by_dependencies(self):
+        """
+        Reorder the runs list so that runs appear in the order in which they
+        must be launched.
+        This requires parsing their dependencies information.
+
+        Keep iterating through the runs list, finding the root-level run at
+        every iteration (one with no dependencies) until all runs are examined.
+        Watch out for cyclic dependencies.
+
+        This algorithm will work as far as there is only one code on which a
+        code can depend on.
+        """
+        ordered_runs = []
+        while len(ordered_runs) < len(self.runs):
+            cyclic_dep = True
+            for run in self.runs:
+                if run in ordered_runs:
+                    continue
+                if run.depends_on_runs is None or \
+                        run.depends_on_runs in ordered_runs:
+                    cyclic_dep = False
+                    ordered_runs.append(run)
+
+            assert not cyclic_dep, "Cyclic dependency found amongst " \
+                                   "applications"
+
+        self.runs = ordered_runs
 
     def start(self, consumer, nodes_assigned, runner=None):
         # Mark all runs as active before they are actually started
