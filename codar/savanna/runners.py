@@ -1,5 +1,4 @@
 import shutil
-import math
 from codar.savanna import machines
 
 
@@ -29,7 +28,7 @@ class MPIRunner(Runner):
         runner_args = [exe_path, self.nprocs_arg, str(run.nprocs)]
 
         if sched_args:
-            for (k,v) in sched_args.items():
+            for (k, v) in sched_args.items():
                 runner_args += [k, v]
 
         if self.nodes_arg:
@@ -38,6 +37,44 @@ class MPIRunner(Runner):
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
         if run.hostfile is not None:
             runner_args += [self.hostfile, str(run.hostfile)]
+        return runner_args + [run.exe] + run.args
+
+
+class DTH2Runner(Runner):
+    def __init__(self, cuda_enabled=0):
+        self.exe = 'mpirun'
+        self.nprocs_arg = '-np'
+        self.tasks_per_node_arg = '-N'
+        self.rankfile = '--rankfile'
+        self.bindings = '--report-bindings'
+        self.env = '-x'
+        self.cuda_enabled = cuda_enabled
+
+    def wrap(self, run, sched_args, find_in_path=True):
+        if find_in_path:
+            exe_path = shutil.which(self.exe)
+        else:
+            # for test cases
+            exe_path = self.exe
+        if exe_path is None:
+            raise ValueError('Could not find "%s" in path' % self.exe)
+
+        runner_args = [exe_path,
+                       '--mca', 'mpi_cuda_support', str(self.cuda_enabled),
+                       self.nprocs_arg, str(run.nodes),
+                       '--report-bindings']
+
+        if run.dth_rankfile is not None:
+            runner_args += ['--rankfile', run.dth_rankfile]
+        else:
+            runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
+
+        # What are you trying to do here? Set environment variables? That is
+        # already done by the Run in popen. OR did you try to just add
+        # self.env here, which is set to '-x' above?
+        # for k, v in run.env:
+        #     runner_args += [self.env, str(k), str(v)]
+
         return runner_args + [run.exe] + run.args
 
 
@@ -93,4 +130,6 @@ class SummitRunner(Runner):
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
 srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
+mpirunc = DTH2Runner(0)
+mpirung = DTH2Runner(1)
 jsrun = SummitRunner()

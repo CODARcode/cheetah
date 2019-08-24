@@ -9,7 +9,7 @@ import os
 
 from codar.savanna.producer import JSONFilePipelineReader
 from codar.savanna.consumer import PipelineRunner
-from codar.savanna.runners import mpiexec, aprun, srun, jsrun
+from codar.savanna.runners import mpiexec, aprun, srun, jsrun, mpirunc, mpirung
 
 
 consumer = None
@@ -20,7 +20,8 @@ def parse_args():
     parser.add_argument('--max-nodes', type=int, required=True)
     parser.add_argument('--processes-per-node', type=int, required=True)
     parser.add_argument('--runner', choices=['mpiexec', 'aprun', 'srun',
-                                             'jsrun','none'],
+                                             'jsrun', 'mpirunc', 'mpirung',
+                                             'none'],
                         required=True)
     parser.add_argument('--producer', choices=['file'], default='file')
     parser.add_argument('--producer-input-file')
@@ -51,6 +52,10 @@ def main():
         runner = jsrun
     elif args.runner == 'none':
         runner = None
+    elif args.runner == 'mpirunc':
+        runner = mpirunc
+    elif args.runner == 'mpirung':
+        runner = mpirung
     else:
         # Note: arg parser should have caught this already
         raise ValueError('Unknown runner: %s' % args.runner)

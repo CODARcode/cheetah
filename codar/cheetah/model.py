@@ -575,6 +575,7 @@ class Run(object):
         Group codes based upon the node layout (separate/shared nodes),
         then consider the dependency between components to calculate the
         total no. of nodes.
+        TODO This functionality exists in Savanna already.
         """
 
         # num_nodes_rc = {}
@@ -600,7 +601,8 @@ class Run(object):
                 # For summit: its something like {'xgc':{0,1,2,4,5}}, i.e.
                 #   its a dict of sets. For other machines, its a dict of
                 #   int that represents ppn.
-                if 'summit' in self.machine.name.lower():
+                if isinstance(self.node_layout.layout_list[0],
+                              machines.MachineNode):
                     num_nodes_code = math.ceil(
                         rc.nprocs/len(code_group[codename]))
                 else:
