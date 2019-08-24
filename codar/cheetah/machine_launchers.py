@@ -7,6 +7,8 @@ machine_launchers[machines.cori] = launchers.Launcher
 machine_launchers[machines.theta] = launchers.Launcher
 machine_launchers[machines.titan] = launchers.Launcher
 machine_launchers[machines.summit] = launchers.Launcher
+machine_launchers[machines.deepthought2_cpu] = launchers.Launcher
+machine_launchers[machines.deepthought2_gpu] = launchers.Launcher
 
 
 def get_launcher(machine, output_directory, num_codes):

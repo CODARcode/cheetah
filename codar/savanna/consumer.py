@@ -79,9 +79,7 @@ class PipelineRunner(object):
                 raise ValueError("duplicate pipeline id: %s" % p.id)
             self._pipeline_ids.add(p.id)
 
-            if self.machine_name.lower() not in 'summit':
-                # for summit, the node_layout parsing is different
-                p.set_ppn(self.ppn)
+            p.set_ppn(self.ppn)
 
             # set_total_nodes() is deprecated. Leave it here for now.
             # p.set_total_nodes()
