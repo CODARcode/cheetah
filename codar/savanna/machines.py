@@ -185,11 +185,11 @@ summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
 
 deepthought2_cpu = Machine('deepthought2_cpu', "slurm", "mpirunc", DTH2CPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project=""))
+                           scheduler_options=dict(project="", queue="default"))
 
 deepthought2_gpu = Machine('deepthought2_gpu', "slurm", "mpirung", DTH2GPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project=""))
+                           scheduler_options=dict(project="", queue="default"))
 
 
 def get_by_name(name):
