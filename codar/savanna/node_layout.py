@@ -98,7 +98,15 @@ class NodeLayout(object):
     def validate(self, ppn, codes_per_node, shared_nodes):
         """Given a machine ppn and max numer of codes (e.g. 4 on cori),
         raise a ValueError if the specified layout won't fit.
-        Dont modify this yet, this is being used by the tests"""
+        Dont modify this yet, this is being used by the tests
+
+        TODO:
+        Ensure that all of them are of the same type, i.e. either virtual
+        node or code:ppn mapping.
+        For virtual nodes, verify that the same code does not appear in
+        multiple vnodes. also ensure that for Summit, contiguous cores are
+        mapped to ranks of a code
+        """
         layout_codes_per_node = self.codes_per_node()
         if layout_codes_per_node > codes_per_node:
             raise ValueError("Node layout error: %d codes > max %d"

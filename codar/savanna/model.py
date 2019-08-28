@@ -20,6 +20,7 @@ import threading
 import signal
 import logging
 from queue import Queue
+import copy
 import pdb
 
 from codar.savanna import status, machines, summit_helper, deepthought2_helper
@@ -507,7 +508,7 @@ class Pipeline(object):
 
         # TODO: ensure that all the node layouts contain either a virtual
         #  node object or a regular codename:ppn mapping
-        self._validate_node_layout()
+        # self._validate_node_layout()
 
     @classmethod
     def from_data(cls, data):
@@ -579,11 +580,21 @@ class Pipeline(object):
         ordered_runs = []
         while len(ordered_runs) < len(self.runs):
             cyclic_dep = True
+
+            # first retrieve all runs with no dependencies
             for run in self.runs:
                 if run in ordered_runs:
                     continue
-                if run.depends_on_runs is None or \
-                        run.depends_on_runs in ordered_runs:
+                if run.depends_on_runs is None:
+                    cyclic_dep = False
+                    ordered_runs.append(run)
+
+            # now get all runs whose depends_on are in ordered_runs
+            # this order of processing is important
+            for run in self.runs:
+                if run in ordered_runs:
+                    continue
+                if run.depends_on_runs in ordered_runs:
                     cyclic_dep = False
                     ordered_runs.append(run)
 
@@ -666,15 +677,16 @@ class Pipeline(object):
             codes_on_node.append(list(self._extract_codes_on_node(layout)))
 
         # check for dependencies and re-arrange codes in this list
-        for l in codes_on_node:
-            for code in l:
-                if code.depends_on_runs:
-                    t = code.depends_on_runs
-                    if t not in l:
-                        for ol in codes_on_node:
-                            if t in ol:
-                                ol.append(code)
-                                l.remove(code)
+        # for l in codes_on_node:
+        #     for code in l:
+        #         if code.depends_on_runs:
+        #             t = code.depends_on_runs
+        #             if t not in l:
+        #                 for ol in codes_on_node:
+        #                     if t in ol:
+        #                         ol.append(code)
+        #                         l.remove(code)
+        #                         break
 
         # Get num nodes required to run this layout
         for l in codes_on_node:
@@ -971,14 +983,3 @@ class Pipeline(object):
         # has been configured and force kill was not called.
         if self._post_thread is not None:
             self._post_thread.join()
-
-    def _validate_node_layout(self):
-        """
-        TODO: Validate the node layout
-        Ensure that all of them are of the same type, i.e. either virtual
-        node or code:ppn mapping.
-        For virtual nodes, verify that the same code does not appear in
-        multiple vnodes. also ensure that for Summit, contiguous cores are
-        mapped to ranks of a code
-        """
-        pass

@@ -589,7 +589,7 @@ class Run(object):
         code_groups = self.node_layout.group_codes_by_node()
 
         # now further group codes based on the dependency
-        self._group_codes_by_dependencies(code_groups)
+        # self._group_codes_by_dependencies(code_groups)
 
         # Get the max no. of nodes required based on the node layout
         group_max_nodes = []
