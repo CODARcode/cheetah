@@ -53,13 +53,12 @@ def _create_rankfile_node_config(rankfile_path, nprocs, num_nodes_reqd,
 
         for j, rank_id in enumerate(rank_map.keys()):
             res_map = rank_map[rank_id]
-            lines += '\rank {} = +n{} '.format(j+rank_offset, next_host)
+            lines += "rank {}=+n{} ".format(j+rank_offset, next_host)
             for index, core_id in enumerate(res_map.core_ids):
-                lines += "slot={}:{}".format(core_id/10, core_id % 10)
+                lines += "slot={}:{}\n".format(core_id/10, core_id % 10)
         
             if j+rank_offset == nprocs-1:
                 break
-        lines += "\n"
 
     with open(rankfile_path, 'w') as f:
         f.write(lines)
