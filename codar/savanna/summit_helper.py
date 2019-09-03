@@ -64,7 +64,6 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                  nprocs, num_nodes_reqd, nodes_assigned,
                                  node_config):
     str = _get_first_erf_block(run_exe, run_args)
-    # pdb.set_trace()
     erf_map = _ERFMap(node_config).map
 
     for i in range(num_nodes_reqd):
@@ -75,10 +74,9 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
             res_map = erf_map[rank_id]
             str += '\nrank: {}: {{ host: {}; cpu: '.format(i+rank_offset,
                                                            next_host)
-            for index, core_id in enumerate(res_map.core_ids):
-                if index > 0:
-                    str += ', '
-                str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
+            core_start = res_map.core_ids[0]
+            core_end = res_map.core_ids[-1]
+            str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
 
             if res_map.gpu_ids:
                 str += " ; gpu: {"
