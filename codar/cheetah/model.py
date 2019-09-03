@@ -251,6 +251,16 @@ class Campaign(object):
 
         # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
+            # Validate component inputs.
+            #   1. Ensure all keys are valid code names
+            code_names = list(self.codes.keys())
+            if group.component_inputs is not None:
+                c_input_keys = list(group.component_inputs.keys())
+                for key in c_input_keys:
+                    assert key in code_names, \
+                        "Error in component_inputs for {}. '{}' not a valid " \
+                        "code name".format(group.name, key)
+
             # each scheduler group gets it's own subdir
             # TODO: support alternate template for dirs?
             group_name = group.name
@@ -269,6 +279,12 @@ class Campaign(object):
                         node_layout = None
                     else:
                         node_layout = sweep.node_layout.get(self.machine.name)
+
+                    # Summit requires a node layout
+                    if self.machine.name.lower() == "summit":
+                        assert node_layout is not None, \
+                            "Must provide a node layout for a Sweep on Summit"
+
                     if node_layout is None:
                         node_layout = NodeLayout.default_no_share_layout(
                                             self.machine.processes_per_node,
@@ -580,7 +596,17 @@ class Run(object):
             group_max = 0
             for codename in code_group:
                 rc = self._get_rc_by_name(codename)
-                num_nodes_code = math.ceil(rc.nprocs/code_group[codename])
+                # FIXME: Cleanup this hack
+                # For summit: its something like {'xgc':{0,1,2,4,5}}, i.e.
+                #   its a dict of sets. For other machines, its a dict of
+                #   int that represents ppn.
+                if 'summit' in self.machine.name.lower():
+                    num_nodes_code = math.ceil(
+                        rc.nprocs/len(code_group[codename]))
+                else:
+                    num_nodes_code = math.ceil(
+                        rc.nprocs / code_group[codename])
+                rc.num_nodes = num_nodes_code
                 group_max = max(group_max, num_nodes_code)
             group_max_nodes.append(group_max)
 
@@ -633,6 +659,7 @@ class RunComponent(object):
         self.hostfile = hostfile
         self.after_rc_done = None
         self.runner_override = runner_override
+        self.num_nodes = 0
 
     def as_fob_data(self):
         data = dict(name=self.name,
@@ -646,6 +673,7 @@ class RunComponent(object):
                     adios_xml_file=self.adios_xml_file,
                     hostfile=self.hostfile,
                     after_rc_done=None,
+                    num_nodes=self.num_nodes,
                     runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env

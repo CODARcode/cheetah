@@ -73,8 +73,7 @@ class GrayScott(Campaign):
     shared_node = SummitNode()
     for i in range(18):
         shared_node.cpu[i] = "simulation:{}".format(math.floor(i / 6))
-        shared_node.cpu[i + 21] = "simulation:{}".format(math.floor((i + 18) /
-                                                                  6))
+        shared_node.cpu[i + 21] = "simulation:{}".format(math.floor((i + 18) / 6))
     for i in range(2):
         shared_node.cpu[i + 18] = "pdf_calc:0"
         shared_node.cpu[i + 18 + 21] = "pdf_calc:0"

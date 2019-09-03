@@ -19,9 +19,11 @@ class NodeLayout(object):
 
     def __init__(self, layout_list):
         # TODO: better validation
-        assert isinstance(layout_list, list)
+        assert isinstance(layout_list, list), "Node Layout must be a list"
         for item in layout_list:
-            assert isinstance(item, dict) or isinstance(item, MachineNode)
+            assert isinstance(item, dict) or isinstance(item, MachineNode), \
+                "Items in a node layout must be a dict or a Machine Node " \
+                "depending on your target system"
 
         # # For now, only allow codes to be in one node grouping
         # key_sets = [set(d.keys()) for d in layout_list]
@@ -133,7 +135,11 @@ class NodeLayout(object):
         """Return a list of dicts, where each list represents codes on a
         node, and a dict key for ppn
         Example: [ {sim,analysis1}, {analysis2}, {viz} ].
-        Must take Summit NodeConfigs into account"""
+        Must take Summit NodeConfigs into account
+
+        FIXME: Returns different things for different machines.
+        Returns a list of cpu mappings for Summit, and list of ppn for other
+        machines"""
 
         code_groups = []
 
@@ -147,9 +153,10 @@ class NodeLayout(object):
                 for core_mapping in layout_info.cpu:
                     if core_mapping is not None:
                         codename = core_mapping.split(':')[0]
+                        rank_id = int(core_mapping.split(':')[1])
                         if codename not in unique_codes:
-                            unique_codes[codename] = 0
-                        unique_codes[codename] += 1
+                            unique_codes[codename] = set()
+                        unique_codes[codename].add(rank_id)
                 code_groups.append(unique_codes)
 
             # if this is a dict

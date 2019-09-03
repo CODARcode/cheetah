@@ -493,6 +493,10 @@ class Pipeline(object):
         # have all Runs in a shared node release nodes just once.
         self._nodes_assigned = Queue()
 
+        # Reorder the runs list so that runs are listed according to their
+        # dependencies
+        self.reorder_runs_by_dependencies()
+
     @classmethod
     def from_data(cls, data):
         """Create Pipeline instance from dictionary data structure, containing
@@ -546,6 +550,35 @@ class Pipeline(object):
                         launch_mode=launch_mode,
                         total_nodes=total_nodes,
                         machine_name=machine_name)
+
+    def reorder_runs_by_dependencies(self):
+        """
+        Reorder the runs list so that runs appear in the order in which they
+        must be launched.
+        This requires parsing their dependencies information.
+
+        Keep iterating through the runs list, finding the root-level run at
+        every iteration (one with no dependencies) until all runs are examined.
+        Watch out for cyclic dependencies.
+
+        This algorithm will work as far as there is only one code on which a
+        code can depend on.
+        """
+        ordered_runs = []
+        while len(ordered_runs) < len(self.runs):
+            cyclic_dep = True
+            for run in self.runs:
+                if run in ordered_runs:
+                    continue
+                if run.depends_on_runs is None or \
+                        run.depends_on_runs in ordered_runs:
+                    cyclic_dep = False
+                    ordered_runs.append(run)
+
+            assert not cyclic_dep, "Cyclic dependency found amongst " \
+                                   "applications"
+
+        self.runs = ordered_runs
 
     def start(self, consumer, nodes_assigned, runner=None):
         # Mark all runs as active before they are actually started
@@ -656,88 +689,83 @@ class Pipeline(object):
                 run.nodes_assigned = nodes_assigned_to_layout
 
     def _extract_codes_on_node(self, layout_info):
+        """
 
-        # Remove this check for now
-        # if layout_info['__info_type__'] not in ('resource_set', 'NodeConfig'):
-        #     raise SavannaException("Invalid value for node layout's "
-        #                            "__info_type__ key")
-        # node-layout in fobs.json looks like
-        #{
-        #    node_layout: [
-        #        {‘__info_type__’:’NodeConfig’, ‘cpu’:[,,, , , ], ‘gpu’:[,,,
-        #        , , ]}, {‘__info_type__’: ‘resource_set’, ’simulation’: 4}, {‘__info_type__’: ‘analysis0’: 7}]
-        #}
+        """
 
         codes_on_node = set()
 
-        # If no node-sharing
-        # if layout_info['__info_type__'] == 'resource_set':
-        if layout_info.get('__info_type__', None) is None:
-            # Get the run handle
-            run_name = None
-            for k in layout_info.keys():
-                if '__info_type__' not in k:
-                    run_name = k
-                    break
-            assert run_name is not None, "Could not get run in node_layout"
+        # # If no node-sharing
+        # # if layout_info['__info_type__'] == 'resource_set':
+        # if layout_info.get('__info_type__', None) is None:
+        #     # Get the run handle
+        #     run_name = None
+        #     for k in layout_info.keys():
+        #         if '__info_type__' not in k:
+        #             run_name = k
+        #             break
+        #     assert run_name is not None, "Could not get run in node_layout"
+        #
+        #     run = self._get_run_by_name(run_name)
+        #     run.nodes = math.ceil(run.nprocs / int(layout_info[run_name]))
+        #     codes_on_node.add(run)
 
-            run = self._get_run_by_name(run_name)
-            run.nodes = math.ceil(run.nprocs / int(layout_info[run_name]))
-            codes_on_node.add(run)
+        # if this is a NodeConfig object
+        # elif layout_info['__info_type__'] == 'NodeConfig':
 
-        # if node-sharing
-        elif layout_info['__info_type__'] == 'NodeConfig':
-            # Get the ranks per node for each run
-            num_ranks_per_run = {}
-            for rank_info in layout_info['cpu']:
-                if rank_info is not None:
-                    run_name = rank_info.split(':')[0]
-                    if run_name not in list(num_ranks_per_run.keys()):
-                        num_ranks_per_run[run_name] = 0
-                    num_ranks_per_run[run_name] += 1
-
-            # set the no. of nodes for the codes on this node
-            for code in num_ranks_per_run:
-                run = self._get_run_by_name(code)
-                run.nodes = math.ceil(run.nprocs/num_ranks_per_run[code])
-
-            # Add run to codes_on_node and create nodeconfig for each run
-            for run_name in num_ranks_per_run.keys():
-                num_ranks_per_node = num_ranks_per_run[run_name]
-                run = self._get_run_by_name(run_name)
-                codes_on_node.add(run)
-                run.node_config = NodeConfig()
-                run.node_config.num_ranks_per_node = num_ranks_per_node
-                for i in range(num_ranks_per_node):
-                    # Every rank for this run has a list of cpu and gpu cores
-                    run.node_config.cpu.append([])
-                    run.node_config.gpu.append([])
-
-            # Loop over the cpu core mapping
-            for i in range(len(layout_info['cpu'])):
-                rank_info = layout_info['cpu'][i]
-
-                # if the core is not mapped, go to the next one
-                if rank_info is None:
-                    continue
-
+        # 1. Set the no. of nodes required for this Run
+        # Get the ranks per node for each run
+        num_ranks_per_run = {}
+        for rank_info in layout_info['cpu']:
+            if rank_info is not None:
                 run_name = rank_info.split(':')[0]
-                rank_id = rank_info.split(':')[1]
-                run = self._get_run_by_name(run_name)
+                rank_id = int(rank_info.split(':')[1])
+                if run_name not in list(num_ranks_per_run.keys()):
+                    num_ranks_per_run[run_name] = set()
+                num_ranks_per_run[run_name].add(rank_id)
 
-                # append core id to the rank id of this run
-                run.node_config.cpu[int(rank_id)].append(i)
+        # set the no. of nodes for the codes on this node
+        for code in num_ranks_per_run:
+            run = self._get_run_by_name(code)
+            run.nodes = math.ceil(run.nprocs/len(num_ranks_per_run[code]))
 
-            # Loop over the gpu mapping
-            for i in range(len(layout_info['gpu'])):
-                rank_list = layout_info['gpu'][i]
-                if rank_list is not None:
-                    for rank_info in rank_list:
-                        run_name = rank_info.split(':')[0]
-                        rank_id = rank_info.split(':')[1]
-                        run = self._get_run_by_name(run_name)
-                        run.node_config.gpu[int(rank_id)].append(i)
-                        pass
+        # 2. Create the node config for each Run
+        # Add run to codes_on_node and create nodeconfig for each run
+        for run_name in num_ranks_per_run.keys():
+            num_ranks_per_node = len(num_ranks_per_run[run_name])
+            run = self._get_run_by_name(run_name)
+            codes_on_node.add(run)
+            run.node_config = NodeConfig()
+            run.node_config.num_ranks_per_node = num_ranks_per_node
+            for i in range(num_ranks_per_node):
+                # Every rank for this run has a list of cpu and gpu cores
+                run.node_config.cpu.append([])
+                run.node_config.gpu.append([])
+
+        # Loop over the cpu core mapping
+        for i in range(len(layout_info['cpu'])):
+            rank_info = layout_info['cpu'][i]
+
+            # if the core is not mapped, go to the next one
+            if rank_info is None:
+                continue
+
+            run_name = rank_info.split(':')[0]
+            rank_id = rank_info.split(':')[1]
+            run = self._get_run_by_name(run_name)
+
+            # append core id to the rank id of this run
+            run.node_config.cpu[int(rank_id)].append(i)
+
+        # Loop over the gpu mapping
+        for i in range(len(layout_info['gpu'])):
+            rank_list = layout_info['gpu'][i]
+            if rank_list is not None:
+                for rank_info in rank_list:
+                    run_name = rank_info.split(':')[0]
+                    rank_id = rank_info.split(':')[1]
+                    run = self._get_run_by_name(run_name)
+                    run.node_config.gpu[int(rank_id)].append(i)
 
         return list(codes_on_node)
 

@@ -7,9 +7,6 @@ import xml.etree.ElementTree as ET
 """
 @TODO:
 set_engine/transport/operation_parameter functions
-
-Questions for myself:
-- Is there a way to know if the input file is an adios2 or adios1 xml file?
 """
 
 # A list of valid engines in adios2 and their parameters
@@ -47,6 +44,7 @@ _engines = {
     "Inline": [
         "writerID",
     ],
+    "BP4": ['node-local'],
 }
 
 # A list of valid transports and their parameters

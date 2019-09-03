@@ -1,5 +1,39 @@
 from codar.savanna.machines import SummitNode
 import math
+import pdb
+
+
+class _ResourceMap:
+    """
+    A class to represent a set of resources that a rank maps to.
+    This is a combination of hardware threads, cores, gpus, memory.
+    A rank may map to multiple cores and gpus.
+    """
+    def __init__(self):
+        self.core_ids = None
+        self.gpu_ids = None
+
+
+class _ERFMap:
+    """
+    A class to represent erf-style mapping of ranks to resources
+    """
+    def __init__(self, node_config):
+        self.map = dict()
+
+        # Parse the node config to extract rank and cpu mapping
+        for rank_id, core_ids in enumerate(node_config.cpu):
+            if len(core_ids) > 0:
+                self.map[rank_id] = _ResourceMap()
+                self.map[rank_id].core_ids = core_ids
+
+        # Parse the node config to extract rank and gpu mapping
+        for rank_id, gpu_ids in enumerate(node_config.gpu):
+            if len(gpu_ids) > 0:
+                assert rank_id in self.map.keys(), \
+                    "gpu mapping exists but cpu mapping does not for rank {}" \
+                    " in node layout".format(rank_id)
+                self.map[rank_id].gpu_ids = gpu_ids
 
 
 def get_nodes_reqd(res_set, nrs):
@@ -11,7 +45,8 @@ def get_nodes_reqd(res_set, nrs):
 
 def create_erf_file(run):
     assert not ((run.res_set is None) and (run.node_config is None)), \
-        "Both resource set info and node config info cannot be none"
+        "Node Layout not found for Summit. Please provide a node layout " \
+        "to the Sweep using the SummitNode object."
 
     if run.node_config:
         _create_erf_file_node_config(run.erf_file, run.exe, run.args,
@@ -29,30 +64,33 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                  nprocs, num_nodes_reqd, nodes_assigned,
                                  node_config):
     str = _get_first_erf_block(run_exe, run_args)
+    erf_map = _ERFMap(node_config).map
+
     for i in range(num_nodes_reqd):
         next_host = nodes_assigned[i]
-        rank_offset = i * node_config.num_ranks_per_node
-        for j in range(node_config.num_ranks_per_node):
-            rank_id = rank_offset+j
-            str += '\nrank: {}: {{ host: {}; cpu: '.format(rank_id,
-                                                           next_host)
-            for index, core_id in enumerate(node_config.cpu[j]):
-                if index > 0:
-                    str += ', '
-                str += "{{{}-{}}}".format(core_id*4, core_id*4+3)
+        rank_offset = i*len(list(erf_map.keys()))
 
-            if len(node_config.gpu[j]) > 0:
+        for i, rank_id in enumerate(erf_map.keys()):
+            res_map = erf_map[rank_id]
+            str += '\nrank: {}: {{ host: {}; cpu: '.format(i+rank_offset,
+                                                           next_host)
+            core_start = res_map.core_ids[0]
+            core_end = res_map.core_ids[-1]
+            str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
+
+            if res_map.gpu_ids:
                 str += " ; gpu: {"
 
-            for gpu_id in node_config.gpu[j]:
-                str += "{},".format(gpu_id)
+                for gpu_id in res_map.gpu_ids:
+                    str += "{},".format(gpu_id)
 
-            # Remove the last comma
-            str = str[:-1]
-            str += "}"
+                # Remove the last comma
+                str = str[:-1]
+                str += "}"
 
             str += " } : app 0"
-            if rank_id == nprocs-1:
+
+            if i+rank_offset == nprocs-1:
                 break
 
     # jsrun fails without this line break

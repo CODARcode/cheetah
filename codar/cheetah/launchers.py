@@ -21,7 +21,6 @@ from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
-from codar.cheetah.exc import CheetahException as exc
 
 
 TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
