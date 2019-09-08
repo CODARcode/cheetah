@@ -677,16 +677,7 @@ class Pipeline(object):
             codes_on_node.append(list(self._extract_codes_on_node(layout)))
 
         # check for dependencies and re-arrange codes in this list
-        # for l in codes_on_node:
-        #     for code in l:
-        #         if code.depends_on_runs:
-        #             t = code.depends_on_runs
-        #             if t not in l:
-        #                 for ol in codes_on_node:
-        #                     if t in ol:
-        #                         ol.append(code)
-        #                         l.remove(code)
-        #                         break
+        self._rearrange_codes_by_dependencies(codes_on_node)
 
         # Get num nodes required to run this layout
         for l in codes_on_node:
@@ -774,6 +765,31 @@ class Pipeline(object):
                     run.node_config.gpu[int(rank_id)].append(i)
 
         return list(codes_on_node)
+
+    def _rearrange_codes_by_dependencies(self, nl):
+        """
+        Input is a nested list of lists, where the inner lists represents
+        codes sharing a compute node.
+        This function rearranges those codes by dependencies so that codes
+        that are run in order are placed on the same node.
+        """
+
+        def parse_lists(_nl):
+            for l in _nl:
+                for code in l:
+                    if code.depends_on_runs:
+                        t = code.depends_on_runs
+                        if t not in l:
+                            for ol in _nl:
+                                if t in ol:
+                                    ol.append(code)
+                                    l.remove(code)
+                                    return False
+            return True
+
+        done = False
+        while not done:
+            done = parse_lists(nl)
 
     def run_finished(self, run):
         assert self._running

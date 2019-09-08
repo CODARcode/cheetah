@@ -589,7 +589,7 @@ class Run(object):
         code_groups = self.node_layout.group_codes_by_node()
 
         # now further group codes based on the dependency
-        # self._group_codes_by_dependencies(code_groups)
+        self._group_codes_by_dependencies(code_groups)
 
         # Get the max no. of nodes required based on the node layout
         group_max_nodes = []
@@ -619,21 +619,29 @@ class Run(object):
         Input is a list of dictionaries where the key is the code and value
         is the no. of ranks on a node"""
 
-        # ugh
-        for d in code_groups:
-            for rc_name in list(d.keys()):
-                rc = self._get_rc_by_name(rc_name)
-                if rc.after_rc_done:
-                    m_rc = rc.after_rc_done
-                    if m_rc.name not in d.keys():
-                        t_d = None
-                        for d2 in code_groups:
-                            if m_rc.name in list(d2.keys()):
-                                t_d = d2
-                        assert t_d is not None, "Internal error in " \
-                                                "dependency management."
-                        t_d[rc_name] = d[rc_name]
-                        del d[rc_name]
+        def parse_dicts(l_d):
+            for d in l_d:
+                for rc_name in d:
+                    rc = self._get_rc_by_name(rc_name)
+                    if rc.after_rc_done:
+                        if rc.after_rc_done.name not in list(d.keys()):
+                            target_d = None
+                            for d2 in l_d:
+                                if rc.after_rc_done.name in list(d2.keys()):
+                                    target_d = d2
+                                    break
+                            assert target_d is not None, \
+                                "Internal dependency management error! " \
+                                "Could not find rc {} in codes".format(
+                                    rc.after_rc_done.name)
+                            target_d[rc_name] = d[rc_name]
+                            del d[rc_name]
+                            return False
+            return True
+
+        done = False
+        while not done:
+            done = parse_dicts(code_groups)
 
     def get_app_param_dict(self):
         """Return dictionary containing only the app parameters
