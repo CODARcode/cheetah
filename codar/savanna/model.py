@@ -646,7 +646,8 @@ class Pipeline(object):
             # Note that the NodeConfig/VirtualNode objects have not been
             # created at this point, so use the following to check the node
             # layout type
-            if self.node_layout[0]['__info_type__'] == 'NodeConfig':
+            layout_type = self.node_layout[0].get('__info_type__') or None
+            if layout_type == 'NodeConfig':
                 self._parse_node_layouts()
 
             # Next start pipeline runs in separate thread and return
@@ -912,7 +913,8 @@ class Pipeline(object):
         # Return if you are using VirtualNode for node layout, as the
         # parsing is done differently for VirtualNode
         # At this point, the node layout is not an object of VirtualNode
-        if self.node_layout[0]['__info_type__'] == 'NodeConfig':
+        layout_type = self.node_layout[0].get('__info_type__') or None
+        if layout_type == 'NodeConfig':
             return
 
         if self.node_layout is None:
