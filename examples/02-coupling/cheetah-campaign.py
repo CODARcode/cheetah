@@ -61,11 +61,15 @@ class ProducerConsumer(Campaign):
     ]
 
     # Summit node layout
+    # Create a shared node layout where the producer and mean_calc share compute nodes
     shared_node_nc = SummitNode()
-    for i in range(32):
+
+    # place producer on the first socket
+    for i in range(21):
         shared_node_nc.cpu[i] = 'producer:{}'.format(i)
+    # place analysis on the second socket
     for i in range(8):
-        shared_node_nc.cpu[i] = 'mean_calc:{}'.format(i)
+        shared_node_nc.cpu[22+i] = 'mean_calc:{}'.format(i)
 
 
     # This should be 'obj=machine.VirtualNode()'
