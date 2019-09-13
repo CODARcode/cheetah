@@ -76,6 +76,17 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                                            next_host)
             core_start = res_map.core_ids[0]
             core_end = res_map.core_ids[-1]
+
+            # Logically, the 22nd core represents the first core on the
+            # second socket, as the real core 22 on the first socket is
+            # skipped. So if you are on the second socket, convert the logical
+            # mapping to physical mapping by upshifting the core id by 1.
+            # This requires the cpu_index_using value to be 'physical'
+            if core_start >= 22:
+                core_start = core_start + 1
+            if core_end >= 22:
+                core_end = core_end + 1
+
             str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
 
             if res_map.gpu_ids:
@@ -101,12 +112,12 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
 
 def _get_first_erf_block(run_exe, run_args):
     str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
-    str += "cpu_index_using: logical\n"
+    str += "cpu_index_using: physical\n"
     str += "overlapping_rs: warn\n"
     str += "skip_missing_cpu: warn\n"
     str += "skip_missing_gpu: allow\n"
     str += "skip_missing_mem: allow\n"
-    str += "oversubscribe_cpu: warn\n"
+    str += "oversubscribe_cpu: error\n"
     str += "oversubscribe_gpu: allow\n"
     str += "oversubscribe_mem: allow\n"
     str += "launch_distribution: packed"
