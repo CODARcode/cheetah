@@ -81,10 +81,9 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
             # second socket, as the real core 22 on the first socket is
             # skipped. So if you are on the second socket, convert the logical
             # mapping to physical mapping by upshifting the core id by 1.
-            # This requires the cpu_index_using value to be 'physical'
-            if core_start >= 22:
+            # This requires the 'cpu_index_using' to be set to 'physical'
+            if core_start >= 21:
                 core_start = core_start + 1
-            if core_end >= 22:
                 core_end = core_end + 1
 
             str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
