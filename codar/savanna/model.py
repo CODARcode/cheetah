@@ -126,9 +126,9 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
-        # Machine and nodes assigned are set by pipeline just before run is
-        # started
         self.machine = None
+
+        # nodes assigned needed for Summit
         self.nodes_assigned = None
 
         # node_config for node-sharing on summit
@@ -144,6 +144,9 @@ class Run(threading.Thread):
         # An override option to launch the code without the machine runner (
         # aprun/jsrun/srun etc.
         self.runner_override = runner_override
+
+        # For mpmd mode on machines such as Summit, keep a list of child runs
+        self.child_runs = None
 
     @classmethod
     def from_data(cls, data):
@@ -172,17 +175,41 @@ class Run(threading.Thread):
 
     @classmethod
     def mpmd_run(cls, runs):
+        """
+        Returns a new Run object
+        """
+
+        # For Summit, just return runs. The ERF helper will handle it. For
+        # other machines, return a single aggregated Run object
+
+        if runs[0].machine.name.lower() == 'summit':
+            # create a run object, name it 'mpmd', and add runs as child runs
+            r = Run(name='mpmd', exe=None, args=None, sched_args=None,
+                    env=runs[0].env, working_dir=runs[0].working_dir,
+                    timeout=runs[0].timeout, nprocs=None, res_set=None,
+                    stdout_path=None, stderr_path=None, return_path=None,
+                    walltime_path=None, sleep_after=None,
+                    depends_on_runs=None, hostfile=None, runner_override=None)
+
+            # Pipeline sets the machine for its runs, so you have to
+            # explicitly do it here as well.
+            r.machine = runs[0].machine
+
+            r.child_runs = runs
+            return r
+
         if len(runs) == 1:
             return runs
 
-        name = '-'.join(run.name for run in runs)
+        # this is for regular mpmd launches that where the launch command is
+        # a ':' separated list of individual app launches
         mpmd_args = runs[0].args
-
         for run in runs[1:]:
             run_args = run.runner.wrap(run)
             del run_args[0]
             mpmd_args.extend(":")
             mpmd_args.extend(run_args)
+            # no need to set run.nodes = sum(child run.nodes)
 
         r = runs[0]
         r.args = mpmd_args
@@ -263,7 +290,12 @@ class Run(threading.Thread):
 
         if self.machine.name.lower() == 'summit':
             self.erf_file = self.working_dir + "/" + self.name + ".erf_input"
-            summit_helper.create_erf_file(self)
+
+            # for mpmd runs
+            if self.child_runs is not None:
+                summit_helper.create_erf_file_mpmd(self)
+            else:
+                summit_helper.create_erf_file(self)
 
         if 'deepthought2' in self.machine.name.lower():
             if self.node_config is not None:
@@ -622,11 +654,23 @@ class Pipeline(object):
         with self._state_lock:
             for run in self.runs:
                 run.set_runner(runner)
-            if self.launch_mode:
-                if self.launch_mode.lower() == 'mpmd':
-                    mpmd_run = Run.mpmd_run(self.runs)
-                    mpmd_run.nodes = self.total_nodes
-                    self.runs = [mpmd_run]
+
+            # Parse the node layout and set the run information.
+            # This requires self.nodes_assigned.
+            # Summit and DeepThought2 support VirtualNode interfaces
+            # Note that the NodeConfig/VirtualNode objects have not been
+            # created at this point, so use the following to check the node
+            # layout type. This must be done before an mpmd run obj is created.
+            layout_type = self.node_layout[0].get('__info_type__') or None
+            if layout_type == 'NodeConfig':
+                self._parse_node_layouts()
+
+            launch_mode = self.launch_mode or 'None'
+            if launch_mode.lower() == 'mpmd':
+                mpmd_run = Run.mpmd_run(self.runs)
+                mpmd_run.nodes = self.total_nodes
+                self.runs = [mpmd_run]
+
             for run in self.runs:
                 run.set_runner(runner)
 
@@ -639,16 +683,6 @@ class Pipeline(object):
                 run.add_callback(self.run_finished)
                 self._active_runs.add(run)
             self._running = True
-
-            # Parse the node layout and set the run information.
-            # This requires self.nodes_assigned.
-            # Summit and DeepThought2 support VirtualNode interfaces
-            # Note that the NodeConfig/VirtualNode objects have not been
-            # created at this point, so use the following to check the node
-            # layout type
-            layout_type = self.node_layout[0].get('__info_type__') or None
-            if layout_type == 'NodeConfig':
-                self._parse_node_layouts()
 
             # Next start pipeline runs in separate thread and return
             # immediately, so we can inject a wait time between starting runs.
@@ -776,6 +810,9 @@ class Pipeline(object):
         """
 
         def parse_lists(_nl):
+            """
+            dont judge me
+            """
             for l in _nl:
                 for code in l:
                     if code.depends_on_runs:

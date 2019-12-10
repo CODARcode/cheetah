@@ -1,6 +1,12 @@
 from codar.savanna.machines import SummitNode
+from codar.savanna.error_messages import err_msg
 import math
 import pdb
+
+# Snippet below lets pycharm understand the 'Run' object so that we can
+# create type hints. Cannot import it as it would create a cyclic import
+if False:
+    from codar.savanna.model import Run
 
 
 class _ResourceMap:
@@ -43,6 +49,41 @@ def get_nodes_reqd(res_set, nrs):
     return math.ceil(nrs/res_set.rs_per_host)
 
 
+def create_erf_file_mpmd(run: 'Run'):
+    # assert that the mpmd run has child runs
+    assert run.child_runs is not None, err_msg['mpmd_run_error']
+
+    # assert that all child runs have a node config object
+    for crun in run.child_runs:
+        assert crun.node_config is not None, err_msg['run_node_config_missing']
+
+    # start creating the erf file
+    # 1. add the first set of lines that define the executables
+    erf_str = ""
+    app_index = 0
+    crun: Run  # type hint
+    for crun in run.child_runs:
+        erf_str += "app {}: {} ".format(app_index, crun.exe) + \
+                   " ".join(crun.args) + "\n"
+        app_index += 1
+
+    # 2. Add the rest of the initial block
+    erf_str += _get_first_erf_block()
+
+    # 3. Add the rank to resource mapping for each app in the mpmd run
+    for app_id, crun in enumerate(run.child_runs):
+        erf_map = _ERFMap(crun.node_config).map
+        erf_str += _get_erf_map_str_block(crun.nprocs, erf_map, crun.nodes,
+                                          crun.nodes_assigned, app_id)
+
+    # 4. Add a newline. jsrun apparently fails without it.
+    erf_str += '\n'
+
+    # 5. Done. Write the erf text to file.
+    with open(run.erf_file, 'w') as f:
+        f.write(erf_str)
+
+
 def create_erf_file(run):
     assert not ((run.res_set is None) and (run.node_config is None)), \
         "Node Layout not found for Summit. Please provide a node layout " \
@@ -63,9 +104,31 @@ def _create_erf_file_res_set(run, nodes_assigned, res_set):
 def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                  nprocs, num_nodes_reqd, nodes_assigned,
                                  node_config):
-    str = _get_first_erf_block(run_exe, run_args)
+
+    # Write first line defining app
+    str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
+
+    # Get the initial block of text
+    str += _get_first_erf_block()
+
+    # Retrieve the erf rank to resource mapping from the node config
     erf_map = _ERFMap(node_config).map
 
+    # Get the erf text for the rank to resource mapping
+    str += _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd,
+                                  nodes_assigned, 0)
+
+    # Add a newline as jsrun fails without this line break
+    str += "\n"
+
+    # Done. Write all the erf text to file
+    with open(erf_file_path, 'w') as f:
+        f.write(str)
+
+
+def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
+                           app_id):
+    str = ""
     for i in range(num_nodes_reqd):
         next_host = nodes_assigned[i]
         rank_offset = i*len(list(erf_map.keys()))
@@ -98,20 +161,16 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                 str = str[:-1]
                 str += "}"
 
-            str += " } : app 0"
+            str += " }} : app {}".format(app_id)
 
             if i+rank_offset == nprocs-1:
                 break
 
-    # jsrun fails without this line break
-    str += "\n"
-    with open(erf_file_path, 'w') as f:
-        f.write(str)
+    return str
 
 
-def _get_first_erf_block(run_exe, run_args):
-    str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
-    str += "cpu_index_using: physical\n"
+def _get_first_erf_block():
+    str = "cpu_index_using: physical\n"
     str += "overlapping_rs: warn\n"
     str += "skip_missing_cpu: warn\n"
     str += "skip_missing_gpu: allow\n"

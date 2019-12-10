@@ -116,8 +116,6 @@ class Machine(object):
         self.scheduler_name = scheduler_name
         self.runner_name = runner_name
         self.node_class = node_class
-        # TODO: should the workflow script have knowledge of different
-        # machines, or just generic options configured by Cheetah?
         self.processes_per_node = processes_per_node
         self.node_exclusive = node_exclusive
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)

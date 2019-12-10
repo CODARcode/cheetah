@@ -294,14 +294,6 @@ class Campaign(object):
 
                     # TODO: validate node layout against machine model
 
-                    # Summit override. Don't support MPMD yet.
-                    if self.machine.name.lower() == "summit":
-                        if group.launch_mode:
-                            if group.launch_mode.lower() == 'mpmd':
-                                print("MPMD not supported on Summit yet."
-                                      "Changing to default launch mode.")
-                                group.launch_mode = 'default'
-
                     sweep_runs = [Run(inst, self.codes, self.app_dir,
                                       os.path.join(
                                           group_output_dir,
@@ -318,6 +310,23 @@ class Campaign(object):
                                       group.component_inputs)
                                   for i, inst in enumerate(
                             sweep.get_instances())]
+
+                    # we dont support mpmd mode with dependencies
+                    try:
+                        if group.launch_mode.lower() == 'mpmd':
+                            assert sweep.rc_dependency is None, \
+                                "Dependencies in MPMD mode not supported"
+                    except AttributeError:
+                        pass
+
+                    # we dont support mpmd on deepthought2
+                    try:
+                        if self.machine.machine_name.lower() == 'deepthought2':
+                            assert group.launch_mode.lower() not in 'mpmd',\
+                                "mpmd mode not implemented for deepthought2"
+                    except AttributeError:
+                        pass
+
                     group_runs.extend(sweep_runs)
                     group_run_offset += len(sweep_runs)
             self.runs.extend(group_runs)
