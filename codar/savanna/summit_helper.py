@@ -132,16 +132,19 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
     for i in range(num_nodes_reqd):
         next_host = nodes_assigned[i]
         rank_offset = i*len(list(erf_map.keys()))
+        num_ranks_on_node = len(list(erf_map.keys()))
+        if num_ranks_on_node+rank_offset > nprocs:
+            num_ranks_on_node = nprocs - rank_offset
+
+        str += '\n{}: {{ host: {}; cpu: '.format(num_ranks_on_node, next_host)
 
         for i, rank_id in enumerate(erf_map.keys()):
             res_map = erf_map[rank_id]
-            str += '\nrank: {}: {{ host: {}; cpu: '.format(i+rank_offset,
-                                                           next_host)
             core_start = res_map.core_ids[0]
             core_end = res_map.core_ids[-1]
 
             # Logically, the 22nd core represents the first core on the
-            # second socket, as the real core 22 on the first socket is
+            # second socket, as the real core #22 on the first socket is
             # skipped. So if you are on the second socket, convert the logical
             # mapping to physical mapping by upshifting the core id by 1.
             # This requires the 'cpu_index_using' to be set to 'physical'
@@ -149,11 +152,22 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
                 core_start = core_start + 1
                 core_end = core_end + 1
 
+            if i > 0:
+                str += ', '
             str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
+            if i+rank_offset == nprocs-1:
+                break
 
+        # add the gpu mapping
+        for i, rank_id in enumerate(erf_map.keys()):
+            res_map = erf_map[rank_id]
             if res_map.gpu_ids:
                 str += " ; gpu: {"
+                break
 
+        for i, rank_id in enumerate(erf_map.keys()):
+            res_map = erf_map[rank_id]
+            if res_map.gpu_ids:
                 for gpu_id in res_map.gpu_ids:
                     str += "{},".format(gpu_id)
 
@@ -161,10 +175,10 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
                 str = str[:-1]
                 str += "}"
 
-            str += " }} : app {}".format(app_id)
-
             if i+rank_offset == nprocs-1:
                 break
+
+        str += " }} : app {}".format(app_id)
 
     return str
 
