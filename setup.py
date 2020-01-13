@@ -23,6 +23,7 @@ setup(name='cheetah',
       url='https://github.com/CODARcode/cheetah',
       packages=find_packages(),
       package_data={'codar.cheetah': cheetah_data},
+      include_package_data=True,
       scripts=['bin/cheetah', 'bin/workflow.py'],
-      install_requires="numpy>=1.11.0",
+      #install_requires="numpy>=1.11.0",
       )
