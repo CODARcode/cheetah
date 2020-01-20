@@ -16,14 +16,20 @@ def find_package_data(package_dir, data_subdir):
 
 cheetah_data = find_package_data('codar/cheetah', 'data')
 
+cheetah_long_description = \
+"(CODAR) Cheetah is an experiment harness and campaign management system "  \
+"for exploring various in situ data management techniques, including "      \
+"reduction and compression for large scientific data. "                     \
+"See https://github.com/CODARcode/cheetah for more details."
+
 setup(name='cheetah',
       version='0.5.1',
       description='CODAR Experiment Harness',
-      long_description=open('README.md').read(),
+      long_description=cheetah_long_description,
       url='https://github.com/CODARcode/cheetah',
       packages=find_packages(),
       package_data={'codar.cheetah': cheetah_data},
-      include_package_data=True,
       scripts=['bin/cheetah', 'bin/workflow.py'],
-      #install_requires="numpy>=1.11.0",
+      # include_package_data=True,
+      # install_requires="numpy>=1.11.0",
       )
