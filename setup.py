@@ -16,7 +16,7 @@ def find_package_data(package_dir, data_subdir):
 
 cheetah_data = find_package_data('codar/cheetah', 'data')
 
-setup(name='cheetah',
+setup(name='Cheetah',
       version='0.5.1',
       description='CODAR Experiment Harness',
       long_description=open('README.md').read(),

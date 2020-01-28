@@ -1,5 +1,9 @@
 # Cheetah - the CODAR Experiment Harness
 
+.. toctree::
+  :maxdepth: 2
+
+
 ## Overview
 Cheetah is an experiment harness for running codesign experiments to study the effects of online data analysis at the exascale. It provides a way to run large campaigns of experiments to understand the advantages and tradeoffs of different compression and reduction algorithms run using different orchestration mechanisms. Experiments can be run to analyze data offline, in situ (via a function that is part of the application), or online (in a separate, stand-alone application). The workflow may be composed so that different executables reside on separate nodes, or share compute nodes, in addition to fine-tuning the number of processes per node.
 
