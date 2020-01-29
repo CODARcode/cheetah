@@ -52,7 +52,18 @@ Titan | :white_check_mark: | :x: | N/A
 Theta | :white_check_mark: | :x: | N/A
 Cori | :white_check_mark: | :white_check_mark: | In progress
 
-    
+Authors
+-------
+The primary authors of Cheetah are Bryce Allen (University of Chicago) and Kshitij Mehta (ORNL).
+All contributors are listed [here](https://github.com/CODARcode/cheetah/graphs/contributors).
+
+Citing Cheetah
+--------------
+To refer to Cheetah in a publication, please cite the following paper:
+* K. Mehta et al., "A Codesign Framework for Online Data Analysis and Reduction," 2019 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS), Denver, CO, USA, 2019, pp. 11-20.  
+doi: 10.1109/WORKS49585.2019.00007  
+URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8943548&isnumber=8943488
+
 Examples
 --------
 For more examples of using Cheetah, see the examples directory.
