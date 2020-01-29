@@ -47,7 +47,7 @@ class Sweep(parameters, node_layout, rc_dependency)
 
     `parameters`: A list of parameters that describe 1) how to run all applications in the workflow, 2) how to sweep over parameters values. Parameters are described in the section on Parameter Types.
 
-    `node_layout`: It describes the distribution of MPI ranks on to compute resources. In simple cases, it denotes the number of MPI ranks per node. For more complex cases such as the Summit supercomputer, it denotes how to pin ranks to cores/gpus on a compute node. See section Node Layout.
+    `node_layout`: It describes the distribution of MPI ranks on to compute resources. In simple cases, it denotes the number of MPI ranks per node. For more complex cases such as the Summit supercomputer, it denotes how to pin ranks to cores/gpus on a compute node. See section on [Node Layout](node-layout).
 
     `rc_dependency`: A dictionary that describes the dependency between run components (rc). For example, if an analysis application in the workflow depends on the simulation to complete, this is where it should be marked. Format: `{'analysis_app':'main_simulation'}`
 
