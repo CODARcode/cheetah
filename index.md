@@ -12,7 +12,7 @@ Once a campaign is started, Cheetah can be used to query the status of running e
 
 ### The four steps of campaign management
 There are 4 steps to conducting a parametric study using Cheetah.
-1. [Create a Python-based abstract campaign specification](docs/campaign-spec.md)
+1. [Create a Python-based abstract campaign specification](docs/campaign-spec)
 2. Use Cheetah to generate a campaign endpoint on the target system
 3. Run the campaign
 4. Generate a performance report for a completed campaign
