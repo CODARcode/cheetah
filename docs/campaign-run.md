@@ -1,3 +1,6 @@
+
+[Main](../index)
+
 Running a Campaign
 ==================
 
@@ -18,4 +21,6 @@ A campaign can be resubmitted so that experiments which could not be started on 
 
 At runtime, Savanna creates the following files:
 `codar.FOBrun.log` - A log written by Savanna that shows various actions taken by Savanna such as starting an experiment, experiment completion, 
+
+[Main](../index)
 

@@ -1,11 +1,62 @@
-Campaign Specification
-----------------------
+[Main](../index)
 
-#### Global Campaign Options
+Contents
+--------
+* TOC
+{:toc}
+
+Creating a Campaign Specification
+---------------------------------
+Cheetah provides a Python-based specification format to create a campaign of experiments to explore various aspects of online data analysis and reduction.
+This section describes the specification format and the specification object model.
+
+## Cheetah Object Model
+
+![Cheetah Object Model](cheetah-model.jpg?raw=true "Cheetah Object Model")
+
+The figure above describes Cheetah's object model.  
+A campaign is a collection of **SweepGroup** objects which represent a batch job for the underlying system.  
+Each SweepGroup consists of one or more **Sweep** objects which represent a collection of parameter values that must be explored.
+
+## Specification Format
+The snippet below shows the generic structure of a campaign spec file.
+``` python
+class GrayScott(Campaign):
+    name = "gray_scott"
+    
+    # List applications that form the workflow
+    codes = = [ {'app_handle', {exe=, adios_xml_file=, sleep_after=, runner_override=}, ]
+    
+    # Global campaign options
+    run_post_process_script =
+    scheduler_options =
+    app_config_scripts =
+
+    # Create a parameter sweep object
+    sweep1_parameters = [ .. ]
+    sweep1 = Sweep (sweep1_parameters)
+    
+    # Create the layout for the MPI ranks
+    shared_virtual_node = SummitNode()
+    my_layout = [shared_virtual_node]
+    sweep1.node_layout = my_layout
+
+    # Create a SweepGroup object (== job on the underlying system)
+    sg1 = SweepGroup(sweep1, ...)
+
+    # SweepGroups to be activated in the campaign 
+    sweeps=[sg1]
+```
+
+See the [examples](https://github.com/CODARcode/cheetah/tree/dev/examples) for real campaign spec files.
+
+Different components of the spec file are explained below.
+
+## Global Campaign Options
 Here we define the global options .. 
 
 
-#### Creating a SweepGroup
+## Creating a SweepGroup
 SweepGroup:
 A SweepGroup is a collection of Sweeps that inherit some common launch characteristics as described below.
 Every SweepGroup is launched as a batch job.
@@ -39,7 +90,7 @@ class SweepGroup(name, walltime, per_run_timeout, parameter_groups,
 
 
 
-#### Creating a Sweep
+## Creating a Sweep
 
 ``` python
 class Sweep(parameters, node_layout, rc_dependency)
@@ -56,8 +107,10 @@ class Sweep(parameters, node_layout, rc_dependency)
 
 
 
-#### Parameter Types
+## Parameter Types
 Parameter types represent different types of parameters that can be setup to run experiments. These include command line arguments, environment variables, configuration files, key-value parameter files, ADIOS XML files, and scheduler arguments.
+
+### ParamRunner
 
 ``` python
 class ParamRunner(app_handle, 'nprocs', [values])
@@ -67,6 +120,7 @@ class ParamRunner(app_handle, 'nprocs', [values])
 The ParamRunner parameter type is used to run an application. For now, we support `'nprocs'` as a runner parameter, which represents the number of MPI ranks that must be launched.
 values is a list of integers to be tested. For examples, setting values to [4,8,16] would create 3 experiments for the 3 parameter values provided. On a workstation, this would be launched as `mpirun -np <nprocs> <app_handle> ...`.
 
+### ParamCmdLineArg
 ``` python
 ParamCmdLineArg(app_handle, name, position, [values])
 ```
@@ -82,7 +136,7 @@ ParamCmdLineArg(app_handle, name, position, [values])
 
     `[values]`: A list of values to be tested.
 
-
+### ParamCmdLineOption
 ``` python
 ParamCmdLineOption(app_handle, name, option, [values]) 
 ```
@@ -98,7 +152,7 @@ ParamCmdLineOption(app_handle, name, option, [values])
 
     `[values]`: A list of values to be tested.
 
-
+### ParamADIOS2XML
 ``` python
 ParamADIOS2XML(app_handle, name, adios_object, [values])
 ```
@@ -119,7 +173,7 @@ ParamADIOS2XML(app_handle, name, adios_object, [values])
     _{ adios object_name: {parameter values} }_
 
 
-
+### ParamEnvVar
 ``` python
 ParamEnvVar(app_handle, name, option, values)
 ```
@@ -135,7 +189,7 @@ ParamEnvVar(app_handle, name, option, values)
 
     `values`: A list of values to be tested.
 
-
+### ParamConfig
 ``` python
 ParamConfig(app_handle, name, config_file, key, value)
 ```
@@ -153,7 +207,7 @@ ParamConfig(app_handle, name, config_file, key, value)
 
     `values`: A list of values to be tested.
 
-
+### ParamKeyValue
 ``` python
 ParamKeyValue(app_handle, name, config_file, key, value)
 ```
@@ -170,4 +224,7 @@ ParamKeyValue(app_handle, name, config_file, key, value)
     `key`: Name of the key in the configuration file.
 
     `values`: A list of values to be tested.
+
+
+[Main](../index)
 

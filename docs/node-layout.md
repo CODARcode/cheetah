@@ -1,3 +1,6 @@
+
+[Main](../index)
+
 Node Layout
 ===========
 Node Layout is a unique feature of Cheetah that allows users to obtain fine-grained process placement on to supported machines.
@@ -10,6 +13,8 @@ For the Summit supercomputer, the SummitNode() object represents a compute node.
 
 SummitNode
 ==========
+Due to the highly heterogeneous architecture of Summit and the associated `jsrun` utility to run jobs, running Cheetah on Summit mandates using the `node-layout` property of a Sweep where users have to map processes to resources on a node. See [examples/04-gray-scott/cheetah-summit.py](examples/04-gray-scott/cheetah-summit.py) to see an example.
+
 The SummitNode object describes the architecture of a compute node of Summit.
 It must be used to specify the process distribution onto the compute nodes on Summit.
 Every application in the workflow must be specified on a SummitNode.
@@ -41,4 +46,6 @@ node_layout = [shared_node]
 ```
 
 Once the node layout using SummitNode objects is created, Cheetah calculates the number of compute nodes required depending upon the 'nprocs' property of the ParamRunner parameter.
+
+[Main](../index)
 

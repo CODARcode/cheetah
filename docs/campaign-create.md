@@ -1,3 +1,5 @@
+[Main](../index)
+
 Creating a Campaign Endpoint from a Spec File
 =============================================
 
@@ -9,4 +11,6 @@ In the campaign endpoint, a sub-directory for the user is created. Multiple user
 
 
 Next, see how to [run a campaign](campaign-run).
+
+[Main](../index)
 
