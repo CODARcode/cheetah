@@ -55,6 +55,8 @@ Different components of the spec file are explained below.
 ## Global Campaign Options
 Here we define the global options .. 
 
+** **Pro Tip** ** : Use the `run_post_process_script` experiment option in the specification file to cleanup large files after an experiment completes.
+Cheetah automatically captures the sizes of all output ADIOS files when the experiment completes.
 
 ## Creating a SweepGroup
 SweepGroup:

@@ -1,10 +1,6 @@
 Cheetah
 =======
 
-* TOC
-{:toc}
-
-
 ## Introduction
 Cheetah is an experiment harness designed as part of the Exascale Computing Project (ECP)'s Co-design Center for Online Data Analysis and Reduction (CODAR) project. 
 
@@ -30,6 +26,11 @@ There are 4 steps to conducting a parametric study using Cheetah.
     - #### The [Node Layout](docs/node-layout) Interface
 
 2. ### [Generate a campaign endpoint on the target system](docs/campaign-create)
+
+    - ### [The Campaign Directory Structure](docs/campaign-dir)
 3. ### [Run the campaign using _Savanna_](docs/campaign-run)
+
+    - #### [Savanna, a runtime engine for in situ data management](docs/savanna)
+
 4. ### [Generate a performance report for a completed campaign](docs/perf-report)
 

@@ -9,8 +9,8 @@ Once a specification has been created, create a campaign end-point, which is a d
 
 In the campaign endpoint, a sub-directory for the user is created. Multiple users can run experiments under the same campaign endpoint.
 
+The directory structure of the generated campaign is explained [here](campaign-dir).
 
-Next, see how to [run a campaign](campaign-run).
 
 [Main](../index)
 
