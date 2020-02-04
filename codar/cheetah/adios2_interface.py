@@ -3,6 +3,7 @@ ADIOS2 Interface
 """
 
 import xml.etree.ElementTree as ET
+import pdb
 
 """
 @TODO:
@@ -63,8 +64,14 @@ _var_operations = {
         "rate",
         "Tolerance",
         "Precision",
+        "accuracy",
     ],
-    "sz": [],
+    "sz": [
+        "rate",
+        "Tolerance",
+        "Precision",
+        "accuracy",
+    ],
     "blosc": [],
     "mgard": [],
     "png": [],
