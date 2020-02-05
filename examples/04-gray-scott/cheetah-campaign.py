@@ -56,7 +56,7 @@ class GrayScott(Campaign):
 
             # Change the engine for the 'SimulationOutput' IO object in the adios xml file to SST for coupling.
             # As both the applications use the same xml file, you need to do this just once.
-            p.ParamADIOS2XML    ('simulation', 'SimulationOutput', 'engine', [ {'SST':{}} ]),
+            p.ParamADIOS2XML    ('simulation', 'sim output engine', 'SimulationOutput', 'engine', [ {'SST':{}} ]),
 
             # Now setup options for the pdf_calc application.
             # Sweep over four values for the nprocs 

@@ -377,7 +377,7 @@ class ParamADIOS2XML(Param):
     """
     Class to represent ADIOS2 XML file parameter options
     """
-    def __init__(self, rc, io_name, operation_name, values):
+    def __init__(self, rc, name, io_name, operation_name, values):
         """
 
         :param rc: name of the run component
@@ -399,7 +399,7 @@ class ParamADIOS2XML(Param):
         ]
         """
 
-        Param.__init__(self, rc, io_name, values)
+        Param.__init__(self, rc, name, values)
         self.rc = rc
         self.io_name = io_name
         self.operation_name = operation_name

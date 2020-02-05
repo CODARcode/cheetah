@@ -181,7 +181,7 @@ class Launcher(object):
                 else:   # adios version == 2
                     operation_value = list(pv.value.keys())[0]
                     if pv.operation_name in ('engine', 'transport'):
-                        parameters = pv.value.values()
+                        parameters = list(pv.value.values())[0]
                         if pv.operation_name == 'engine':
                             adios2.set_engine(xml_filepath, pv.io_name,
                                               operation_value, parameters)
@@ -193,7 +193,7 @@ class Launcher(object):
                         var_name_dict = pv.value[var_name]
                         var_operation_value = list(var_name_dict.keys())[0]
                         var_op_dict = var_name_dict[var_operation_value]
-                        parameters = var_op_dict.values()
+                        parameters = var_op_dict
                         adios2.set_var_operation(xml_filepath, pv.io_name,
                                                  var_name,
                                                  var_operation_value,

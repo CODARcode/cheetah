@@ -57,7 +57,8 @@ class ProducerConsumer(Campaign):
             p.ParamRunner       ('mean_calc', 'nprocs', [2]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [10]),
-            p.ParamADIOS2XML    ('producer', 'producer', 'engine', [ {"SST": {}} ]),
+            p.ParamADIOS2XML    ('producer', 'engine_sst', 'producer', 'engine', [ {"SST": {}} ]),
+            p.ParamADIOS2XML    ('producer', 'compression', 'producer', 'var_operation', [ {"U": {"zfp":{'accuracy':0.001, 'tolerance':0.9}}} ]),
     ]
 
     # Summit node layout

@@ -105,7 +105,7 @@ def set_engine(xmlfile, io_obj, engine_type, parameters=None):
     :param xmlfile: String. The ADIOS2 xml file to be modified
     :param io_obj: String. Name of the io object which contains the engine
     :param engine_type: String. The engine type to be set for the io object
-    :param parameters: List. A list of dicts containing 'key and 'value' keys
+    :param parameters: A dict containing parameter keys and values
     :return: True on success, False on error
     """
 
@@ -163,7 +163,7 @@ def set_var_operation(xmlfile, io_obj, var_name, operation, parameters=None):
     io_node = _get_io_node(tree, io_obj)
     _validate_var_operation(operation, parameters)
 
-    oper_child = ET.Element("transport")
+    oper_child = ET.Element("operation")
     oper_child.set('type', operation)
     _add_parameters(oper_child, parameters)
 
@@ -197,7 +197,7 @@ def _add_parameters(node, parameters):
     if len(parameters) is 0:
         return
 
-    for key, value in list(list(parameters)[0].items()):
+    for key, value in parameters.items():
         par_elem = ET.Element("parameter")
         par_elem.set('key', str(key))
         par_elem.set('value', str(value))
@@ -240,12 +240,13 @@ def _validate_var_operation(operation, parameters=None):
 
 
 def _validate_parameters(parameters, par_list, xml_elem):
-    assert len(parameters) == 1
-    param_dict = list(parameters)[0]
-    for parameter in param_dict.keys():
-        if parameter not in par_list:
-            raise Exception("Parameter {0} is not a valid parameter for "
-                            "{1}".format(parameter, xml_elem))
+    # assert len(parameters) == 1
+    # param_dict = list(parameters)[0]
+    # for parameter in param_dict.keys():
+    #     if parameter not in par_list:
+    #         raise Exception("Parameter {0} is not a valid parameter for "
+    #                         "{1}".format(parameter, xml_elem))
+    pass
 
 
 if __name__=="__main__":

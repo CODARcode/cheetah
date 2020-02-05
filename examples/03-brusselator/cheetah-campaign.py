@@ -68,10 +68,10 @@ class Brusselator(Campaign):
             # Set the transport to BPFile, as we want the codes to run serially. Set the rc_dependency
             #   in the Sweep to denote dependency between the codes
             # To couple codes for concurrent execution, use a transport method such as SST
-            p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {}} ]),
-            p.ParamADIOS2XML     ('simulation', 'AnalysisOutput', 'engine', [ {"BPFile": {}} ]),
-            # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}},
-            # p.ParamADIOS2XML     ('simulation', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}}, {"BPFile": {"ProfileUnits": "Microseconds"}} ]),
+            p.ParamADIOS2XML     ('simulation', 'sim output engine', 'SimulationOutput', 'engine', [ {"BPFile": {}} ]),
+            p.ParamADIOS2XML     ('simulation', 'analysis output engine', 'AnalysisOutput', 'engine', [ {"BPFile": {}} ]),
+            # p.ParamADIOS2XML     ('simulation', 'sim output engine', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}},
+            # p.ParamADIOS2XML     ('simulation', 'sim output engine', 'SimulationOutput', 'engine', [ {"BPFile": {'Threads':1}}, {"BPFile": {"ProfileUnits": "Microseconds"}} ]),
             
             # Use ParamCmdLineOption for named arguments
             # p.ParamCmdLineOption ('plotting', 'input_stream', '-i', ['bru.bp']),
