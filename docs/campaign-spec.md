@@ -156,7 +156,7 @@ ParamCmdLineOption(app_handle, name, option, [values])
 
 ### ParamADIOS2XML
 ``` python
-ParamADIOS2XML(app_handle, name, adios_object, [values])
+ParamADIOS2XML(app_handle, name, adios_object, operation_type, [values])
 ```
 > E.g. _ParamADIOS2XML ('simulation', 'sim output', 'engine', values=  
                         [ {"BPFile": {'Threads':1}}, {"BPFile": {"ProfileUnits": "Microseconds"}} ]_  
@@ -170,6 +170,8 @@ ParamADIOS2XML(app_handle, name, adios_object, [values])
     `name`: A user-defined name to describe the parameter
 
     `adios_object`: The type of the ADIOS object in the XML file. One of: engine, transport, var_operation.
+
+    `operation_type`: The type of ADIOS operation to be set. One of engine/transport/var_operation.
 
     `[values]`: A list of values to be tested. Here, every list element must be a dictionary to allow setting options for the parameter value, in the following format:  
     _{ adios object_name: {parameter values} }_
