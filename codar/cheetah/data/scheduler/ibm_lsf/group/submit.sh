@@ -29,7 +29,7 @@ OUTPUT=$(bsub \
         -J "$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
         -nnodes $CODAR_CHEETAH_GROUP_NODES \
         -W $LSF_WALLTIME \
-        -alloc_flags "gpudefault" \
+        -alloc_flags "gpudefault NVME" \
         run-group.lsf)
 
 rval=$?
