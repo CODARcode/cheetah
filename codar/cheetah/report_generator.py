@@ -79,6 +79,9 @@ class _RunParser:
         self.serialize_params_nested_dict(run_params_dict)
 
     def get_cheetah_perf_data(self):
+        """
+        Read the codar.workflow.walltime.<rc> file
+        """
         for rc_name in self.rc_names:
             walltime_fname = "codar.workflow.walltime." + rc_name
             filepath = os.path.join(self.rc_working_dir[rc_name],
@@ -87,8 +90,8 @@ class _RunParser:
                 with open(filepath) as f:
                     line = f.readline()
                 walltime_str = str(round(float(line), 2))
-                self.serialized_run_params[rc_name + "__time"] = walltime_str
-                self.serialized_run_params['timer_type'] = 'cheetah'
+                self.serialized_run_params[rc_name + "__walltime_savanna"] =\
+                    walltime_str
 
     def read_adios_output_file_sizes(self):
         """
@@ -124,8 +127,6 @@ class _RunParser:
                 self.serialized_run_params[node_layout_key] = rc_name_layout[1]
 
     def execute_user_run_script(self):
-        if self.exit_status != 'succeeded':
-            return
         if self.user_run_script is not None:
             subprocess.check_call(os.path.abspath(self.user_run_script),
                                   cwd=self.run_dir)
@@ -142,30 +143,6 @@ class _RunParser:
 
         for key,value in user_report_d.items():
             self.serialized_run_params[key] = value
-
-    def verify_run_successful(self):
-        """
-
-        :return:
-        """
-
-        # Open status return files for all RCs to verify they exited cleanly
-        for rc in self.rc_names:
-            return_code_file = os.path.join(self.rc_working_dir[rc],
-                                            "codar.workflow.return." + rc)
-            if not Path(return_code_file).is_file():
-                print("WARN: Could not find file " + return_code_file +
-                      ". Skipping run directory.")
-                return False
-            with open(return_code_file) as f:
-                line = f.readline()
-                ret_code = int(line.strip())
-                if ret_code != 0:
-                    print("WARN: Run component " + rc +
-                          " in " + self.run_dir + " did not exit cleanly. " 
-                                                  "Skipping run directory.")
-                    return False
-        return True
 
     def serialize_params_nested_dict(self, nested_run_params_dict):
         """
@@ -299,7 +276,8 @@ class _ReportGenerator:
         Parse run directory of a sweep group
         """
 
-        print("Parsing run", run_dir[len(self.campaign_directory)-1:])
+        run_dir_relpath = run_dir[len(self.campaign_directory):]
+        print("Parsing run", run_dir_relpath)
         rp = _RunParser(run_dir, exit_status, self.user_run_script)
 
         # Re-verify that all run components have exited cleanly by
@@ -309,7 +287,7 @@ class _ReportGenerator:
         # codar.cheetah.fobs.json file.
 
         # Add run dir to the list of csv columns
-        rp.serialized_run_params["run_dir"] = run_dir
+        rp.serialized_run_params["run_dir"] = run_dir_relpath
 
         # Note the user who made this run
         rp.serialized_run_params["user"] = self.current_campaign_user
@@ -329,19 +307,17 @@ class _ReportGenerator:
         # Get timing information if the experiment was successful,
         # else leave the fields blank
         if exit_status == 'succeeded':
-            # Run sosflow analysis on the run_dir. If sos data is not
-            # available, read timing information recorded by Cheetah
             rp.get_cheetah_perf_data()
 
-            # Get the sizes of the output adios files.
-            # The sizes were calculated by the post-processing function
-            # after the run finished.
-            # For every file, create two columns: 'adios_file_1' and
-            # 'adios_file_1_size', and so on.
-            rp.read_adios_output_file_sizes()
+        # Get the sizes of the output adios files.
+        # The sizes were calculated by the post-processing function
+        # after the run finished.
+        # For every file, create two columns: 'adios_file_1' and
+        # 'adios_file_1_size', and so on.
+        rp.read_adios_output_file_sizes()
 
-            # Run the user-defined run script
-            rp.execute_user_run_script()
+        # Run the user-defined run script
+        rp.execute_user_run_script()
 
         # Add any new params discovered in this run dir to unique_keys
         for key in rp.serialized_run_params:
