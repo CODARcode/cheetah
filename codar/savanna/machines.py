@@ -2,6 +2,7 @@
 Configuration for machines supported by Codar.
 """
 from codar.savanna import exc
+import pdb
 
 
 # Note: not all schedulers support all options, the purpose of this is
@@ -168,6 +169,10 @@ cori = Machine('cori', "slurm", "srun", MachineNode,
                                       constraint="haswell",
                                       license="SCRATCH,project"))
 
+sdg_tm76 = Machine('sdg_tm76', "slurm", "srun", MachineNode,
+                processes_per_node=96, node_exclusive=True,
+                dataspaces_servers_per_node=1, # needs to be removed
+                scheduler_options=dict(project="",queue="default"))
 
 theta = Machine('theta', "cobalt", "aprun", MachineNode,
                 processes_per_node=64, node_exclusive=True,
