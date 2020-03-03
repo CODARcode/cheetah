@@ -15,6 +15,7 @@ from mpi4py import MPI
 import numpy
 import adios2
 import time
+import sys
 
 # MPI
 comm = MPI.COMM_WORLD
