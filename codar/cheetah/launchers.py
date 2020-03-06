@@ -214,7 +214,9 @@ class Launcher(object):
                 src_filepath = relative_or_absolute_path(app_dir,
                                                          pv.config_filename)
                 # Allow for relative pathnames in the spec
-                src_filename = os.path.basename(src_filepath)
+                src_filename = pv.config_filename
+                if pv_config_filename[0] == '/':
+                    src_filename = os.path.basename(src_filepath)
                 config_filepath = os.path.join(working_dir,
                                                src_filename)
                 if not os.path.isfile(config_filepath):
@@ -245,7 +247,9 @@ class Launcher(object):
                 src_filepath = relative_or_absolute_path(app_dir,
                                                          pv.config_filename)
                 # Allow for relative pathnames in the spec
-                src_filename = os.path.basename(src_filepath)
+                src_filename = pv.config_filename
+                if pv.config_filename[0] == '/':
+                    src_filename = os.path.basename(src_filepath)
                 kv_filepath = os.path.join(working_dir, src_filename)
                 if not os.path.isfile(kv_filepath):
                     copy_to_path(src_filepath, kv_filepath)
