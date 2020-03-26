@@ -174,6 +174,11 @@ sdg_tm76 = Machine('sdg_tm76', "slurm", "srun", MachineNode,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="",queue="default"))
 
+rhea = Machine('rhea', "slurm", "srun", MachineNode,
+        processes_per_node=16, node_exclusive=False,
+        dataspaces_servers_per_node=1, # needs to be removed
+        scheduler_options=dict(project="",queue="batch"))
+
 theta = Machine('theta', "cobalt", "aprun", MachineNode,
                 processes_per_node=64, node_exclusive=True,
                 dataspaces_servers_per_node=8,
