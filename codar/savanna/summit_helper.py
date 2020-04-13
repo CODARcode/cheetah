@@ -148,11 +148,11 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
             # skipped. So if you are on the second socket, convert the logical
             # mapping to physical mapping by upshifting the core id by 1.
             # This requires the 'cpu_index_using' to be set to 'physical'
-            if core_start >= 21:
+            if core_start >= 84:
                 core_start = core_start + 1
                 core_end = core_end + 1
 
-            str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
+            str += "{{{}-{}}}".format(core_start, core_end)
 
             if res_map.gpu_ids:
                 str += " ; gpu: {"

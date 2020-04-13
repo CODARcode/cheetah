@@ -53,7 +53,7 @@ class ProducerConsumer(Campaign):
     # Setup how the workflow is run, and what values to 'sweep' over
     # Use ParamCmdLineArg to setup a command line arg, ParamCmdLineOption to setup a command line option, and so on.
     sweep1_parameters = [
-            p.ParamRunner       ('producer', 'nprocs', [2]),
+            p.ParamRunner       ('producer', 'nprocs', [42]),
             p.ParamRunner       ('mean_calc', 'nprocs', [2]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [10]),
@@ -66,11 +66,13 @@ class ProducerConsumer(Campaign):
     shared_node_nc = SummitNode()
 
     # place producer on the first socket
-    for i in range(21):
-        shared_node_nc.cpu[i] = 'producer:{}'.format(i)
-    # place analysis on the second socket
-    for i in range(8):
-        shared_node_nc.cpu[22+i] = 'mean_calc:{}'.format(i)
+    for i in range(0,42):
+        shared_node_nc.cpu[i*4] = 'producer:{}'.format(i)
+        shared_node_nc.cpu[i*4+1] = 'producer:{}'.format(i)
+        shared_node_nc.cpu[i*4+2] = 'producer:{}'.format(i)
+        shared_node_nc.cpu[i*4+3] = 'producer:{}'.format(i)
+    shared_node_nc.cpu[167] = 'mean_calc:0'
+    shared_node_nc.cpu[163] = 'mean_calc:1'
 
 
     # This should be 'obj=machine.VirtualNode()'

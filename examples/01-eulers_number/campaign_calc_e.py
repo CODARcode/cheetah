@@ -23,7 +23,7 @@ class CalcECampaign(Campaign):
     # Document which machines the campaign is designed to run on. An
     # error will be raised if a different machine is specified on the
     # cheetah command line.
-    supported_machines = ['local', 'cori', 'titan', 'theta']
+    supported_machines = ['local', 'cori', 'titan', 'theta', 'summit']
 
     # Per machine scheduler options. Keys are the machine name, values
     # are dicts of name value pairs for the options for that machine.
@@ -42,6 +42,9 @@ class CalcECampaign(Campaign):
         "theta": {
             "queue": "debug-flat-quad",
             "project": "CSC249ADCD01",
+        },
+        "summit": {
+            "project": "csc143",
         }
     }
 
@@ -69,17 +72,9 @@ class CalcECampaign(Campaign):
         # use higher values of n for this method, since it's doing a single
         # exponentiation and not iterating like factorial
         p.ParamCmdLineArg("calc_e", "n", 2,
-                          [10, 100, 1000, 1000000, 10000000]),
+                          [10, ]),
         p.ParamCmdLineArg("calc_e", "precision", 3,
-                          [64, 128, 256, 512, 1024]),
-        ]),
-       p.Sweep([
-        p.ParamCmdLineArg("calc_e", "method", 1, ["factorial"]),
-        p.ParamCmdLineArg("calc_e", "n", 2,
-                          [10, 100, 1000]),
-        # explore higher precision values for this method
-        p.ParamCmdLineArg("calc_e", "precision", 3,
-                          [64, 128, 256, 512, 1024, 2048, 4096]),
+                          [256]),
         ]),
       ]),
     ]

@@ -60,7 +60,7 @@ class DTH2GPUNode(MachineNode):
 
 class SummitNode(MachineNode):
     def __init__(self):
-        MachineNode.__init__(self, 42, 6)
+        MachineNode.__init__(self, 168, 6)
 
     def validate_layout(self):
         """Check that
