@@ -12,6 +12,7 @@ import os
 import sys
 from pathlib import Path
 import json
+import pdb
 import csv
 import subprocess
 from codar.cheetah.helpers import get_immediate_subdirs, \
@@ -78,15 +79,17 @@ class _RunParser:
         # Serialize nested dict and add to list of parsed run dicts
         self.serialize_params_nested_dict(run_params_dict)
 
-    def get_cheetah_perf_data(self):
+    def get_cheetah_perf_data(self, run_dir):
         """
         Read the codar.workflow.walltime.<rc> file
         """
         for rc_name in self.rc_names:
             walltime_fname = "codar.workflow.walltime." + rc_name
-            filepath = os.path.join(self.rc_working_dir[rc_name],
+            filepath = os.path.join(run_dir,
                                     walltime_fname)
-            if Path(filepath).is_file():
+            #pdb.set_trace()
+            if os.path.isfile(filepath):
+            # if Path(filepath).is_file():
                 with open(filepath) as f:
                     line = f.readline()
                 walltime_str = str(round(float(line), 2))
@@ -306,8 +309,7 @@ class _ReportGenerator:
 
         # Get timing information if the experiment was successful,
         # else leave the fields blank
-        if exit_status == 'succeeded':
-            rp.get_cheetah_perf_data()
+        rp.get_cheetah_perf_data(run_dir_relpath)
 
         # Get the sizes of the output adios files.
         # The sizes were calculated by the post-processing function
