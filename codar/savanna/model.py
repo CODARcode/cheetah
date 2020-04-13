@@ -205,7 +205,7 @@ class Run(threading.Thread):
         # a ':' separated list of individual app launches
         mpmd_args = runs[0].args
         for run in runs[1:]:
-            run_args = run.runner.wrap(run)
+            run_args = run.runner.wrap(run, run.sched_args)
             del run_args[0]
             mpmd_args.extend(":")
             mpmd_args.extend(run_args)

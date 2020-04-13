@@ -215,7 +215,7 @@ class Launcher(object):
                                                          pv.config_filename)
                 # Allow for relative pathnames in the spec
                 src_filename = pv.config_filename
-                if pv_config_filename[0] == '/':
+                if pv.config_filename[0] == '/':
                     src_filename = os.path.basename(src_filepath)
                 config_filepath = os.path.join(working_dir,
                                                src_filename)
