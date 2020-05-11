@@ -137,8 +137,9 @@ class Launcher(object):
                             copytree_to_dir(input_file, dest)
 
                         else:
-                            raise exc("Could not determine the type for "
-                                      "component input {}").format(input_file)
+                            raise exc.CheetahException \
+                                ("Could not component input {}"
+                                 .format(input_file))
 
             # ADIOS XML param support
             adios_xml_params = \
