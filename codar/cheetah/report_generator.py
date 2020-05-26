@@ -279,8 +279,7 @@ class _ReportGenerator:
         Parse run directory of a sweep group
         """
 
-        run_dir_relpath = run_dir[len(self.campaign_directory):]
-        print("Parsing run", run_dir_relpath)
+        print("Parsing run", run_dir)
         rp = _RunParser(run_dir, exit_status, self.user_run_script)
 
         # Re-verify that all run components have exited cleanly by
@@ -290,7 +289,7 @@ class _ReportGenerator:
         # codar.cheetah.fobs.json file.
 
         # Add run dir to the list of csv columns
-        rp.serialized_run_params["run_dir"] = run_dir_relpath
+        rp.serialized_run_params["run_dir"] = run_dir
 
         # Note the user who made this run
         rp.serialized_run_params["user"] = self.current_campaign_user
@@ -309,7 +308,7 @@ class _ReportGenerator:
 
         # Get timing information if the experiment was successful,
         # else leave the fields blank
-        rp.get_cheetah_perf_data(run_dir_relpath)
+        rp.get_cheetah_perf_data(run_dir)
 
         # Get the sizes of the output adios files.
         # The sizes were calculated by the post-processing function
