@@ -81,12 +81,27 @@ class _RunParser:
 
     def get_cheetah_perf_data(self, run_dir):
         """
-        Read the codar.workflow.walltime.<rc> file
+        Read codar.savanna.total.workflow and the codar.workflow.walltime.<rc>
+        files
         """
+
+        # Get the total workflow runtime
+        total_runtime = "N/A"
+        total_time_fname = "codar.savanna.total.walltime"
+        total_runtime_path = os.path.join(run_dir, total_time_fname)
+        if os.path.isfile(total_runtime_path):
+            with open(total_runtime_path) as f:
+                line = f.readline()
+                total_runtime = str(round(float(line),2))
+
+        # Write the total time
+        total_time_key = 'total_workflow_walltime_savanna'
+        self.serialized_run_params[total_time_key] = total_runtime
+
+        # Get the runtimes of individual components apps
         for rc_name in self.rc_names:
             walltime_fname = "codar.workflow.walltime." + rc_name
-            filepath = os.path.join(run_dir,
-                                    walltime_fname)
+            filepath = os.path.join(run_dir, walltime_fname)
             #pdb.set_trace()
             if os.path.isfile(filepath):
             # if Path(filepath).is_file():

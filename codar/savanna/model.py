@@ -515,6 +515,9 @@ class Pipeline(object):
         self.fatal_callbacks = set()
         self.total_procs = 0
         self.log_prefix = self.id
+        self._start_time = None
+        self._walltime_path = self.working_dir+"/codar.savanna.total.walltime"
+
         for run in runs:
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
@@ -695,6 +698,7 @@ class Pipeline(object):
         wait until they are all finished."""
 
         _log.debug("Pipeline {} launching run components".format(self.id))
+        self._start_time = time.time()
         for run in self.runs:
             run.start()
             if run.sleep_after:
@@ -841,11 +845,15 @@ class Pipeline(object):
         with self._state_lock:
             self._active_runs.remove(run)
             if not self._active_runs:
+                # save the total runtime here to ensure it is captured
+                # before the post process script is run
+                self.save_walltime()
                 self.run_post_process_script()
                 run_done_callbacks = True
             elif self.kill_on_partial_failure and not run.succeeded:
                 _log.warning('%s run %s failed, killing remaining',
                              self.log_prefix, run.name)
+                self.save_walltime()
                 # if configured, kill all runs in the pipeline if one of
                 # them has a nonzero exit code. Still allow post process to
                 # run if set.
@@ -902,6 +910,15 @@ class Pipeline(object):
                 wf.write(str(end_time - start_time) + '\n')
         if rval != 0 and self.post_process_stop_on_failure:
             self._execute_fatal_callbacks()
+
+    def save_walltime(self):
+        """
+        Saves the total runtime of the pipeline in a a file.
+        """
+
+        walltime = time.time() - self._start_time
+        with open(self._walltime_path, 'w') as f:
+            f.write(str(walltime) + "\n")
 
     def add_done_callback(self, fn):
         self.done_callbacks.add(fn)
