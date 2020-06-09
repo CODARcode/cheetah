@@ -154,9 +154,8 @@ class _RunParser:
         try:
             with open(user_file) as f:
                 user_report_d = json.load(f)
+                print('Found cheetah_user_report.json')
         except:
-            print("Could not find cheetah_user_report.json. Skipping "
-                  "capturing user report.")
             return
 
         for key,value in user_report_d.items():
