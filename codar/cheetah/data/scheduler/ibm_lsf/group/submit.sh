@@ -24,12 +24,18 @@ alloc_flags=
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
 LSF_WALLTIME=$(printf '%02d:%02d\n' $(($secs/3600)) $(($secs%3600/60)))
 
+extra_args=""
+if [ -n "$CODAR_CHEETAH_SCHEDULER_RESERVATION" ]; then
+  extra_args="$extra_args -U $CODAR_CHEETAH_SCHEDULER_RESERVATION"
+fi
+
 OUTPUT=$(bsub \
         -P $CODAR_CHEETAH_SCHEDULER_ACCOUNT \
         -J "$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
         -nnodes $CODAR_CHEETAH_GROUP_NODES \
         -W $LSF_WALLTIME \
         -alloc_flags "gpudefault NVME" \
+        $extra_args \
         run-group.lsf)
 
 rval=$?
