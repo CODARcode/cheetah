@@ -36,7 +36,7 @@ Installation
 
 Documentation
 -------------
-A recommended start is to go through the tutorial under docs/Tutorials [Cheetah Tutorial](https://github.com/CODARcode/cheetah/blob/dev/docs/Tutorials/Cheetah-Tutorial-ECP-AM-2020.pptx).  
+The recommended start is to go through the [Cheetah Tutorial](https://github.com/CODARcode/cheetah/blob/dev/docs/Tutorials/Cheetah-Tutorial-ECP-AM-2020.pptx) under docs/Tutorials.    
 The Cheetah documentation can be found at [https://codarcode.github.io/cheetah](https://codarcode.github.io/cheetah/index).
 
 Releases
