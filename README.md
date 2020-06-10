@@ -36,8 +36,8 @@ Installation
 
 Documentation
 -------------
+A recommended start is to go through the tutorial under docs/Tutorials [Cheetah Tutorial](https://github.com/CODARcode/cheetah/blob/dev/docs/Tutorials/Cheetah-Tutorial-ECP-AM-2020.pptx).
 The Cheetah documentation can be found at [https://codarcode.github.io/cheetah](https://codarcode.github.io/cheetah/index).
-Users can learn how to use Cheetah to setup campaigns and execute them.
 
 Releases
 --------
@@ -48,6 +48,7 @@ System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Shar
 :-----------| :---------------| :----------------------------| :---------------------------
 Local Linux machines | :white_check_mark: | N/A | N/A
 Summit | :white_check_mark: | :white_check_mark: | :white_check_mark:
+Rhea| :white_check_mark: | In progress | In progress
 Titan | :white_check_mark: | :x: | N/A
 Theta | :white_check_mark: | :x: | N/A
 Cori | :white_check_mark: | :white_check_mark: | In progress
