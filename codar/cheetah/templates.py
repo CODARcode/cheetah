@@ -28,6 +28,7 @@ export CODAR_CHEETAH_SCHEDULER_QUEUE="{queue}"
 # SLURM specific options
 export CODAR_CHEETAH_SCHEDULER_CONSTRAINT="{constraint}"
 export CODAR_CHEETAH_SCHEDULER_LICENSE="{license}"
+export CODAR_CHEETAH_SCHEDULER_RESERVATION="{reservation}"
 
 export CODAR_CHEETAH_CAMPAIGN_NAME="{campaign_name}"
 

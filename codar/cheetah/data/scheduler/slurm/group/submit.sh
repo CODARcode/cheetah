@@ -35,6 +35,10 @@ if [ -n "$CODAR_CHEETAH_SCHEDULER_LICENSE" ]; then
     extra_args="$extra_args --license=$CODAR_CHEETAH_SCHEDULER_LICENSE"
 fi
 
+if [ -n "$CODAR_CHEETAH_SCHEDULER_RESERVATION" ]; then
+  extra_args="$extra_args --reservation=$CODAR_CHEETAH_SCHEDULER_RESERVATION"
+fi
+
 OUTPUT=$(sbatch --parsable \
         --partition=$CODAR_CHEETAH_SCHEDULER_QUEUE \
         --job-name="$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \

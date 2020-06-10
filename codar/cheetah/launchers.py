@@ -373,6 +373,7 @@ class Launcher(object):
             node_exclusive=node_exclusive,
             account=scheduler_options.get('project', ''),
             queue=scheduler_options.get('queue', ''),
+            reservation=scheduler_options.get('reservation', ''),
             # TODO: require name be valid for all schedulers
             campaign_name='codar.cheetah.'+campaign_name,
             group_name=group_name,

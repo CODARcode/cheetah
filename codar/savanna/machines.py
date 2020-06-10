@@ -10,7 +10,8 @@ import pdb
 # options. Some options have different names, we favor PBS naming when
 # possible. For example, queue is mapped to partition on cori/slurm.
 # TODO: deeper validation, probably bring back a scheduler model.
-SCHEDULER_OPTIONS = set(["project", "queue", "constraint", "license"])
+SCHEDULER_OPTIONS = set(["project", "queue", "constraint", "license",
+                         "reservation"])
 
 
 class MachineNode:
@@ -177,12 +178,12 @@ sdg_tm76 = Machine('sdg_tm76', "slurm", "srun", MachineNode,
 rhea = Machine('rhea', "slurm", "srun", MachineNode,
                 processes_per_node=16, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
-                scheduler_options=dict(project="",queue="batch"))
+                scheduler_options=dict(project="",queue="batch",reservation=""))
 
 rhea_gpu = Machine('rhea_gpu', "slurm", "srun", MachineNode,
                 processes_per_node=14, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
-                scheduler_options=dict(project="",queue="gpu"))
+                scheduler_options=dict(project="",queue="gpu",reservation=""))
 
 theta = Machine('theta', "cobalt", "aprun", MachineNode,
                 processes_per_node=64, node_exclusive=True,
