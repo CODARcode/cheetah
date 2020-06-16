@@ -2,8 +2,8 @@ import shutil
 import logging
 
 
-TAU_PROFILE_PATTERN = "codar.cheetah.tau-profiles.{}"
-TAU_TRACE_PATTERN = "codar.cheetah.tau-traces.{}"
+TAU_PROFILE_PATTERN = "codar.savanna.tau-profiles.{}"
+TAU_TRACE_PATTERN = "codar.savanna.tau-traces.{}"
 _log = logging.getLogger('codar.savanna.model')
 
 
