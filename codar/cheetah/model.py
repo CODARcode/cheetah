@@ -86,9 +86,6 @@ class Campaign(object):
     # when using super computers.
     scheduler_options = {}
 
-    # None means use default
-    tau_config = None
-
     # None means use 'sosd' in the app dir
     # TODO: make this part of machine config? Or does it make sense to
     # have per-app binaries for sos?
@@ -147,11 +144,6 @@ class Campaign(object):
             if not exe_path.startswith('/'):
                 exe_path = os.path.join(self.app_dir, exe_path)
                 code['exe'] = exe_path
-
-        if self.tau_config is None:
-            self.tau_config = config.etc_path('tau.conf')
-        elif not self.tau_config.startswith('/'):
-            self.tau_config = os.path.join(self.app_dir, self.tau_config)
 
         if self.run_post_process_script is not None:
             self.run_post_process_script = self._experiment_relative_path(

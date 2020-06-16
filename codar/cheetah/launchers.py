@@ -23,9 +23,6 @@ from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
 
 
-TAU_PROFILE_PATTERN = "codar.cheetah.tau-{code}"
-
-
 class Launcher(object):
     """
     Class to represent a single batch job or submission script.
@@ -100,9 +97,6 @@ class Launcher(object):
                 run.insert_sosflow(sosd_path, sos_analysis_path,
                                    run.run_path,
                                    machine.processes_per_node)
-
-            if tau_config is not None:
-                copy_to_dir(tau_config, run.run_path)
 
             # Copy the global input files common to all components
             for input_rpath in run.inputs:
@@ -306,14 +300,6 @@ class Launcher(object):
 
             fob_runs = []
             for j, rc in enumerate(run.run_components):
-
-                tau_profile_dir = os.path.join(run.run_path,
-                            TAU_PROFILE_PATTERN.format(code=rc.name))
-                os.makedirs(tau_profile_dir)
-
-                rc.env["PROFILEDIR"] = tau_profile_dir
-                rc.env["TRACEDIR"] = tau_profile_dir
-
                 if timeout is not None:
                     rc.timeout = parse_timedelta_seconds(timeout)
 
