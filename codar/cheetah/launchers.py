@@ -65,7 +65,7 @@ class Launcher(object):
                                timeout, machine,
                                sosd_path=None,
                                sos_analysis_path=None,
-                               tau_config=None,
+                               tau_profiling=False, tau_tracing=False,
                                kill_on_partial_failure=False,
                                run_post_process_script=None,
                                run_post_process_stop_on_failure=False,
@@ -328,7 +328,8 @@ class Launcher(object):
                        post_process_args=[params_path_json],
                        node_layout=run.node_layout.serialize_to_dict(),
                        total_nodes=run.total_nodes,
-                       machine_name=machine.name)
+                       machine_name=machine.name,
+                       tau_profiling=tau_profiling, tau_tracing=tau_tracing)
             fob_list.append(fob)
 
             # write to file run dir

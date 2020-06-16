@@ -16,7 +16,7 @@ class MPIRunner(Runner):
         self.tasks_per_node_arg = tasks_per_node_arg
         self.hostfile = hostfile
 
-    def wrap(self, run, sched_args, find_in_path=True):
+    def wrap(self, run, sched_args, tau_exec=None, find_in_path=True):
         if find_in_path:
             exe_path = shutil.which(self.exe)
         else:
@@ -25,7 +25,10 @@ class MPIRunner(Runner):
         if exe_path is None:
             raise ValueError('Could not find "%s" in path' % self.exe)
 
-        runner_args = [exe_path, self.nprocs_arg, str(run.nprocs)]
+        runner_args = []
+        if tau_exec:
+            runner_args += [tau_exec]
+        runner_args += [exe_path, self.nprocs_arg, str(run.nprocs)]
 
         if sched_args:
             for (k, v) in sched_args.items():

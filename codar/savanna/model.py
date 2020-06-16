@@ -20,10 +20,10 @@ import threading
 import signal
 import logging
 from queue import Queue
-import copy
 import pdb
 
-from codar.savanna import status, machines, summit_helper, deepthought2_helper
+from codar.savanna import tau, status, machines, summit_helper, \
+    deepthought2_helper
 from codar.savanna.exc import SavannaException
 from codar.savanna.node_layout import NodeLayout
 
@@ -70,7 +70,8 @@ class Run(threading.Thread):
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
                  depends_on_runs=None, hostfile=None,
-                 runner_override=False):
+                 runner_override=False,
+                 tau_profiling=False, tau_tracing=False, tau_exec=None):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -80,6 +81,13 @@ class Run(threading.Thread):
         self.working_dir = working_dir
         self.timeout = timeout
         self.nprocs = nprocs
+
+        # Check tau options and set self.exe to tau_exec
+        self.tau_profiling = tau_profiling
+        self.tau_tracing = tau_tracing
+        self.tau_exec = tau_exec
+        if self.tau_exec:
+            self._add_tau_support()
 
         # res_set, nrs, and rs_per_host represent resource_set definition,
         # total no. of resource sets, and the no. of resource sets per host
@@ -169,7 +177,10 @@ class Run(threading.Thread):
                 sleep_after=data.get('sleep_after'),
                 depends_on_runs=data.get('after_rc_done'),
                 hostfile=data.get('hostfile'),
-                runner_override=data.get('runner_override'))
+                runner_override=data.get('runner_override'),
+                tau_profiling=data.get('tau_profiling', False),
+                tau_tracing=data.get('tau_tracing', False),
+                tau_exec=data.get('tau_exec', None))
 
         return r
 
@@ -214,6 +225,35 @@ class Run(threading.Thread):
         r = runs[0]
         r.args = mpmd_args
         return r
+
+    def _add_tau_support(self):
+        """
+        Set the exe to tau_exec and add tau env vars to self.env
+        """
+
+        # Adjust self's exe and paths. Set exe to tau_exec
+        _args = [self.exe] + self.args
+        self.args = _args.copy()
+        self.exe = self.tau_exec
+        
+        self.env['TAU_PROFILE'] = "0"
+        self.env['TAU_TRACE'] = "0"
+
+        # Profiling
+        if self.tau_profiling:
+            profiledir = os.path.join(
+                self.working_dir, tau.TAU_PROFILE_PATTERN.format(self.name))
+            self.env['TAU_PROFILE'] = "1"
+            self.env['PROFILEDIR'] = profiledir
+            os.makedirs(profiledir)
+
+        # Tracing
+        if self.tau_tracing:
+            tracedir = os.path.join(
+                self.working_dir, tau.TAU_TRACE_PATTERN.format(self.name))
+            self.env['TAU_TRACE'] = "1"
+            self.env['TRACEDIR'] = tracedir
+            os.makedirs(tracedir)
 
     def set_runner(self, runner):
         self.runner = runner
@@ -436,8 +476,9 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env.update(self.env)
-        _log.debug('%s LD_LIBRARY_PATH=%s', self.log_prefix,
-                   env.get('LD_LIBRARY_PATH', ''))
+        _log.debug("{} {}, LD_LIBRATY_PATH:{}".format(
+            self.log_prefix,self.env, env.get('LD_LIBRARY_PATH','')))
+
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
                                    preexec_fn=os.setpgrp)
@@ -551,6 +592,15 @@ class Pipeline(object):
         at least "id" and "runs" keys. The "runs" key must have a list of dict,
         and each dict is parsed using Run.from_data.
         Raises KeyError if a required key is missing."""
+
+        # Read tau options and ensure tau_exec is in PATH
+        tau_profiling = data.get("tau_profiling")
+        tau_tracing = data.get("tau_tracing")
+        tau_exec = None
+        if tau_profiling or tau_tracing:
+            tau_exec = tau.find_tau_exec()
+            assert tau_exec is not None, "tau_exec not found"
+
         runs_data = data["runs"]
         working_dir = data["working_dir"]
         # Run working dir defaults to pipeline working dir, and can be
@@ -562,6 +612,10 @@ class Pipeline(object):
             elif not run_working_dir.startswith("/"):
                 run_working_dir = os.path.join(working_dir, run_working_dir)
             rd["working_dir"] = run_working_dir
+            if tau_exec:
+                rd["tau_exec"] = tau_exec
+                rd["tau_profiling"] = tau_profiling
+                rd["tau_tracing"] = tau_tracing
         if not isinstance(runs_data, list):
             raise ValueError("'runs' key must be a list of dictionaries")
         pipe_id = str(data["id"])
