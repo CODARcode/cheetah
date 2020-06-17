@@ -125,6 +125,8 @@ class ProducerConsumer(Campaign):
                                 parameter_groups=[sweep1, sweep2, sweep3, sweep4],
                                 launch_mode='default',  # or MPMD
                                 # optional:
+                                # tau_profiling=True,
+                                # tau_tracing=False,
                                 # nodes=10,
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
                                 # component_inputs = {'producer': ['some_input_file'], 'norm_calc': [SymLink('some_large_file')] } <-- inputs required by codes

@@ -37,6 +37,8 @@ class GrayScott(Campaign):
                                 parameter_groups=[sw_posthoc, sw_insitu_sep_nodes, sw_insitu_shared_nodes,
                                                   sw_insitu_shared_sockets, sw_compression],
                                 launch_mode='default',
+                                # tau_profiling=True,
+                                # tau_tracing=False,
                                 #nodes=16,
                                 component_inputs = {'simulation': ['settings-files.json', 'settings-staging.json'], },
                                 run_repetitions=2, )

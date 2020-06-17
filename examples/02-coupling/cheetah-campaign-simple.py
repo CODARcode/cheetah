@@ -18,13 +18,12 @@ class ProducerConsumer(Campaign):
     # Use runner_override to run the code without the default launcher (mpirun/aprun/jsrun etc.). This runs the 
     #   code as a serial application
     codes = [ ("producer",  dict(exe="producer.py",         adios_xml_file='adios2.xml', sleep_after=5)),
-              ("mean_calc", dict(exe="mean_calculator.py",  adios_xml_file='adios2.xml', runner_override=False))
             ]
 
     # CAMPAIGN SETTINGS
     #------------------
     # A list of machines that this campaign is supported on
-    supported_machines = ['local', 'titan', 'theta', 'summit', 'rhea', 'deepthought2_cpu', 'sdg_tm76']
+    supported_machines = ['local', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
     kill_on_partial_failure = True
@@ -42,7 +41,7 @@ class ProducerConsumer(Campaign):
 
     # Scheduler information: job queue, account-id etc. Leave it to None if running on a local machine
     scheduler_options = {'theta': {'project': '', 'queue': 'batch'},
-            'summit': {'project':'csc143','reservation':'csc143_m414'}, 'rhea': {'project':'csc143'}}
+                         'summit': {'project':''}}
 
     # Setup your environment. Loading modules, setting the LD_LIBRARY_PATH etc.
     # Ensure this script is executable
@@ -54,37 +53,14 @@ class ProducerConsumer(Campaign):
     # Use ParamCmdLineArg to setup a command line arg, ParamCmdLineOption to setup a command line option, and so on.
     sweep1_parameters = [
             p.ParamRunner       ('producer', 'nprocs', [2]),
-            p.ParamRunner       ('mean_calc', 'nprocs', [2]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
-            p.ParamCmdLineArg   ('producer', 'num_steps', 2, [10]),
-            p.ParamADIOS2XML    ('producer', 'engine_sst', 'producer', 'engine', [ {"SST": {}} ]),
-            # p.ParamADIOS2XML    ('producer', 'compression', 'producer', 'var_operation', [ {"U": {"zfp":{'accuracy':0.001, 'tolerance':0.9}}} ]),
+            p.ParamCmdLineArg   ('producer', 'num_steps', 2, [2]),
+            p.ParamADIOS2XML    ('producer', 'engine_sst', 'producer', 'engine', [ {"BP4": {}} ]),
     ]
-
-    # Summit node layout
-    # Create a shared node layout where the producer and mean_calc share compute nodes
-    shared_node_nc = SummitNode()
-
-    # place producer on the first socket
-    for i in range(21):
-        shared_node_nc.cpu[i] = 'producer:{}'.format(i)
-    # place analysis on the second socket
-    for i in range(8):
-        shared_node_nc.cpu[22+i] = 'mean_calc:{}'.format(i)
-
-
-    # This should be 'obj=machine.VirtualNode()'
-    shared_node_dt = DTH2CPUNode()
-    for i in range(10):
-        shared_node_dt.cpu[i] = 'producer:{}'.format(i)
-    shared_node_dt.cpu[11] = 'mean_calc:0'
-    shared_node_dt.cpu[12] = 'mean_calc:1'
-
 
     # Create a sweep
     # node_layout represents no. of processes per node
-    sweep1 = p.Sweep (node_layout = {'summit': [shared_node_nc], 'deepthought2_cpu': [shared_node_dt]},  # simulation: 16 ppn, norm_calc: 4 ppn
-                      parameters = sweep1_parameters, rc_dependency=None)
+    sweep1 = p.Sweep (parameters = sweep1_parameters, rc_dependency=None)
 
     # Create a sweep group from the above sweep. You can place multiple sweeps in the group.
     # Each group is submitted as a separate job.
@@ -93,9 +69,9 @@ class ProducerConsumer(Campaign):
                                 per_run_timeout=60,
                                 parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
+                                tau_profiling=False,
+                                tau_tracing=True,
                                 # optional:
-                                tau_profiling=True,
-                                tau_tracing=False,
                                 # nodes=10,
                                 # tau_profiling=True,
                                 # tau_tracing=False,
