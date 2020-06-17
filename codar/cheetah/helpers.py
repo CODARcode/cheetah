@@ -206,3 +206,10 @@ def json_config_set_option (filename, key, value):
 
     with open(filename, 'w') as f:
         json.dump(json_dict, f, indent=4)
+
+
+def find_subdir_path(where, what):
+    files_found = glob.glob("{}**/**{}".format(where, what))
+    if len(files_found) > 0:
+        return files_found[0]
+    return None
