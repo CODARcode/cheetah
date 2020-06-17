@@ -70,12 +70,12 @@ class ProducerConsumer(Campaign):
                                 parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
                                 tau_profiling=False,
-                                tau_tracing=True,
+                                tau_tracing=False,
                                 # optional:
                                 # nodes=10,
                                 # tau_profiling=True,
                                 # tau_tracing=False,
-                                # run_repetitions=2, <-- repeat each experiment this many times
+                                # run_repetitions=2, # <-- repeat each experiment this many times
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
                                 # component_inputs = {'simulation': ['some_input_file'], 'norm_calc': [SymLink('some_large_file')] } <-- inputs required by codes
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
