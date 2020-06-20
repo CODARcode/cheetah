@@ -77,17 +77,27 @@ def generate_report(prog, argv):
                              'cheetah_user_report.json for the report '
                              'generation engine to include '
                              'user-parsed results.')
+    parser.add_argument('-t', '--tau-metrics', required=False,
+                        action='store_true',
+                        help='Run tau metric collection. Runs pprof and '
+                             'creates pprof.out in each run directory for '
+                             'runs with profiling ON, and a trace.otf for '
+                             'runs with tracing ON. Precedes -u.')
     parser.add_argument('-o', '--output-file', required=False,
                         default="campaign_results.csv",
                         help="Alternate file name or path for results. "
                              "Default is to store in campaign directory "
                              "with default name 'campaign-results.csv'")
+    parser.add_argument('-v', '--verbose', help="Verbose output",
+                        action='store_true')
 
     args = parser.parse_args(argv)
     from codar.cheetah import report_generator
     report_generator.generate_report(args.campaign_directory,
                                      args.run_user_script,
-                                     args.output_file)
+                                     args.tau_metrics,
+                                     args.output_file,
+                                     args.verbose)
 
 
 def status_command(prog, argv):

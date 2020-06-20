@@ -102,6 +102,8 @@ class Brusselator(Campaign):
                                 parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
                                 # optional:
+                                # tau_profiling=True,
+                                # tau_tracing=False,
                                 # nodes=10,
                                 # run_repetitions=2, # no. of times each experiment must be repeated (here, total runs = 3)
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory

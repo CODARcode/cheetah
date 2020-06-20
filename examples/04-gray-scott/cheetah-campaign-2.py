@@ -82,6 +82,8 @@ class GrayScott(Campaign):
                                 parameter_groups=[sweep1],   # Sweeps to include in this group
                                 launch_mode='default',  # Launch mode: default, or MPMD if supported
                                 # nodes=128,  # No. of nodes for the batch job.
+                                # tau_profiling=True,
+                                # tau_tracing=False,
                                 run_repetitions=0,  # No. of times each experiment in the group must be repeated (Total no. of runs here will be 3)
                                 )
     
@@ -91,6 +93,8 @@ class GrayScott(Campaign):
                                 per_run_timeout=600,    # Timeout for each experiment                                
                                 parameter_groups=[sweep2],   # Sweeps to include in this group
                                 launch_mode='default',  # Launch mode: default, or MPMD if supported
+                                # tau_profiling=True,
+                                # tau_tracing=False,
                                 # nodes=128,  # No. of nodes for the batch job.
                                 run_repetitions=0,  # No. of times each experiment in the group must be repeated (Total no. of runs here will be 3)
                                 )

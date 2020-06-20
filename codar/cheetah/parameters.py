@@ -23,7 +23,7 @@ class SweepGroup(object):
                  component_inputs=None, walltime=3600, max_procs=None,
                  per_run_timeout=None, sosflow_profiling=False,
                  sosflow_analysis=False, nodes=None, launch_mode=None,
-                 run_repetitions=0):
+                 tau_profiling=False, tau_tracing=False, run_repetitions=0):
         self.name = name
         self.nodes = nodes
         self.component_subdirs=component_subdirs
@@ -39,6 +39,8 @@ class SweepGroup(object):
             if launch_mode.lower() not in ('default', 'mpmd'):
                 raise CheetahException("launch mode must be None/default/mpmd")
         self.launch_mode = launch_mode
+        self.tau_profiling=tau_profiling
+        self.tau_tracing=tau_tracing
         self.run_repetitions = run_repetitions
 
 
