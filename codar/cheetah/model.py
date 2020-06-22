@@ -33,7 +33,7 @@ from codar.cheetah.parameters import ParamCmdLineArg
 from codar.cheetah.exc import CheetahException
 
 
-RESERVED_CODE_NAMES = set(['post-process'])
+RESERVED_CODE_NAMES = {'post-process'}
 
 
 class Campaign(object):
@@ -205,6 +205,11 @@ class Campaign(object):
                 raise exc.CheetahException(
                         'bad umask, user r-x must be allowed')
             os.umask(umask_int)
+
+        # Get the sweep groups for this machine
+        if type(self.sweeps) == dict:
+            _sweeps = self.sweeps[self.machine.name]
+            self.sweeps = _sweeps
 
         # Create the top level campaign directory
         _output_dir = os.path.abspath(output_dir)
