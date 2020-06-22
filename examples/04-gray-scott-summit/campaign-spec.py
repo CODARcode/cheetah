@@ -44,5 +44,5 @@ class GrayScott(Campaign):
                                 run_repetitions=2, )
     
     # Activate the SweepGroup
-    sweeps = [sweepGroup1]
+    sweeps = {'summit':[sweepGroup1]}
 

@@ -100,5 +100,5 @@ class GrayScott(Campaign):
                                 )
     
     # Activate the SweepGroup
-    sweeps = [sweepGroup1, sweepGroup2]
+    sweeps = {'MACHINE_ANY':[sweepGroup1, sweepGroup2]}
 
