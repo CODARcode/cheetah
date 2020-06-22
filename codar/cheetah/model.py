@@ -34,6 +34,7 @@ from codar.cheetah.exc import CheetahException
 
 
 RESERVED_CODE_NAMES = {'post-process'}
+sweeps_any_machine = 'MACHINE_ANY'
 
 
 class Campaign(object):
@@ -208,8 +209,14 @@ class Campaign(object):
 
         # Get the sweep groups for this machine
         if type(self.sweeps) == dict:
-            _sweeps = self.sweeps[self.machine.name]
-            self.sweeps = _sweeps
+            _sweeps_this_mc = self.sweeps.get(self.machine.name, None) or []
+            _sweeps_any_mc = self.sweeps.get(sweeps_any_machine, None) or []
+
+            self.sweeps = []
+            self.sweeps.extend(_sweeps_this_mc)
+            self.sweeps.extend(_sweeps_any_mc)
+
+            assert len(self.sweeps) > 0, "No sweep groups found."
 
         # Create the top level campaign directory
         _output_dir = os.path.abspath(output_dir)
