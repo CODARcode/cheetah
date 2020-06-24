@@ -284,9 +284,17 @@ class _ReportGenerator:
         # Dict that holds the exit status of runs
         self.run_status = {}
 
+        _log.info("Campaign directory: {}, user script: {}, tau metric "
+                  "collection: {}, output report in: {}".format(
+            campaign_directory, user_run_script, tau_metrics, output_filename))
+
     def parse_campaign(self):
         """
         """
+
+        campaign_id_file = os.path.join(self.campaign_directory, ".campaign")
+        assert os.path.isfile(campaign_id_file),\
+            "{} is not the campaign root directory".format(campaign_id_file)
 
         _log.info("Parsing campaign {}".format(self.campaign_directory))
 
@@ -314,8 +322,9 @@ class _ReportGenerator:
 
             # Verify that current dir is a user-level campaign endpoint by
             # checking for the presence of the campaign-env.sh file.
-            assert (os.path.isfile(os.path.join(user_dir, "campaign-env.sh"))), \
-                "Current directory is not a user-level campaign"
+            campaign_env = os.path.join(user_dir, "campaign-env.sh")
+            assert (os.path.isfile(campaign_env)),\
+                "ERROR: Could not find campaign_env.sh at {}".format(user_dir)
 
             # Walk through sweep groups
             sweep_groups = get_immediate_subdirs(user_dir)
