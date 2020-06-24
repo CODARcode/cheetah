@@ -57,7 +57,7 @@ class CalcECampaign(Campaign):
     # directory. Because the 'n' parameter has different meaning for the
     # two methods, we must define separate Sweep groups for each method
     # to avoid running 'factorial' with too many iterations.
-    sweeps = [
+    sweeps = {'MACHINE_ANY':[
      # Sweep group defines a scheduler job. If different numbers of nodes
      # or node configurations are desired, then multiple SweepGroups can
      # be used. For most simple cases, only one is needed.
@@ -82,4 +82,4 @@ class CalcECampaign(Campaign):
                           [64, 128, 256, 512, 1024, 2048, 4096]),
         ]),
       ]),
-    ]
+    ]}

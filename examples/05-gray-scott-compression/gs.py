@@ -15,7 +15,7 @@ class GrayScott(Campaign):
         }
     }
     umask = '027'
-    sweeps = [
+    sweeps = {'MACHINE_ANY':[
      p.SweepGroup(name="gsc",
                   walltime=timedelta(minutes=30),
                   component_subdirs=True,
@@ -37,5 +37,5 @@ class GrayScott(Campaign):
           p.ParamRunner('compression', 'nprocs', [1] )          
         ]),
       ]),
-    ]
+    ]}
 

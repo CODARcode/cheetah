@@ -115,5 +115,5 @@ class Brusselator(Campaign):
     sweepGroup2.name = 'sg-2'
     
     # Sweep groups to be activated
-    sweeps = [sweepGroup1, sweepGroup2]
+    sweeps = {'MACHINE_ANY': [sweepGroup1], 'summit':[sweepGroup2]}
 
