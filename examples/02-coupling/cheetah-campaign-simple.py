@@ -82,5 +82,5 @@ class ProducerConsumer(Campaign):
                                 )
 
     # Sweep groups to be activated
-    sweeps = {'summit': [sweepGroup1]}
+    sweeps = {'MACHINE_ANY': [sweepGroup1]}
 
