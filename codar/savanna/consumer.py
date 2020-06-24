@@ -5,6 +5,8 @@ import threading
 import os
 import json
 import logging
+from shutil import copyfile
+from pathlib import Path
 from queue import Queue
 
 from codar.cheetah.helpers import get_file_size
@@ -163,7 +165,7 @@ class PipelineRunner(object):
         """Monitor thread(s) should call this as pipelines complete."""
 
         # Get the sizes of all output adios files
-        self._get_adios_file_sizes(pipeline)
+        self._get_adios_metadata(pipeline)
 
         # Free resources used by the pipeline
         with self.free_cv:
@@ -254,25 +256,38 @@ class PipelineRunner(object):
         for pipeline in still_running:
             pipeline.join_all()
 
-    def _get_adios_file_sizes(self, pipeline):
+    def _get_adios_metadata(self, pipeline):
         """
-        Record the size of all adios files in the run dir.
+        Get the list of output adios files and their sizes.
+        Copy profiling.json out into the rc's work dir.
         """
 
-        def _adios_file_sizes_recursive(path):
-            fname_size = {}
-            for entry in os.scandir(path):
-                if entry.name.endswith(".bp") or entry.name.endswith(".bp.dir"):
-                    size = get_file_size(entry)
-                    relative_path = entry.path.split(path+"/", 1).pop()
-                    fname_size[relative_path] = size
-                elif entry.is_dir():
-                    _adios_file_sizes_recursive(entry.path)
-            return fname_size
+        # Dict to hold the output filenames and size
+        adios_f_d = {}
+        wdir = Path(pipeline.working_dir)
 
-        d_fname_size =_adios_file_sizes_recursive(pipeline.working_dir)
+        # glob for all adios files
+        adios_files = list(wdir.rglob("*.bp"))
+        for a_f in adios_files:
+            if not a_f.is_dir():
+                continue
+
+            # key is the relative path, value is the size
+            relpath = a_f.relative_to(pipeline.working_dir)
+            fsize = sum(f.stat().st_size for f in a_f.glob("**/*") if
+                        f.is_file())
+            adios_f_d[str(relpath)] = str(fsize)
+
+            # Copy profiling.json to the pipeline working dir
+            profile = a_f.joinpath('profiling.json')
+            if profile.exists():
+                output_name = str(profile.relative_to(pipeline.working_dir))
+                output_name = output_name.replace('/', '-')
+                dest = os.path.join(pipeline.working_dir, output_name)
+                copyfile(str(profile.absolute()), dest)
+
         # Write dict to file
         out_fname = os.path.join(pipeline.working_dir,
                                  ".codar.adios_file_sizes.out.json")
         with open(out_fname, 'w') as f:
-            f.write(json.dumps(d_fname_size))
+            f.write(json.dumps(adios_f_d))
