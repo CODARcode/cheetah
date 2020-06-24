@@ -168,6 +168,7 @@ class _RunParser:
                 profile_dir_path = find_subdir_path(self.run_dir,
                                                     profile_dir_name)
                 if not profile_dir_path:
+                    _log.debug("No tau profiles found for {}".format(rc_name))
                     continue
 
                 pprof_out = os.path.join(profile_dir_path, "pprof.out")
@@ -176,6 +177,8 @@ class _RunParser:
                                stdout=pprof_out_f, stderr=pprof_out_f)
             
                 _log.debug("Tau profiles found for {}".format(rc_name))
+        else:
+            _log.debug("No TAU profiles found")
 
         # Tracing ON
         if self.fob_dict['tau_tracing']:
@@ -184,6 +187,7 @@ class _RunParser:
                 trace_dir_path = find_subdir_path(self.run_dir,
                                                     trace_dir_name)
                 if not trace_dir_path:
+                    _log.debug("No tau traces found for {}".format(rc_name))
                     continue
 
                 trace_out = os.path.join(trace_dir_path, "trace.out")
@@ -199,6 +203,8 @@ class _RunParser:
                                stdout=trace_out_f, stderr=trace_out_f)
             
                 _log.debug("Tau traces found for {}".format(rc_name))
+        else:
+            _log.debug("No TAU traces found")
 
     def execute_user_run_script(self):
         if self.user_run_script is not None:

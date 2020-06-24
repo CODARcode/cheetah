@@ -78,7 +78,7 @@ def generate_report(prog, argv):
                              'generation engine to include '
                              'user-parsed results.')
     parser.add_argument('-t', '--tau-metrics', required=False,
-                        action='store_true',
+                        action='store_true', default=True,
                         help='Run tau metric collection. Runs pprof and '
                              'creates pprof.out in each run directory for '
                              'runs with profiling ON, and a trace.otf for '
