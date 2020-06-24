@@ -245,7 +245,8 @@ class Run(threading.Thread):
                 self.working_dir, tau.TAU_PROFILE_PATTERN.format(self.name))
             self.env['TAU_PROFILE'] = "1"
             self.env['PROFILEDIR'] = profiledir
-            os.makedirs(profiledir)
+            if not os.path.exists(profiledir):
+                os.makedirs(profiledir)
 
         # Tracing
         if self.tau_tracing:
@@ -253,7 +254,8 @@ class Run(threading.Thread):
                 self.working_dir, tau.TAU_TRACE_PATTERN.format(self.name))
             self.env['TAU_TRACE'] = "1"
             self.env['TRACEDIR'] = tracedir
-            os.makedirs(tracedir)
+            if not os.path.exists(tracedir):
+                os.makedirs(tracedir)
 
     def set_runner(self, runner):
         self.runner = runner
