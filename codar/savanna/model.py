@@ -947,6 +947,7 @@ class Pipeline(object):
         try:
             outf = open(stdout_path, 'w')
             errf = open(stderr_path, 'w')
+            rval = None
             rval = subprocess.call(args, stdout=outf, stderr=errf,
                                    cwd=self.working_dir, timeout=120)
         except subprocess.SubprocessError as e:
