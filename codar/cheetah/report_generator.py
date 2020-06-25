@@ -315,6 +315,9 @@ class _ReportGenerator:
 
         # Traverse user campaigns
         for user in user_dirs:
+            if '__pycache__' in user:
+                continue
+
             _log.info("Parsing sweep groups for {}".format(user))
             self.current_campaign_user = user
 
