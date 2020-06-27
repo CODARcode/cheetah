@@ -1,0 +1,16 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@batch4>
+Subject: Job 182220: <codar.cheetah.coupling-example-sg-1> in cluster <summit> Done
+
+Job <codar.cheetah.coupling-example-sg-1> was submitted from host <login5> by user <iyakushin> in cluster <summit> at Fri Jun 26 12:08:26 2020
+Job was executed on host(s) <1*batch4>, in queue <batch>, as user <iyakushin> in cluster <summit> at Fri Jun 26 12:12:21 2020
+                            <42*h36n03>
+</ccs/home/iyakushin> was used as the home directory.
+</gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1> was used as the working directory.
+Started at Fri Jun 26 12:12:21 2020
+Terminated at Fri Jun 26 12:12:52 2020
+Results reported at Fri Jun 26 12:12:52 2020
+
+The output (if any) is above this job summary.
+

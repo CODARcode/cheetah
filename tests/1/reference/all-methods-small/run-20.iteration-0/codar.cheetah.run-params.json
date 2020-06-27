@@ -1,0 +1,7 @@
+{
+  "calc_e": {
+    "method": "pow",
+    "n": 10000000,
+    "precision": 64
+  }
+}

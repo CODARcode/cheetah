@@ -1,0 +1,17 @@
+2020-06-22 14:32:05,413:INFO:starting savanna job PID:23206
+2020-06-22 14:32:05,414:DEBUG:adding pipeline run-0.iteration-0 to run queue
+2020-06-22 14:32:05,414:DEBUG:starting pipeline run-0.iteration-0, free nodes 4 -> 2
+2020-06-22 14:32:05,414:DEBUG:pipeline run-0.iteration-0 allocated nodes ['1', '2']
+2020-06-22 14:32:05,414:DEBUG:Pipeline run-0.iteration-0 launching run components
+2020-06-22 14:32:05,415:DEBUG:run-0.iteration-0:producer {}, LD_LIBRATY_PATH:
+2020-06-22 14:32:05,416:INFO:run-0.iteration-0:producer start pid=23223 pgid=23223 args=['/home/igor/.conda/envs/T10/bin/mpiexec', '-n', '2', '/home/igor/Development/test_cs/2/program/producer.py', '1048576', '10']
+2020-06-22 14:32:10,419:DEBUG:run-0.iteration-0:mean_calc {}, LD_LIBRATY_PATH:
+2020-06-22 14:32:10,421:INFO:run-0.iteration-0:mean_calc start pid=24427 pgid=24427 args=['/home/igor/.conda/envs/T10/bin/mpiexec', '-n', '2', '/home/igor/Development/test_cs/2/program/mean_calculator.py']
+2020-06-22 14:32:30,752:DEBUG:run-0.iteration-0:producer _pgroup_wait max delay 120
+2020-06-22 14:32:30,752:INFO:run-0.iteration-0:producer done 23223 0
+2020-06-22 14:32:30,752:DEBUG:run-0.iteration-0:producer _run_callbacks
+2020-06-22 14:32:32,855:DEBUG:run-0.iteration-0:mean_calc _pgroup_wait max delay 120
+2020-06-22 14:32:32,855:INFO:run-0.iteration-0:mean_calc done 24427 0
+2020-06-22 14:32:32,856:DEBUG:run-0.iteration-0:mean_calc _run_callbacks
+2020-06-22 14:32:32,856:DEBUG:run-0.iteration-0 _execute_done_callbacks
+2020-06-22 14:32:32,856:DEBUG:finished pipeline run-0.iteration-0, free nodes 2 -> 4

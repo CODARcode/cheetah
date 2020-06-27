@@ -1,0 +1,507 @@
+2020-06-17 15:34:57,356:INFO:starting savanna job PID:12661
+2020-06-17 15:34:57,358:DEBUG:adding pipeline run-0.iteration-0 to run queue
+2020-06-17 15:34:57,358:DEBUG:adding pipeline run-1.iteration-0 to run queue
+2020-06-17 15:34:57,358:DEBUG:starting pipeline run-0.iteration-0, free nodes 1 -> 0
+2020-06-17 15:34:57,358:DEBUG:pipeline run-0.iteration-0 allocated nodes ['1']
+2020-06-17 15:34:57,359:DEBUG:adding pipeline run-2.iteration-0 to run queue
+2020-06-17 15:34:57,359:DEBUG:Pipeline run-0.iteration-0 launching run components
+2020-06-17 15:34:57,360:DEBUG:adding pipeline run-3.iteration-0 to run queue
+2020-06-17 15:34:57,360:DEBUG:adding pipeline run-4.iteration-0 to run queue
+2020-06-17 15:34:57,360:DEBUG:adding pipeline run-5.iteration-0 to run queue
+2020-06-17 15:34:57,361:DEBUG:run-0.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:34:57,362:DEBUG:adding pipeline run-6.iteration-0 to run queue
+2020-06-17 15:34:57,363:DEBUG:adding pipeline run-7.iteration-0 to run queue
+2020-06-17 15:34:57,363:DEBUG:adding pipeline run-8.iteration-0 to run queue
+2020-06-17 15:34:57,363:INFO:run-0.iteration-0:calc_e start pid=12665 pgid=12665 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10', '64']
+2020-06-17 15:34:57,364:DEBUG:adding pipeline run-9.iteration-0 to run queue
+2020-06-17 15:34:57,364:DEBUG:adding pipeline run-10.iteration-0 to run queue
+2020-06-17 15:34:57,365:DEBUG:adding pipeline run-11.iteration-0 to run queue
+2020-06-17 15:34:57,365:DEBUG:adding pipeline run-12.iteration-0 to run queue
+2020-06-17 15:34:57,365:DEBUG:adding pipeline run-13.iteration-0 to run queue
+2020-06-17 15:34:57,366:DEBUG:adding pipeline run-14.iteration-0 to run queue
+2020-06-17 15:34:57,366:DEBUG:adding pipeline run-15.iteration-0 to run queue
+2020-06-17 15:34:57,368:DEBUG:adding pipeline run-16.iteration-0 to run queue
+2020-06-17 15:34:57,368:DEBUG:adding pipeline run-17.iteration-0 to run queue
+2020-06-17 15:34:57,369:DEBUG:adding pipeline run-18.iteration-0 to run queue
+2020-06-17 15:34:57,369:DEBUG:adding pipeline run-19.iteration-0 to run queue
+2020-06-17 15:34:57,370:DEBUG:adding pipeline run-20.iteration-0 to run queue
+2020-06-17 15:34:57,370:DEBUG:adding pipeline run-21.iteration-0 to run queue
+2020-06-17 15:34:57,371:DEBUG:adding pipeline run-22.iteration-0 to run queue
+2020-06-17 15:34:57,371:DEBUG:adding pipeline run-23.iteration-0 to run queue
+2020-06-17 15:34:57,372:DEBUG:adding pipeline run-24.iteration-0 to run queue
+2020-06-17 15:34:57,372:DEBUG:adding pipeline run-25.iteration-0 to run queue
+2020-06-17 15:34:57,373:DEBUG:adding pipeline run-26.iteration-0 to run queue
+2020-06-17 15:34:57,373:DEBUG:adding pipeline run-27.iteration-0 to run queue
+2020-06-17 15:34:57,374:DEBUG:adding pipeline run-28.iteration-0 to run queue
+2020-06-17 15:34:57,374:DEBUG:adding pipeline run-29.iteration-0 to run queue
+2020-06-17 15:34:57,375:DEBUG:adding pipeline run-30.iteration-0 to run queue
+2020-06-17 15:34:57,376:DEBUG:adding pipeline run-31.iteration-0 to run queue
+2020-06-17 15:34:57,376:DEBUG:adding pipeline run-32.iteration-0 to run queue
+2020-06-17 15:34:57,377:DEBUG:adding pipeline run-33.iteration-0 to run queue
+2020-06-17 15:34:57,378:DEBUG:adding pipeline run-34.iteration-0 to run queue
+2020-06-17 15:34:57,380:DEBUG:adding pipeline run-35.iteration-0 to run queue
+2020-06-17 15:34:57,380:DEBUG:adding pipeline run-36.iteration-0 to run queue
+2020-06-17 15:34:57,381:DEBUG:adding pipeline run-37.iteration-0 to run queue
+2020-06-17 15:34:57,382:DEBUG:adding pipeline run-38.iteration-0 to run queue
+2020-06-17 15:34:57,382:DEBUG:adding pipeline run-39.iteration-0 to run queue
+2020-06-17 15:34:57,383:DEBUG:adding pipeline run-40.iteration-0 to run queue
+2020-06-17 15:34:57,384:DEBUG:adding pipeline run-41.iteration-0 to run queue
+2020-06-17 15:34:57,385:DEBUG:adding pipeline run-42.iteration-0 to run queue
+2020-06-17 15:34:57,385:DEBUG:adding pipeline run-43.iteration-0 to run queue
+2020-06-17 15:34:57,386:DEBUG:adding pipeline run-44.iteration-0 to run queue
+2020-06-17 15:34:57,387:DEBUG:adding pipeline run-45.iteration-0 to run queue
+2020-06-17 15:34:57,668:DEBUG:run-0.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:34:58,669:INFO:run-0.iteration-0:calc_e done 12665 0
+2020-06-17 15:34:58,671:DEBUG:run-0.iteration-0:calc_e _run_callbacks
+2020-06-17 15:34:58,671:DEBUG:run-0.iteration-0 _execute_done_callbacks
+2020-06-17 15:34:58,672:DEBUG:finished pipeline run-0.iteration-0, free nodes 0 -> 1
+2020-06-17 15:34:58,672:DEBUG:starting pipeline run-45.iteration-0, free nodes 1 -> 0
+2020-06-17 15:34:58,672:DEBUG:pipeline run-45.iteration-0 allocated nodes ['1']
+2020-06-17 15:34:58,673:DEBUG:Pipeline run-45.iteration-0 launching run components
+2020-06-17 15:34:58,674:DEBUG:run-45.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:34:58,677:INFO:run-45.iteration-0:calc_e start pid=12695 pgid=12695 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '4096']
+2020-06-17 15:34:59,273:DEBUG:run-45.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:34:59,273:INFO:run-45.iteration-0:calc_e done 12695 0
+2020-06-17 15:34:59,274:DEBUG:run-45.iteration-0:calc_e _run_callbacks
+2020-06-17 15:34:59,274:DEBUG:run-45.iteration-0 _execute_done_callbacks
+2020-06-17 15:34:59,275:DEBUG:finished pipeline run-45.iteration-0, free nodes 0 -> 1
+2020-06-17 15:34:59,275:DEBUG:starting pipeline run-44.iteration-0, free nodes 1 -> 0
+2020-06-17 15:34:59,276:DEBUG:pipeline run-44.iteration-0 allocated nodes ['1']
+2020-06-17 15:34:59,276:DEBUG:Pipeline run-44.iteration-0 launching run components
+2020-06-17 15:34:59,277:DEBUG:run-44.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:34:59,280:INFO:run-44.iteration-0:calc_e start pid=12723 pgid=12723 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '2048']
+2020-06-17 15:34:59,748:DEBUG:run-44.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:34:59,749:INFO:run-44.iteration-0:calc_e done 12723 0
+2020-06-17 15:34:59,749:DEBUG:run-44.iteration-0:calc_e _run_callbacks
+2020-06-17 15:34:59,750:DEBUG:run-44.iteration-0 _execute_done_callbacks
+2020-06-17 15:34:59,750:DEBUG:finished pipeline run-44.iteration-0, free nodes 0 -> 1
+2020-06-17 15:34:59,750:DEBUG:starting pipeline run-43.iteration-0, free nodes 1 -> 0
+2020-06-17 15:34:59,750:DEBUG:pipeline run-43.iteration-0 allocated nodes ['1']
+2020-06-17 15:34:59,752:DEBUG:Pipeline run-43.iteration-0 launching run components
+2020-06-17 15:34:59,753:DEBUG:run-43.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:34:59,756:INFO:run-43.iteration-0:calc_e start pid=12752 pgid=12752 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '1024']
+2020-06-17 15:35:00,153:DEBUG:run-43.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:00,154:INFO:run-43.iteration-0:calc_e done 12752 0
+2020-06-17 15:35:00,155:DEBUG:run-43.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:00,155:DEBUG:run-43.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:00,156:DEBUG:finished pipeline run-43.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:00,156:DEBUG:starting pipeline run-42.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:00,157:DEBUG:pipeline run-42.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:00,157:DEBUG:Pipeline run-42.iteration-0 launching run components
+2020-06-17 15:35:00,159:DEBUG:run-42.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:00,161:INFO:run-42.iteration-0:calc_e start pid=12778 pgid=12778 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '512']
+2020-06-17 15:35:00,533:DEBUG:run-42.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:00,533:INFO:run-42.iteration-0:calc_e done 12778 0
+2020-06-17 15:35:00,534:DEBUG:run-42.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:00,534:DEBUG:run-42.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:00,535:DEBUG:finished pipeline run-42.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:00,535:DEBUG:starting pipeline run-41.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:00,536:DEBUG:pipeline run-41.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:00,536:DEBUG:Pipeline run-41.iteration-0 launching run components
+2020-06-17 15:35:00,538:DEBUG:run-41.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:00,540:INFO:run-41.iteration-0:calc_e start pid=12811 pgid=12811 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '256']
+2020-06-17 15:35:00,892:DEBUG:run-41.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:00,892:INFO:run-41.iteration-0:calc_e done 12811 0
+2020-06-17 15:35:00,892:DEBUG:run-41.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:00,893:DEBUG:run-41.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:00,893:DEBUG:finished pipeline run-41.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:00,893:DEBUG:starting pipeline run-40.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:00,894:DEBUG:pipeline run-40.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:00,894:DEBUG:Pipeline run-40.iteration-0 launching run components
+2020-06-17 15:35:00,896:DEBUG:run-40.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:00,898:INFO:run-40.iteration-0:calc_e start pid=12837 pgid=12837 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '128']
+2020-06-17 15:35:01,248:DEBUG:run-40.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:01,249:INFO:run-40.iteration-0:calc_e done 12837 0
+2020-06-17 15:35:01,250:DEBUG:run-40.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:01,250:DEBUG:run-40.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:01,250:DEBUG:finished pipeline run-40.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:01,251:DEBUG:starting pipeline run-39.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:01,251:DEBUG:pipeline run-39.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:01,252:DEBUG:Pipeline run-39.iteration-0 launching run components
+2020-06-17 15:35:01,253:DEBUG:run-39.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:01,256:INFO:run-39.iteration-0:calc_e start pid=12864 pgid=12864 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '1000', '64']
+2020-06-17 15:35:01,594:DEBUG:run-39.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:01,594:INFO:run-39.iteration-0:calc_e done 12864 0
+2020-06-17 15:35:01,595:DEBUG:run-39.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:01,595:DEBUG:run-39.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:01,596:DEBUG:finished pipeline run-39.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:01,596:DEBUG:starting pipeline run-38.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:01,597:DEBUG:pipeline run-38.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:01,597:DEBUG:Pipeline run-38.iteration-0 launching run components
+2020-06-17 15:35:01,598:DEBUG:run-38.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:01,601:INFO:run-38.iteration-0:calc_e start pid=12888 pgid=12888 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '4096']
+2020-06-17 15:35:01,835:DEBUG:run-38.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:01,835:INFO:run-38.iteration-0:calc_e done 12888 0
+2020-06-17 15:35:01,836:DEBUG:run-38.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:01,836:DEBUG:run-38.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:01,837:DEBUG:finished pipeline run-38.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:01,837:DEBUG:starting pipeline run-37.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:01,838:DEBUG:pipeline run-37.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:01,838:DEBUG:Pipeline run-37.iteration-0 launching run components
+2020-06-17 15:35:01,840:DEBUG:run-37.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:01,843:INFO:run-37.iteration-0:calc_e start pid=12916 pgid=12916 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '2048']
+2020-06-17 15:35:02,074:DEBUG:run-37.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:02,074:INFO:run-37.iteration-0:calc_e done 12916 0
+2020-06-17 15:35:02,075:DEBUG:run-37.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:02,075:DEBUG:run-37.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:02,076:DEBUG:finished pipeline run-37.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:02,076:DEBUG:starting pipeline run-36.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:02,077:DEBUG:pipeline run-36.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:02,077:DEBUG:Pipeline run-36.iteration-0 launching run components
+2020-06-17 15:35:02,079:DEBUG:run-36.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:02,082:INFO:run-36.iteration-0:calc_e start pid=12942 pgid=12942 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '1024']
+2020-06-17 15:35:02,314:DEBUG:run-36.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:02,314:INFO:run-36.iteration-0:calc_e done 12942 0
+2020-06-17 15:35:02,316:DEBUG:run-36.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:02,316:DEBUG:run-36.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:02,316:DEBUG:finished pipeline run-36.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:02,317:DEBUG:starting pipeline run-35.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:02,317:DEBUG:pipeline run-35.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:02,318:DEBUG:Pipeline run-35.iteration-0 launching run components
+2020-06-17 15:35:02,319:DEBUG:run-35.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:02,322:INFO:run-35.iteration-0:calc_e start pid=12970 pgid=12970 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '512']
+2020-06-17 15:35:02,553:DEBUG:run-35.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:02,553:INFO:run-35.iteration-0:calc_e done 12970 0
+2020-06-17 15:35:02,554:DEBUG:run-35.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:02,554:DEBUG:run-35.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:02,555:DEBUG:finished pipeline run-35.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:02,555:DEBUG:starting pipeline run-34.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:02,555:DEBUG:pipeline run-34.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:02,556:DEBUG:Pipeline run-34.iteration-0 launching run components
+2020-06-17 15:35:02,558:DEBUG:run-34.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:02,561:INFO:run-34.iteration-0:calc_e start pid=13015 pgid=13015 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '256']
+2020-06-17 15:35:02,791:DEBUG:run-34.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:02,791:INFO:run-34.iteration-0:calc_e done 13015 0
+2020-06-17 15:35:02,792:DEBUG:run-34.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:02,793:DEBUG:run-34.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:02,793:DEBUG:finished pipeline run-34.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:02,793:DEBUG:starting pipeline run-33.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:02,794:DEBUG:pipeline run-33.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:02,795:DEBUG:Pipeline run-33.iteration-0 launching run components
+2020-06-17 15:35:02,796:DEBUG:run-33.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:02,799:INFO:run-33.iteration-0:calc_e start pid=13085 pgid=13085 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '128']
+2020-06-17 15:35:03,025:DEBUG:run-33.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:03,025:INFO:run-33.iteration-0:calc_e done 13085 0
+2020-06-17 15:35:03,026:DEBUG:run-33.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:03,026:DEBUG:run-33.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:03,026:DEBUG:finished pipeline run-33.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:03,027:DEBUG:starting pipeline run-32.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:03,027:DEBUG:pipeline run-32.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:03,028:DEBUG:Pipeline run-32.iteration-0 launching run components
+2020-06-17 15:35:03,030:DEBUG:run-32.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:03,032:INFO:run-32.iteration-0:calc_e start pid=13144 pgid=13144 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '100', '64']
+2020-06-17 15:35:03,265:DEBUG:run-32.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:03,265:INFO:run-32.iteration-0:calc_e done 13144 0
+2020-06-17 15:35:03,266:DEBUG:run-32.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:03,266:DEBUG:run-32.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:03,267:DEBUG:finished pipeline run-32.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:03,267:DEBUG:starting pipeline run-31.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:03,267:DEBUG:pipeline run-31.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:03,268:DEBUG:Pipeline run-31.iteration-0 launching run components
+2020-06-17 15:35:03,270:DEBUG:run-31.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:03,273:INFO:run-31.iteration-0:calc_e start pid=13223 pgid=13223 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '4096']
+2020-06-17 15:35:03,501:DEBUG:run-31.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:03,501:INFO:run-31.iteration-0:calc_e done 13223 0
+2020-06-17 15:35:03,502:DEBUG:run-31.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:03,502:DEBUG:run-31.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:03,502:DEBUG:finished pipeline run-31.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:03,502:DEBUG:starting pipeline run-30.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:03,503:DEBUG:pipeline run-30.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:03,503:DEBUG:Pipeline run-30.iteration-0 launching run components
+2020-06-17 15:35:03,505:DEBUG:run-30.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:03,508:INFO:run-30.iteration-0:calc_e start pid=13303 pgid=13303 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '2048']
+2020-06-17 15:35:03,744:DEBUG:run-30.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:03,744:INFO:run-30.iteration-0:calc_e done 13303 0
+2020-06-17 15:35:03,745:DEBUG:run-30.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:03,746:DEBUG:run-30.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:03,746:DEBUG:finished pipeline run-30.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:03,746:DEBUG:starting pipeline run-29.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:03,746:DEBUG:pipeline run-29.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:03,747:DEBUG:Pipeline run-29.iteration-0 launching run components
+2020-06-17 15:35:03,749:DEBUG:run-29.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:03,752:INFO:run-29.iteration-0:calc_e start pid=13371 pgid=13371 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '1024']
+2020-06-17 15:35:03,989:DEBUG:run-29.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:03,989:INFO:run-29.iteration-0:calc_e done 13371 0
+2020-06-17 15:35:03,989:DEBUG:run-29.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:03,990:DEBUG:run-29.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:03,990:DEBUG:finished pipeline run-29.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:03,990:DEBUG:starting pipeline run-28.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:03,990:DEBUG:pipeline run-28.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:03,991:DEBUG:Pipeline run-28.iteration-0 launching run components
+2020-06-17 15:35:03,993:DEBUG:run-28.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:03,996:INFO:run-28.iteration-0:calc_e start pid=13445 pgid=13445 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '512']
+2020-06-17 15:35:04,239:DEBUG:run-28.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:04,239:INFO:run-28.iteration-0:calc_e done 13445 0
+2020-06-17 15:35:04,240:DEBUG:run-28.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:04,241:DEBUG:run-28.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:04,241:DEBUG:finished pipeline run-28.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:04,242:DEBUG:starting pipeline run-27.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:04,242:DEBUG:pipeline run-27.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:04,243:DEBUG:Pipeline run-27.iteration-0 launching run components
+2020-06-17 15:35:04,244:DEBUG:run-27.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:04,247:INFO:run-27.iteration-0:calc_e start pid=13512 pgid=13512 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '256']
+2020-06-17 15:35:04,477:DEBUG:run-27.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:04,477:INFO:run-27.iteration-0:calc_e done 13512 0
+2020-06-17 15:35:04,478:DEBUG:run-27.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:04,478:DEBUG:run-27.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:04,479:DEBUG:finished pipeline run-27.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:04,479:DEBUG:starting pipeline run-26.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:04,479:DEBUG:pipeline run-26.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:04,481:DEBUG:Pipeline run-26.iteration-0 launching run components
+2020-06-17 15:35:04,482:DEBUG:run-26.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:04,485:INFO:run-26.iteration-0:calc_e start pid=13587 pgid=13587 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '128']
+2020-06-17 15:35:04,723:DEBUG:run-26.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:04,723:INFO:run-26.iteration-0:calc_e done 13587 0
+2020-06-17 15:35:04,724:DEBUG:run-26.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:04,725:DEBUG:run-26.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:04,725:DEBUG:finished pipeline run-26.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:04,725:DEBUG:starting pipeline run-25.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:04,726:DEBUG:pipeline run-25.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:04,726:DEBUG:Pipeline run-25.iteration-0 launching run components
+2020-06-17 15:35:04,728:DEBUG:run-25.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:04,731:INFO:run-25.iteration-0:calc_e start pid=13662 pgid=13662 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'factorial', '10', '64']
+2020-06-17 15:35:04,960:DEBUG:run-25.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:04,960:INFO:run-25.iteration-0:calc_e done 13662 0
+2020-06-17 15:35:04,961:DEBUG:run-25.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:04,961:DEBUG:run-25.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:04,962:DEBUG:finished pipeline run-25.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:04,962:DEBUG:starting pipeline run-24.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:04,963:DEBUG:pipeline run-24.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:04,963:DEBUG:Pipeline run-24.iteration-0 launching run components
+2020-06-17 15:35:04,965:DEBUG:run-24.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:04,968:INFO:run-24.iteration-0:calc_e start pid=13762 pgid=13762 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10000000', '1024']
+2020-06-17 15:35:05,200:DEBUG:run-24.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:05,200:INFO:run-24.iteration-0:calc_e done 13762 0
+2020-06-17 15:35:05,201:DEBUG:run-24.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:05,201:DEBUG:run-24.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:05,202:DEBUG:finished pipeline run-24.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:05,202:DEBUG:starting pipeline run-23.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:05,202:DEBUG:pipeline run-23.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:05,203:DEBUG:Pipeline run-23.iteration-0 launching run components
+2020-06-17 15:35:05,205:DEBUG:run-23.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:05,208:INFO:run-23.iteration-0:calc_e start pid=13893 pgid=13893 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10000000', '512']
+2020-06-17 15:35:05,438:DEBUG:run-23.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:05,438:INFO:run-23.iteration-0:calc_e done 13893 0
+2020-06-17 15:35:05,439:DEBUG:run-23.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:05,440:DEBUG:run-23.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:05,440:DEBUG:finished pipeline run-23.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:05,440:DEBUG:starting pipeline run-22.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:05,441:DEBUG:pipeline run-22.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:05,441:DEBUG:Pipeline run-22.iteration-0 launching run components
+2020-06-17 15:35:05,443:DEBUG:run-22.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:05,446:INFO:run-22.iteration-0:calc_e start pid=13968 pgid=13968 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10000000', '256']
+2020-06-17 15:35:05,685:DEBUG:run-22.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:05,685:INFO:run-22.iteration-0:calc_e done 13968 0
+2020-06-17 15:35:05,686:DEBUG:run-22.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:05,687:DEBUG:run-22.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:05,687:DEBUG:finished pipeline run-22.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:05,687:DEBUG:starting pipeline run-21.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:05,687:DEBUG:pipeline run-21.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:05,688:DEBUG:Pipeline run-21.iteration-0 launching run components
+2020-06-17 15:35:05,690:DEBUG:run-21.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:05,693:INFO:run-21.iteration-0:calc_e start pid=14024 pgid=14024 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10000000', '128']
+2020-06-17 15:35:05,928:DEBUG:run-21.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:05,928:INFO:run-21.iteration-0:calc_e done 14024 0
+2020-06-17 15:35:05,929:DEBUG:run-21.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:05,929:DEBUG:run-21.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:05,930:DEBUG:finished pipeline run-21.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:05,930:DEBUG:starting pipeline run-20.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:05,930:DEBUG:pipeline run-20.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:05,931:DEBUG:Pipeline run-20.iteration-0 launching run components
+2020-06-17 15:35:05,932:DEBUG:run-20.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:05,935:INFO:run-20.iteration-0:calc_e start pid=14092 pgid=14092 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10000000', '64']
+2020-06-17 15:35:06,166:DEBUG:run-20.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:06,166:INFO:run-20.iteration-0:calc_e done 14092 0
+2020-06-17 15:35:06,167:DEBUG:run-20.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:06,167:DEBUG:run-20.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:06,168:DEBUG:finished pipeline run-20.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:06,168:DEBUG:starting pipeline run-19.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:06,168:DEBUG:pipeline run-19.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:06,169:DEBUG:Pipeline run-19.iteration-0 launching run components
+2020-06-17 15:35:06,171:DEBUG:run-19.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:06,174:INFO:run-19.iteration-0:calc_e start pid=14144 pgid=14144 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000000', '1024']
+2020-06-17 15:35:06,409:DEBUG:run-19.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:06,409:INFO:run-19.iteration-0:calc_e done 14144 0
+2020-06-17 15:35:06,410:DEBUG:run-19.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:06,411:DEBUG:run-19.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:06,411:DEBUG:finished pipeline run-19.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:06,411:DEBUG:starting pipeline run-18.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:06,411:DEBUG:pipeline run-18.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:06,412:DEBUG:Pipeline run-18.iteration-0 launching run components
+2020-06-17 15:35:06,414:DEBUG:run-18.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:06,417:INFO:run-18.iteration-0:calc_e start pid=14218 pgid=14218 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000000', '512']
+2020-06-17 15:35:06,650:DEBUG:run-18.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:06,650:INFO:run-18.iteration-0:calc_e done 14218 0
+2020-06-17 15:35:06,651:DEBUG:run-18.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:06,651:DEBUG:run-18.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:06,652:DEBUG:finished pipeline run-18.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:06,652:DEBUG:starting pipeline run-17.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:06,652:DEBUG:pipeline run-17.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:06,653:DEBUG:Pipeline run-17.iteration-0 launching run components
+2020-06-17 15:35:06,655:DEBUG:run-17.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:06,658:INFO:run-17.iteration-0:calc_e start pid=14259 pgid=14259 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000000', '256']
+2020-06-17 15:35:06,895:DEBUG:run-17.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:06,895:INFO:run-17.iteration-0:calc_e done 14259 0
+2020-06-17 15:35:06,896:DEBUG:run-17.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:06,896:DEBUG:run-17.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:06,896:DEBUG:finished pipeline run-17.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:06,896:DEBUG:starting pipeline run-16.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:06,897:DEBUG:pipeline run-16.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:06,898:DEBUG:Pipeline run-16.iteration-0 launching run components
+2020-06-17 15:35:06,899:DEBUG:run-16.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:06,902:INFO:run-16.iteration-0:calc_e start pid=14345 pgid=14345 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000000', '128']
+2020-06-17 15:35:07,138:DEBUG:run-16.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:07,138:INFO:run-16.iteration-0:calc_e done 14345 0
+2020-06-17 15:35:07,139:DEBUG:run-16.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:07,139:DEBUG:run-16.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:07,140:DEBUG:finished pipeline run-16.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:07,140:DEBUG:starting pipeline run-15.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:07,140:DEBUG:pipeline run-15.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:07,141:DEBUG:Pipeline run-15.iteration-0 launching run components
+2020-06-17 15:35:07,143:DEBUG:run-15.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:07,146:INFO:run-15.iteration-0:calc_e start pid=14386 pgid=14386 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000000', '64']
+2020-06-17 15:35:07,379:DEBUG:run-15.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:07,379:INFO:run-15.iteration-0:calc_e done 14386 0
+2020-06-17 15:35:07,380:DEBUG:run-15.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:07,380:DEBUG:run-15.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:07,381:DEBUG:finished pipeline run-15.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:07,381:DEBUG:starting pipeline run-14.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:07,382:DEBUG:pipeline run-14.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:07,382:DEBUG:Pipeline run-14.iteration-0 launching run components
+2020-06-17 15:35:07,384:DEBUG:run-14.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:07,387:INFO:run-14.iteration-0:calc_e start pid=14440 pgid=14440 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000', '1024']
+2020-06-17 15:35:07,624:DEBUG:run-14.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:07,624:INFO:run-14.iteration-0:calc_e done 14440 0
+2020-06-17 15:35:07,625:DEBUG:run-14.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:07,626:DEBUG:run-14.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:07,626:DEBUG:finished pipeline run-14.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:07,626:DEBUG:starting pipeline run-13.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:07,626:DEBUG:pipeline run-13.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:07,627:DEBUG:Pipeline run-13.iteration-0 launching run components
+2020-06-17 15:35:07,629:DEBUG:run-13.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:07,632:INFO:run-13.iteration-0:calc_e start pid=14524 pgid=14524 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000', '512']
+2020-06-17 15:35:07,881:DEBUG:run-13.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:07,881:INFO:run-13.iteration-0:calc_e done 14524 0
+2020-06-17 15:35:07,882:DEBUG:run-13.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:07,882:DEBUG:run-13.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:07,882:DEBUG:finished pipeline run-13.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:07,882:DEBUG:starting pipeline run-12.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:07,882:DEBUG:pipeline run-12.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:07,883:DEBUG:Pipeline run-12.iteration-0 launching run components
+2020-06-17 15:35:07,885:DEBUG:run-12.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:07,888:INFO:run-12.iteration-0:calc_e start pid=14582 pgid=14582 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000', '256']
+2020-06-17 15:35:08,124:DEBUG:run-12.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:08,124:INFO:run-12.iteration-0:calc_e done 14582 0
+2020-06-17 15:35:08,125:DEBUG:run-12.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:08,125:DEBUG:run-12.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:08,126:DEBUG:finished pipeline run-12.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:08,126:DEBUG:starting pipeline run-11.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:08,126:DEBUG:pipeline run-11.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:08,127:DEBUG:Pipeline run-11.iteration-0 launching run components
+2020-06-17 15:35:08,129:DEBUG:run-11.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:08,132:INFO:run-11.iteration-0:calc_e start pid=14675 pgid=14675 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000', '128']
+2020-06-17 15:35:08,367:DEBUG:run-11.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:08,367:INFO:run-11.iteration-0:calc_e done 14675 0
+2020-06-17 15:35:08,368:DEBUG:run-11.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:08,368:DEBUG:run-11.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:08,369:DEBUG:finished pipeline run-11.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:08,369:DEBUG:starting pipeline run-10.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:08,369:DEBUG:pipeline run-10.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:08,370:DEBUG:Pipeline run-10.iteration-0 launching run components
+2020-06-17 15:35:08,372:DEBUG:run-10.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:08,375:INFO:run-10.iteration-0:calc_e start pid=14715 pgid=14715 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '1000', '64']
+2020-06-17 15:35:08,610:DEBUG:run-10.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:08,610:INFO:run-10.iteration-0:calc_e done 14715 0
+2020-06-17 15:35:08,611:DEBUG:run-10.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:08,611:DEBUG:run-10.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:08,612:DEBUG:finished pipeline run-10.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:08,612:DEBUG:starting pipeline run-9.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:08,612:DEBUG:pipeline run-9.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:08,613:DEBUG:Pipeline run-9.iteration-0 launching run components
+2020-06-17 15:35:08,615:DEBUG:run-9.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:08,618:INFO:run-9.iteration-0:calc_e start pid=14762 pgid=14762 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '100', '1024']
+2020-06-17 15:35:08,855:DEBUG:run-9.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:08,855:INFO:run-9.iteration-0:calc_e done 14762 0
+2020-06-17 15:35:08,856:DEBUG:run-9.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:08,856:DEBUG:run-9.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:08,857:DEBUG:finished pipeline run-9.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:08,857:DEBUG:starting pipeline run-8.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:08,857:DEBUG:pipeline run-8.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:08,858:DEBUG:Pipeline run-8.iteration-0 launching run components
+2020-06-17 15:35:08,860:DEBUG:run-8.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:08,863:INFO:run-8.iteration-0:calc_e start pid=14847 pgid=14847 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '100', '512']
+2020-06-17 15:35:09,110:DEBUG:run-8.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:09,110:INFO:run-8.iteration-0:calc_e done 14847 0
+2020-06-17 15:35:09,111:DEBUG:run-8.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:09,112:DEBUG:run-8.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:09,112:DEBUG:finished pipeline run-8.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:09,112:DEBUG:starting pipeline run-7.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:09,112:DEBUG:pipeline run-7.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:09,114:DEBUG:Pipeline run-7.iteration-0 launching run components
+2020-06-17 15:35:09,115:DEBUG:run-7.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:09,119:INFO:run-7.iteration-0:calc_e start pid=14891 pgid=14891 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '100', '256']
+2020-06-17 15:35:09,355:DEBUG:run-7.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:09,355:INFO:run-7.iteration-0:calc_e done 14891 0
+2020-06-17 15:35:09,356:DEBUG:run-7.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:09,356:DEBUG:run-7.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:09,356:DEBUG:finished pipeline run-7.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:09,357:DEBUG:starting pipeline run-6.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:09,357:DEBUG:pipeline run-6.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:09,358:DEBUG:Pipeline run-6.iteration-0 launching run components
+2020-06-17 15:35:09,359:DEBUG:run-6.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:09,363:INFO:run-6.iteration-0:calc_e start pid=14938 pgid=14938 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '100', '128']
+2020-06-17 15:35:09,598:DEBUG:run-6.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:09,598:INFO:run-6.iteration-0:calc_e done 14938 0
+2020-06-17 15:35:09,599:DEBUG:run-6.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:09,600:DEBUG:run-6.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:09,600:DEBUG:finished pipeline run-6.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:09,600:DEBUG:starting pipeline run-5.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:09,600:DEBUG:pipeline run-5.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:09,602:DEBUG:Pipeline run-5.iteration-0 launching run components
+2020-06-17 15:35:09,603:DEBUG:run-5.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:09,607:INFO:run-5.iteration-0:calc_e start pid=14965 pgid=14965 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '100', '64']
+2020-06-17 15:35:09,842:DEBUG:run-5.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:09,842:INFO:run-5.iteration-0:calc_e done 14965 0
+2020-06-17 15:35:09,843:DEBUG:run-5.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:09,843:DEBUG:run-5.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:09,844:DEBUG:finished pipeline run-5.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:09,844:DEBUG:starting pipeline run-4.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:09,844:DEBUG:pipeline run-4.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:09,845:DEBUG:Pipeline run-4.iteration-0 launching run components
+2020-06-17 15:35:09,847:DEBUG:run-4.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:09,850:INFO:run-4.iteration-0:calc_e start pid=14988 pgid=14988 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10', '1024']
+2020-06-17 15:35:10,079:DEBUG:run-4.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:10,080:INFO:run-4.iteration-0:calc_e done 14988 0
+2020-06-17 15:35:10,080:DEBUG:run-4.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:10,081:DEBUG:run-4.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:10,081:DEBUG:finished pipeline run-4.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:10,081:DEBUG:starting pipeline run-3.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:10,082:DEBUG:pipeline run-3.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:10,083:DEBUG:Pipeline run-3.iteration-0 launching run components
+2020-06-17 15:35:10,084:DEBUG:run-3.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:10,088:INFO:run-3.iteration-0:calc_e start pid=15012 pgid=15012 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10', '512']
+2020-06-17 15:35:10,340:DEBUG:run-3.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:10,340:INFO:run-3.iteration-0:calc_e done 15012 0
+2020-06-17 15:35:10,340:DEBUG:run-3.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:10,341:DEBUG:run-3.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:10,341:DEBUG:finished pipeline run-3.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:10,341:DEBUG:starting pipeline run-2.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:10,342:DEBUG:pipeline run-2.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:10,343:DEBUG:Pipeline run-2.iteration-0 launching run components
+2020-06-17 15:35:10,345:DEBUG:run-2.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:10,348:INFO:run-2.iteration-0:calc_e start pid=15036 pgid=15036 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10', '256']
+2020-06-17 15:35:10,589:DEBUG:run-2.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:10,589:INFO:run-2.iteration-0:calc_e done 15036 0
+2020-06-17 15:35:10,590:DEBUG:run-2.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:10,591:DEBUG:run-2.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:10,591:DEBUG:finished pipeline run-2.iteration-0, free nodes 0 -> 1
+2020-06-17 15:35:10,591:DEBUG:starting pipeline run-1.iteration-0, free nodes 1 -> 0
+2020-06-17 15:35:10,592:DEBUG:pipeline run-1.iteration-0 allocated nodes ['1']
+2020-06-17 15:35:10,592:DEBUG:Pipeline run-1.iteration-0 launching run components
+2020-06-17 15:35:10,594:DEBUG:run-1.iteration-0:calc_e LD_LIBRARY_PATH=/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib:/sw/summit/llvm/9.0.0/9.0.0.patch001.cuda-10.1.168/lib/clang/9.0.0/lib/linux:/usr/lib64:/sw/summit/cuda/10.1.168/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib:/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib
+2020-06-17 15:35:10,597:INFO:run-1.iteration-0:calc_e start pid=15059 pgid=15059 args=['/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/clang-9.0.0-2/spectrum-mpi-10.3.1.2-20200121-nt7lkccopsi2p3z5hvgilibnrhlswems/bin/mpiexec', '-n', '1', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py', 'pow', '10', '128']
+2020-06-17 15:35:10,833:DEBUG:run-1.iteration-0:calc_e _pgroup_wait max delay 120
+2020-06-17 15:35:10,833:INFO:run-1.iteration-0:calc_e done 15059 0
+2020-06-17 15:35:10,834:DEBUG:run-1.iteration-0:calc_e _run_callbacks
+2020-06-17 15:35:10,834:DEBUG:run-1.iteration-0 _execute_done_callbacks
+2020-06-17 15:35:10,835:DEBUG:finished pipeline run-1.iteration-0, free nodes 0 -> 1

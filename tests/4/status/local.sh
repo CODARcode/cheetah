@@ -1,0 +1,2 @@
+cheetah status local
+

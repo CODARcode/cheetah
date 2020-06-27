@@ -1,0 +1,7 @@
+{
+  "calc_e": {
+    "method": "factorial",
+    "n": 10,
+    "precision": 64
+  }
+}

@@ -1,0 +1,324 @@
+[
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 100,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 100,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 100,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 100,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 100,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000000,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000000,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000000,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000000,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 1000000,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10000000,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10000000,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10000000,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10000000,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "pow",
+      "n": 10000000,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 2048
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 10,
+      "precision": 4096
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 2048
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 100,
+      "precision": 4096
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 64
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 128
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 256
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 512
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 1024
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 2048
+    }
+  },
+  {
+    "calc_e": {
+      "method": "factorial",
+      "n": 1000,
+      "precision": 4096
+    }
+  }
+]

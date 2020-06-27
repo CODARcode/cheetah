@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='us-ascii'?>
+<adios-config>
+
+    <io name="producer">
+        <engine type="SST" /></io>
+
+
+</adios-config>
