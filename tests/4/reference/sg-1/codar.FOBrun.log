@@ -1,0 +1,12 @@
+2020-06-26 12:12:36,752:INFO:starting savanna job PID:76357
+2020-06-26 12:12:36,755:DEBUG:adding pipeline run-0.iteration-0 to run queue
+2020-06-26 12:12:36,755:DEBUG:starting pipeline run-0.iteration-0, free nodes 1 -> 0
+2020-06-26 12:12:36,755:DEBUG:pipeline run-0.iteration-0 allocated nodes ['1']
+2020-06-26 12:12:36,756:DEBUG:Pipeline run-0.iteration-0 launching run components
+2020-06-26 12:12:36,789:DEBUG:run-0.iteration-0:producer LD_LIBRARY_PATH=/opt/ibm/spectrumcomputing/lsf/10.1.0.9/linux3.10-glibc2.17-ppc64le-csm/lib:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-7.4.0/libfabric-1.7.0-g4qyp4i7fomfmv2zgnalesnhmq5e6d4i/lib:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-7.4.0/zeromq-4.2.5-ttsk2diqnonf65hyygstxzuqoc5xvium/lib:/ccs/home/iyakushin/SOFT_INSTALL/adios-2.5_simplest-gcc-7.4.0/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-7.4.0/spectrum-mpi-10.3.1.2-20200121-eu2wh5ypz6ipvokwbng2m5ihug6doysh/lib:/sw/summit/gcc/7.4.0/lib64:/autofs/nccs-svm1_sw/summit/.swci/1-compute/opt/spack/20180914/linux-rhel7-ppc64le/gcc-4.8.5/darshan-runtime-3.1.7-cnvxicgf5j4ap64qi6v5gxp67hmrjz43/lib
+2020-06-26 12:12:36,792:INFO:run-0.iteration-0:producer start pid=76379 pgid=76379 args=['jsrun', '--erf_input', '/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0/producer.erf_input']
+2020-06-26 12:12:51,426:DEBUG:run-0.iteration-0:producer _pgroup_wait max delay 120
+2020-06-26 12:12:51,426:INFO:run-0.iteration-0:producer done 76379 0
+2020-06-26 12:12:51,429:DEBUG:run-0.iteration-0:producer _run_callbacks
+2020-06-26 12:12:51,429:DEBUG:run-0.iteration-0 _execute_done_callbacks
+2020-06-26 12:12:51,446:DEBUG:finished pipeline run-0.iteration-0, free nodes 0 -> 1

@@ -1,0 +1,12 @@
+app 0: /gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/program/producer.py 1048576 2
+cpu_index_using: physical
+overlapping_rs: warn
+skip_missing_cpu: warn
+skip_missing_gpu: allow
+skip_missing_mem: allow
+oversubscribe_cpu: error
+oversubscribe_gpu: allow
+oversubscribe_mem: allow
+launch_distribution: packed
+rank: 0: { host: 1; cpu: {0-3} } : app 0
+rank: 1: { host: 1; cpu: {4-7} } : app 0

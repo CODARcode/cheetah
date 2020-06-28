@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<adios-config>
+
+    <io name="producer">
+        <engine type="BPFile">
+        </engine>
+    </io>
+
+
+</adios-config>

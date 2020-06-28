@@ -1,0 +1,2 @@
+/home/igor/Development/test_cs/2/program/producer.py 1048576 10
+/home/igor/Development/test_cs/2/program/mean_calculator.py

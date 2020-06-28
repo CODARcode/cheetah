@@ -1,0 +1,13 @@
+{
+  "mean_calc": {
+    "nprocs": 2
+  },
+  "producer": {
+    "nprocs": 2,
+    "array_size_per_pe": 1048576,
+    "num_steps": 10,
+    "engine_sst": {
+      "SST": {}
+    }
+  }
+}

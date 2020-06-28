@@ -1,0 +1,7 @@
+{
+  "producer": {
+    "nprocs": 2,
+    "array_size_per_pe": 1048576,
+    "num_steps": 2
+  }
+}

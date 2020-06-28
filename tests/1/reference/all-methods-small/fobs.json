@@ -1,0 +1,1980 @@
+[
+    {
+        "id": "run-0.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-0.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-0.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-0.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-0.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-0.iteration-0"
+    },
+    {
+        "id": "run-1.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-1.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-1.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-1.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-1.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-1.iteration-0"
+    },
+    {
+        "id": "run-2.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-2.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-2.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-2.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-2.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-2.iteration-0"
+    },
+    {
+        "id": "run-3.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-3.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-3.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-3.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-3.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-3.iteration-0"
+    },
+    {
+        "id": "run-4.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-4.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-4.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-4.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-4.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-4.iteration-0"
+    },
+    {
+        "id": "run-5.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-5.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "100",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-5.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-5.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-5.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-5.iteration-0"
+    },
+    {
+        "id": "run-6.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-6.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "100",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-6.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-6.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-6.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-6.iteration-0"
+    },
+    {
+        "id": "run-7.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-7.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "100",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-7.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-7.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-7.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-7.iteration-0"
+    },
+    {
+        "id": "run-8.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-8.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "100",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-8.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-8.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-8.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-8.iteration-0"
+    },
+    {
+        "id": "run-9.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-9.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "100",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-9.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-9.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-9.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-9.iteration-0"
+    },
+    {
+        "id": "run-10.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-10.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-10.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-10.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-10.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-10.iteration-0"
+    },
+    {
+        "id": "run-11.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-11.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-11.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-11.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-11.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-11.iteration-0"
+    },
+    {
+        "id": "run-12.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-12.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-12.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-12.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-12.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-12.iteration-0"
+    },
+    {
+        "id": "run-13.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-13.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-13.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-13.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-13.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-13.iteration-0"
+    },
+    {
+        "id": "run-14.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-14.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-14.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-14.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-14.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-14.iteration-0"
+    },
+    {
+        "id": "run-15.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-15.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000000",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-15.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-15.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-15.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-15.iteration-0"
+    },
+    {
+        "id": "run-16.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-16.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000000",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-16.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-16.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-16.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-16.iteration-0"
+    },
+    {
+        "id": "run-17.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-17.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000000",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-17.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-17.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-17.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-17.iteration-0"
+    },
+    {
+        "id": "run-18.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-18.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000000",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-18.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-18.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-18.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-18.iteration-0"
+    },
+    {
+        "id": "run-19.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-19.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "1000000",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-19.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-19.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-19.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-19.iteration-0"
+    },
+    {
+        "id": "run-20.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-20.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10000000",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-20.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-20.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-20.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-20.iteration-0"
+    },
+    {
+        "id": "run-21.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-21.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10000000",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-21.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-21.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-21.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-21.iteration-0"
+    },
+    {
+        "id": "run-22.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-22.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10000000",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-22.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-22.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-22.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-22.iteration-0"
+    },
+    {
+        "id": "run-23.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-23.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10000000",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-23.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-23.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-23.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-23.iteration-0"
+    },
+    {
+        "id": "run-24.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-24.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "pow",
+                    "10000000",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-24.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-24.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-24.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-24.iteration-0"
+    },
+    {
+        "id": "run-25.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-25.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-25.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-25.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-25.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-25.iteration-0"
+    },
+    {
+        "id": "run-26.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-26.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-26.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-26.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-26.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-26.iteration-0"
+    },
+    {
+        "id": "run-27.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-27.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-27.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-27.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-27.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-27.iteration-0"
+    },
+    {
+        "id": "run-28.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-28.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-28.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-28.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-28.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-28.iteration-0"
+    },
+    {
+        "id": "run-29.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-29.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-29.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-29.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-29.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-29.iteration-0"
+    },
+    {
+        "id": "run-30.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-30.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "2048"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-30.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-30.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-30.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-30.iteration-0"
+    },
+    {
+        "id": "run-31.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-31.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "10",
+                    "4096"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-31.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-31.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-31.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-31.iteration-0"
+    },
+    {
+        "id": "run-32.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-32.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-32.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-32.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-32.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-32.iteration-0"
+    },
+    {
+        "id": "run-33.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-33.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-33.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-33.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-33.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-33.iteration-0"
+    },
+    {
+        "id": "run-34.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-34.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-34.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-34.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-34.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-34.iteration-0"
+    },
+    {
+        "id": "run-35.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-35.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-35.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-35.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-35.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-35.iteration-0"
+    },
+    {
+        "id": "run-36.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-36.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-36.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-36.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-36.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-36.iteration-0"
+    },
+    {
+        "id": "run-37.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-37.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "2048"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-37.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-37.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-37.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-37.iteration-0"
+    },
+    {
+        "id": "run-38.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-38.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "100",
+                    "4096"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-38.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-38.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-38.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-38.iteration-0"
+    },
+    {
+        "id": "run-39.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-39.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "64"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-39.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-39.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-39.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-39.iteration-0"
+    },
+    {
+        "id": "run-40.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-40.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "128"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-40.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-40.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-40.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-40.iteration-0"
+    },
+    {
+        "id": "run-41.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-41.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "256"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-41.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-41.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-41.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-41.iteration-0"
+    },
+    {
+        "id": "run-42.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-42.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "512"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-42.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-42.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-42.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-42.iteration-0"
+    },
+    {
+        "id": "run-43.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-43.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "1024"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-43.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-43.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-43.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-43.iteration-0"
+    },
+    {
+        "id": "run-44.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-44.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "2048"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-44.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-44.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-44.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-44.iteration-0"
+    },
+    {
+        "id": "run-45.iteration-0",
+        "kill_on_partial_failure": false,
+        "launch_mode": null,
+        "machine_name": "local",
+        "node_layout": [
+            {
+                "calc_e": 32
+            }
+        ],
+        "post_process_args": [
+            "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-45.iteration-0/codar.cheetah.run-params.json"
+        ],
+        "post_process_script": null,
+        "post_process_stop_on_failure": false,
+        "runs": [
+            {
+                "adios_xml_file": null,
+                "after_rc_done": null,
+                "args": [
+                    "factorial",
+                    "1000",
+                    "4096"
+                ],
+                "env": {
+                    "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-45.iteration-0/codar.cheetah.tau-calc_e",
+                    "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-45.iteration-0/codar.cheetah.tau-calc_e"
+                },
+                "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/program/calc_e.py",
+                "hostfile": null,
+                "linked_with_sosflow": false,
+                "name": "calc_e",
+                "nprocs": 1,
+                "num_nodes": 1,
+                "runner_override": false,
+                "sched_args": null,
+                "sleep_after": 0,
+                "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-45.iteration-0"
+            }
+        ],
+        "total_nodes": 1,
+        "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/1/local/iyakushin/all-methods-small/run-45.iteration-0"
+    }
+]

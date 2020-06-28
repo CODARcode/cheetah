@@ -1,0 +1,41 @@
+Rank 1: Mean of values of psi in step 0: 100.0
+Rank 1: Mean of values of psi in step 1: 524387.5
+Rank 1: Mean of values of psi in step 2: 1048675.0
+Rank 1: Mean of values of psi in step 3: 1572962.5
+Rank 1: Mean of values of psi in step 4: 2097250.0
+Rank 1: Mean of values of psi in step 5: 2621537.5
+Rank 1: Mean of values of psi in step 6: 3145825.0
+Rank 1: Mean of values of psi in step 7: 3670112.5
+Rank 1: Mean of values of psi in step 8: 4194400.0
+Rank 1: Mean of values of psi in step 9: 4718687.5
+Parsing step 0
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 0: 0.0
+Parsing step 1
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 1: 524287.5
+Parsing step 2
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 2: 1048575.0
+Parsing step 3
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 3: 1572862.5
+Parsing step 4
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 4: 2097150.0
+Parsing step 5
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 5: 2621437.5
+Parsing step 6
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 6: 3145725.0
+Parsing step 7
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 7: 3670012.5
+Parsing step 8
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 8: 4194300.0
+Parsing step 9
+Size of psi: [2097152]
+Rank 0: Mean of values of psi in step 9: 4718587.5
+/home/igor/Development/test_cs/2/program/mean_calculator.py encountered end of stream. Exiting ..
