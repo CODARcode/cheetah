@@ -1,4 +1,4 @@
-/home/igor/Development/test_cs/2/program/producer.py size-per-process: 1048576, num-steps: 10
+/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/program/producer.py size-per-process: 1048576, num-steps: 2
 Step 0:
 Step 1:
 Step 2:

@@ -3,8 +3,7 @@
     "state": "done",
     "reason": "succeeded",
     "return_codes": {
-      "producer": 0,
-      "mean_calc": 0
+      "producer": 0
     }
   }
 }

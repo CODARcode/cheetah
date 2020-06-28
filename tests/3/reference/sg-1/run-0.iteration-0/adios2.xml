@@ -1,8 +1,11 @@
-<?xml version='1.0' encoding='us-ascii'?>
+<?xml version="1.0"?>
+
 <adios-config>
 
     <io name="producer">
-        <engine type="SST" /></io>
+        <engine type="BPFile">
+        </engine>
+    </io>
 
 
 </adios-config>

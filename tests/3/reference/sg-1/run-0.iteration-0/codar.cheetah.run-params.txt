@@ -1,2 +1,1 @@
-/home/igor/Development/test_cs/2/program/producer.py 1048576 10
-/home/igor/Development/test_cs/2/program/mean_calculator.py
+/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/program/producer.py 1048576 2

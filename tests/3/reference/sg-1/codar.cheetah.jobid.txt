@@ -1,1 +1,1 @@
-PID:23196
+LSF:Job <182220> is submitted to default queue <batch>.

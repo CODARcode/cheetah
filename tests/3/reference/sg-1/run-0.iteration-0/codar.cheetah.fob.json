@@ -2,29 +2,82 @@
     "id": "run-0.iteration-0",
     "kill_on_partial_failure": true,
     "launch_mode": "default",
-    "machine_name": "local",
+    "machine_name": "summit",
     "node_layout": [
         {
-            "producer": 32
-        },
-        {
-            "mean_calc": 32
+            "__info_type__": "NodeConfig",
+            "cpu": [
+                "producer:0",
+                "producer:1",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "gpu": [
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+            ]
         }
     ],
     "post_process_args": [
-        "/home/igor/Development/test_cs/2/local/igor/sg-1/run-0.iteration-0/codar.cheetah.run-params.json"
+        "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0/codar.cheetah.run-params.json"
     ],
     "post_process_script": null,
     "post_process_stop_on_failure": false,
     "runs": [
         {
-            "adios_xml_file": "/home/igor/Development/test_cs/2/adios2.xml",
+            "adios_xml_file": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/adios2.xml",
             "after_rc_done": null,
             "args": [
                 "1048576",
-                "10"
+                "2"
             ],
-            "exe": "/home/igor/Development/test_cs/2/program/producer.py",
+            "env": {
+                "PROFILEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0/codar.cheetah.tau-producer",
+                "TRACEDIR": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0/codar.cheetah.tau-producer"
+            },
+            "exe": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/program/producer.py",
             "hostfile": null,
             "linked_with_sosflow": false,
             "name": "producer",
@@ -34,27 +87,9 @@
             "sched_args": null,
             "sleep_after": 5,
             "timeout": 60,
-            "working_dir": "/home/igor/Development/test_cs/2/local/igor/sg-1/run-0.iteration-0"
-        },
-        {
-            "adios_xml_file": "/home/igor/Development/test_cs/2/adios2.xml",
-            "after_rc_done": null,
-            "args": [],
-            "exe": "/home/igor/Development/test_cs/2/program/mean_calculator.py",
-            "hostfile": null,
-            "linked_with_sosflow": false,
-            "name": "mean_calc",
-            "nprocs": 2,
-            "num_nodes": 1,
-            "runner_override": false,
-            "sched_args": null,
-            "sleep_after": 0,
-            "timeout": 60,
-            "working_dir": "/home/igor/Development/test_cs/2/local/igor/sg-1/run-0.iteration-0"
+            "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0"
         }
     ],
-    "tau_profiling": false,
-    "tau_tracing": false,
-    "total_nodes": 2,
-    "working_dir": "/home/igor/Development/test_cs/2/local/igor/sg-1/run-0.iteration-0"
+    "total_nodes": 1,
+    "working_dir": "/gpfs/alpine/csc299/proj-shared/iyakushin/test_cs/4/summit/iyakushin/sg-1/run-0.iteration-0"
 }
