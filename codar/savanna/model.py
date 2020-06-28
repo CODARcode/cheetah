@@ -455,6 +455,8 @@ class Run(threading.Thread):
                 os.killpg(self._pgid, signum)
             except ProcessLookupError:
                 # pgroup no longer exists, we are done waiting
+                _log.debug('%s Checking if pgroup exists .. not found', 
+                           self.log_prefix)
                 break
             # else pgroup still exists
             time.sleep(delay)
