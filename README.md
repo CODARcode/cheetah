@@ -41,7 +41,7 @@ The Cheetah documentation can be found at [https://codarcode.github.io/cheetah](
 
 Releases
 --------
-The current release is [1.0.0](https://github.com/CODARcode/cheetah/releases/tag/v1.0.0).
+The current release is [1.1.0](https://github.com/CODARcode/cheetah/releases/tag/v1.1.0).
 
 ### Supported Systems
 System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Sharing Support 
