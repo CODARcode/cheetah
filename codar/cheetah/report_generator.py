@@ -16,8 +16,10 @@ import pdb
 import logging
 import csv
 import subprocess
+import shutil
 from codar.cheetah.helpers import get_immediate_subdirs, \
                                   require_campaign_directory, find_subdir_path
+from codar.cheetah.error_messages import e_msg
 from codar.savanna import tau
 
 _log = logging.getLogger(' ')
@@ -171,12 +173,17 @@ class _RunParser:
                     _log.debug("No tau profiles found for {}".format(rc_name))
                     continue
 
+                _log.debug("Tau profiles found for {}".format(rc_name))
+
+                if not shutil.which('pprof'):
+                    _log.warning(e_msg['PPROF_NOT_FOUND'])
+                    return
+
                 pprof_out = os.path.join(profile_dir_path, "pprof.out")
                 pprof_out_f = open(pprof_out, "w")
                 subprocess.run(["pprof"], cwd=profile_dir_path,
                                stdout=pprof_out_f, stderr=pprof_out_f)
-            
-                _log.debug("Tau profiles found for {}".format(rc_name))
+
         else:
             _log.debug("No TAU profiles found")
 
@@ -194,6 +201,10 @@ class _RunParser:
                 trace_out_f = open(trace_out, "w")
 
                 # Run tau_treemerge.pl
+                if not shutil.which('tau_treemerge.pl'):
+                    _log.warning(e_msg['TAU_TREEMERGE_NOT_FOUND'])
+                    return
+
                 subprocess.run(['tau_treemerge.pl'], cwd=trace_dir_path,
                                stdout=trace_out_f, stderr=trace_out_f)
 
