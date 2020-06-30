@@ -115,7 +115,7 @@ class PipelineRunner(object):
         """Kill all running processes spawned by this consumer and don't
         start any new processes."""
 
-        _log.warn("killing all pipelines and exiting consumer")
+        _log.warning("killing all pipelines and exiting consumer")
 
         with self.pipelines_lock:
             self._killed = True

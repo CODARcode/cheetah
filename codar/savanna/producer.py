@@ -43,5 +43,6 @@ class JSONFilePipelineReader(object):
                 _log.info("pipeline %s already done, skipping", pipe_id)
             else:
                 pipeline = Pipeline.from_data(pipeline_data)
-                _log.debug("adding pipeline %s to run queue", pipe_id)
-                yield pipeline
+                if pipeline:
+                    _log.debug("adding pipeline %s to run queue", pipe_id)
+                    yield pipeline

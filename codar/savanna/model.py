@@ -71,7 +71,7 @@ class Run(threading.Thread):
                  log_prefix=None, sleep_after=None,
                  depends_on_runs=None, hostfile=None,
                  runner_override=False,
-                 tau_profiling=False, tau_tracing=False, tau_exec=None):
+                 tau_profiling=False, tau_tracing=False, tau_exec='tau_exec'):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
@@ -86,7 +86,7 @@ class Run(threading.Thread):
         self.tau_profiling = tau_profiling
         self.tau_tracing = tau_tracing
         self.tau_exec = tau_exec
-        if self.tau_exec:
+        if self.tau_profiling or self.tau_tracing:
             self._add_tau_support()
 
         # res_set, nrs, and rs_per_host represent resource_set definition,
@@ -179,8 +179,7 @@ class Run(threading.Thread):
                 hostfile=data.get('hostfile'),
                 runner_override=data.get('runner_override'),
                 tau_profiling=data.get('tau_profiling', False),
-                tau_tracing=data.get('tau_tracing', False),
-                tau_exec=data.get('tau_exec', None))
+                tau_tracing=data.get('tau_tracing', False))
 
         return r
 
@@ -428,10 +427,10 @@ class Run(threading.Thread):
         chance to exit cleanly with CONT+TERM, then attempt to KILL after
         a delay."""
         _log.debug('%s _term_kill', self.log_prefix)
-        os.killpg(self._pgid, signal.SIGCONT)
-        os.killpg(self._pgid, signal.SIGTERM)
-        time.sleep(KILL_WAIT)
         try:
+            os.killpg(self._pgid, signal.SIGCONT)
+            os.killpg(self._pgid, signal.SIGTERM)
+            time.sleep(KILL_WAIT)
             os.killpg(self._pgid, signal.SIGKILL)
         except ProcessLookupError:
             # this happens if all processes in the pgroup have already
@@ -597,16 +596,13 @@ class Pipeline(object):
         and each dict is parsed using Run.from_data.
         Raises KeyError if a required key is missing."""
 
-        # Read tau options and ensure tau_exec is in PATH
-        tau_profiling = data.get("tau_profiling")
-        tau_tracing = data.get("tau_tracing")
-        tau_exec = None
-        if tau_profiling or tau_tracing:
-            tau_exec = tau.find_tau_exec()
-            assert tau_exec is not None, "tau_exec not found"
-
         runs_data = data["runs"]
         working_dir = data["working_dir"]
+
+        # Read tau options and ensure tau_exec is in PATH
+        tau_profiling = data.get("tau_profiling", False)
+        tau_tracing = data.get("tau_tracing", False)
+
         # Run working dir defaults to pipeline working dir, and can be
         # specified relative to pipeline working dir.
         for rd in runs_data:
@@ -616,12 +612,11 @@ class Pipeline(object):
             elif not run_working_dir.startswith("/"):
                 run_working_dir = os.path.join(working_dir, run_working_dir)
             rd["working_dir"] = run_working_dir
-            if tau_exec:
-                rd["tau_exec"] = tau_exec
-                rd["tau_profiling"] = tau_profiling
-                rd["tau_tracing"] = tau_tracing
+            rd["tau_profiling"] = tau_profiling
+            rd["tau_tracing"] = tau_tracing
         if not isinstance(runs_data, list):
-            raise ValueError("'runs' key must be a list of dictionaries")
+            _log.error("'runs' key must be a list of dictionaries")
+            return None
         pipe_id = str(data["id"])
         runs = [Run.from_data(rd) for rd in runs_data]
 
@@ -633,15 +628,18 @@ class Pipeline(object):
                     if run.depends_on_runs == tmp_run.name:
                         run.depends_on_runs = tmp_run
                         break
-                assert run.depends_on_runs is not None, \
-                    "Internal failure in dependency management"
+                if run.depends_on_runs is None:
+                    _log.error("Internal failure in dependency management "
+                               "in %s", working_dir)
+                    return None
 
         launch_mode = data.get("launch_mode")
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
         post_process_script = data.get("post_process_script")
         post_process_args = data.get("post_process_args", [])
         if not isinstance(post_process_args, list):
-            raise ValueError("'post_process_args' must be a list")
+            _log.error("'post_process_args' must be a list in %s", working_dir)
+            return None
         post_process_stop_on_failure = data.get("post_process_stop_on_failure")
         node_layout = data.get("node_layout")
         total_nodes = data.get("total_nodes")

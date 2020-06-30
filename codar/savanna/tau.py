@@ -15,5 +15,6 @@ def find_tau_exec():
 
     # Find in PATH
     tau_exec = shutil.which("tau_exec")
-    _log.info("Found tau_exec at {}".format(tau_exec))
+    if tau_exec:
+        _log.info("Found tau_exec at {}".format(tau_exec))
     return tau_exec
