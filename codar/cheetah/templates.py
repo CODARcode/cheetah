@@ -15,9 +15,6 @@ export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"
 export CODAR_CHEETAH_UMASK="{umask}"
 export CODAR_PYTHON="{codar_python}"
-
-# Copy the env setup to the campaign
-cp "{app_config}" "{experiment_dir}/."
 """
 
 

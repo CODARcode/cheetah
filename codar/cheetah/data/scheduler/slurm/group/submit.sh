@@ -17,6 +17,12 @@ if [ -f codar.workflow.status.json ]; then
     fi
 fi
 
+# Copy the env setup to the Sweep Group
+if [ -n "$CODAR_CHEETAH_APP_CONFIG" ]; then
+  ENV_SETUP_SCRIPT="codar.savanna.env_setup.$CODAR_CHEETAH_MACHINE_NAME"
+  cp "$CODAR_CHEETAH_APP_CONFIG" "$ENV_SETUP_SCRIPT"
+fi
+
 # convert walltime from seconds to HH:MM:SS format needed by PBS
 
 secs=$CODAR_CHEETAH_GROUP_WALLTIME
