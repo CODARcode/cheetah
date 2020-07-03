@@ -19,11 +19,13 @@ import math
 import threading
 import signal
 import logging
+import json
 from queue import Queue
 import pdb
 
 from codar.savanna import tau, status, machines, summit_helper, \
     deepthought2_helper
+from codar.savanna.error_messages import err_msg
 from codar.savanna.exc import SavannaException
 from codar.savanna.node_layout import NodeLayout
 
@@ -32,6 +34,7 @@ STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
 RETURN_NAME = 'codar.workflow.return'
 WALLTIME_NAME = 'codar.workflow.walltime'
+RUN_ENVIRON_NAME = 'codar.savanna.{}.environment.json'
 
 KILL_WAIT = 30
 WAIT_DELAY_KILL = 30
@@ -479,8 +482,19 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env.update(self.env)
-        _log.debug("{} {}, LD_LIBRATY_PATH:{}".format(
-            self.log_prefix,self.env, env.get('LD_LIBRARY_PATH','')))
+
+        # Write the environment information to file
+        env_out_name = RUN_ENVIRON_NAME.format(self.name)
+        env_out_path = os.path.join(self.working_dir, env_out_name)
+        try:
+            with open(env_out_path, 'w') as f:
+                json.dump(env, f, indent=4)
+        except:  # Continue if it fails, not fatal
+            _log.warning(err_msg['rc_env_out_fail'].format(self.name,
+                                                           env_out_path))
+
+        _log.debug("{} {}, LD_LIBRARY_PATH:{}".format(
+            self.log_prefix, self.env, env.get('LD_LIBRARY_PATH', '')))
 
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
                                    stdout=out, stderr=err,
