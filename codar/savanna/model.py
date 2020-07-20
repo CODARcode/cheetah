@@ -78,7 +78,8 @@ class Run(threading.Thread):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
-        self.args = list(filter(None, args))
+        self.args = args
+        if args: self.args = list(filter(None, args))
         self.sched_args = sched_args
         self.env = env or {}
         self.working_dir = working_dir
