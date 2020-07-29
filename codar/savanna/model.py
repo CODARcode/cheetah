@@ -15,6 +15,7 @@ permanent and not subject to outside forces like the job walltime expiring.
 import time
 import subprocess
 import os
+import shutil
 import math
 import threading
 import signal
@@ -34,7 +35,8 @@ STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
 RETURN_NAME = 'codar.workflow.return'
 WALLTIME_NAME = 'codar.workflow.walltime'
-RUN_ENVIRON_NAME = 'codar.savanna.{}.environment.json'
+RUN_ENVIRON_NAME = '.codar.savanna.{}.environment.json'
+EXE_INFO_FNAME = '.codar.savanna.{}.exe.info.txt'
 
 KILL_WAIT = 30
 WAIT_DELAY_KILL = 30
@@ -67,7 +69,7 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, sched_args, env, working_dir,
+    def __init__(self, name, exe, args, sched_args, env, working_dir, apps_dir,
                  timeout=None, nprocs=1, res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
@@ -83,6 +85,7 @@ class Run(threading.Thread):
         self.sched_args = sched_args
         self.env = env or {}
         self.working_dir = working_dir
+        self.apps_dir = apps_dir
         self.timeout = timeout
         self.nprocs = nprocs
 
@@ -160,6 +163,9 @@ class Run(threading.Thread):
         # For mpmd mode on machines such as Summit, keep a list of child runs
         self.child_runs = None
 
+        # Get the path to the exe
+        self._find_exe()
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -171,6 +177,7 @@ class Run(threading.Thread):
                 sched_args=data['sched_args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
+                apps_dir=data['apps_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 res_set=data.get('res_set'),
@@ -200,6 +207,7 @@ class Run(threading.Thread):
             # create a run object, name it 'mpmd', and add runs as child runs
             r = Run(name='mpmd', exe=None, args=None, sched_args=None,
                     env=runs[0].env, working_dir=runs[0].working_dir,
+                    apps_dir=runs[0].apps_dir,
                     timeout=runs[0].timeout, nprocs=None, res_set=None,
                     stdout_path=None, stderr_path=None, return_path=None,
                     walltime_path=None, sleep_after=None,
@@ -308,6 +316,25 @@ class Run(threading.Thread):
 
     def remove_callback(self, fn):
         self.callbacks.remove(fn)
+
+    def _find_exe(self):
+        """
+        Find the absolute path of the exe in the app dir pointed to by -a
+        during campaign creation time, or in $PATH.
+        """
+        env = os.environ.copy()
+        env['PATH'] = self.apps_dir + ":" + env['PATH']
+        env.update(self.env)
+
+        exe_path = shutil.which(self.exe, path=env['PATH'])
+        if exe_path is not None:
+            self.exe = exe_path
+
+        # Write the exe path to file
+        exe_info_file = self.working_dir + "/" + \
+                        EXE_INFO_FNAME.format(self.name)
+        with open(exe_info_file, 'w') as f:
+            f.write(self.exe)
 
     def run(self):
         try:
@@ -482,6 +509,7 @@ class Run(threading.Thread):
         # TODO: should this do a smart merge per variable, so you could
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
+        env['PATH'] = self.apps_dir + ":" + env['PATH']
         env.update(self.env)
 
         # Write the environment information to file
@@ -547,7 +575,8 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir, total_nodes, machine_name,
+    def __init__(self, pipe_id, runs, working_dir, apps_dir, total_nodes,
+                 machine_name,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
@@ -556,6 +585,7 @@ class Pipeline(object):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
+        self.apps_dir = apps_dir
         self.kill_on_partial_failure = kill_on_partial_failure
         self.post_process_script = post_process_script
         self.post_process_args = post_process_args
@@ -613,6 +643,7 @@ class Pipeline(object):
 
         runs_data = data["runs"]
         working_dir = data["working_dir"]
+        apps_dir = data.get("apps_dir")
 
         # Read tau options and ensure tau_exec is in PATH
         tau_profiling = data.get("tau_profiling", False)
@@ -629,6 +660,7 @@ class Pipeline(object):
             rd["working_dir"] = run_working_dir
             rd["tau_profiling"] = tau_profiling
             rd["tau_tracing"] = tau_tracing
+            rd["apps_dir"] = apps_dir
         if not isinstance(runs_data, list):
             _log.error("'runs' key must be a list of dictionaries")
             return None
@@ -660,6 +692,7 @@ class Pipeline(object):
         total_nodes = data.get("total_nodes")
         machine_name = data.get("machine_name")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
+                        apps_dir=apps_dir,
                         kill_on_partial_failure=kill_on_partial_failure,
                         post_process_script=post_process_script,
                         post_process_args=post_process_args,

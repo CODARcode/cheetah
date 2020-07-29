@@ -17,18 +17,10 @@ class MPIRunner(Runner):
         self.hostfile = hostfile
 
     def wrap(self, run, sched_args, tau_exec=None, find_in_path=True):
-        if find_in_path:
-            exe_path = shutil.which(self.exe)
-        else:
-            # for test cases
-            exe_path = self.exe
-        if exe_path is None:
-            raise ValueError('Could not find "%s" in path' % self.exe)
-
         runner_args = []
         if tau_exec:
             runner_args += [tau_exec]
-        runner_args += [exe_path, self.nprocs_arg, str(run.nprocs)]
+        runner_args += [self.exe, self.nprocs_arg, str(run.nprocs)]
 
         if sched_args:
             for (k, v) in sched_args.items():

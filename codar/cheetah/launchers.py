@@ -306,7 +306,7 @@ class Launcher(object):
                 fob_runs.append(rc.as_fob_data())
 
             fob = dict(id=run.run_id, launch_mode=launch_mode, runs=fob_runs,
-                       working_dir=run.run_path,
+                       working_dir=run.run_path, apps_dir=app_dir,
                        kill_on_partial_failure=kill_on_partial_failure,
                        post_process_script=run_post_process_script,
                        post_process_stop_on_failure=

@@ -137,15 +137,6 @@ class Campaign(object):
                 'Code names conflict with reserved names: '
                 + ", ".join(str(name) for name in conflict_names))
 
-        # Resolve relative code exe pahts. Checking for existence is not
-        # done until make_experiment_run_dir is called to simplify unit
-        # testing.
-        for code_name, code in self.codes.items():
-            exe_path = code['exe']
-            if not exe_path.startswith('/'):
-                exe_path = os.path.join(self.app_dir, exe_path)
-                code['exe'] = exe_path
-
         if self.run_post_process_script is not None:
             self.run_post_process_script = self._experiment_relative_path(
                                                 self.run_post_process_script)
@@ -189,7 +180,7 @@ class Campaign(object):
                 % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir, _check_code_paths=True):
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=False):
         """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
