@@ -324,8 +324,8 @@ class Run(threading.Thread):
         """
 
         # Fucking exception for MPMD mode on Summit. The top-level run
-        # object is an empty placeholder. The actual runs are in its child
-        # runs.
+        # object is an empty placeholder, so its exe is None. The actual runs
+        # are in its child runs.
         if self.exe is None:
             return
 
