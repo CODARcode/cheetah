@@ -380,10 +380,19 @@ class Run(threading.Thread):
         #     # finishes? reqd. for dependency mgmt
         #     self.add_callback(self._release_nodes)
 
+        _args = None
         if self.runner is not None:
-            args = self.runner.wrap(self, self.sched_args)
+            _args = self.runner.wrap(self, self.sched_args)
         else:
-            args = [self.exe] + self.args
+            _args = [self.exe] + self.args
+
+        # Flatten the args into a single string, and redirect stdout and
+        # stderr using bash options > and 2> . Can't use stdout and stderr in
+        # Popen because mpmd mode which has a single long command redirects
+        # all applications' output to a single file. Set shell=True in the
+        # Popen call. See #201
+        args = ' '.join(_args)
+        args += ' > ' + self.stdout_path + ' 2> ' + self.stderr_path
 
         self._start_time = time.time()
         with self._state_lock:
@@ -526,8 +535,8 @@ class Run(threading.Thread):
             self.log_prefix, self.env, env.get('LD_LIBRARY_PATH', '')))
 
         self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                   stdout=out, stderr=err,
-                                   preexec_fn=os.setpgrp)
+                                   # stdout=out, stderr=err,
+                                   shell=True, preexec_fn=os.setpgrp)
         self._pgid = os.getpgid(self._p.pid)
 
     def _save_returncode(self, rcode):
