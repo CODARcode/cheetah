@@ -39,6 +39,10 @@ _engines = {
         "AlwaysProvideLatestTimestep",
         "OpenTimeoutSecs",
     ],
+    "SSC": [
+        "OpenTimeoutSecs",
+        "MpiMode",
+    ],
     "InSituMPI": [],
     "HDF5": [],
     "DataMan": [],
