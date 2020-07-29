@@ -322,6 +322,13 @@ class Run(threading.Thread):
         Find the absolute path of the exe in the app dir pointed to by -a
         during campaign creation time, or in $PATH.
         """
+
+        # Fucking exception for MPMD mode on Summit. The top-level run
+        # object is an empty placeholder. The actual runs are in its child
+        # runs.
+        if self.exe is None:
+            return
+
         env = os.environ.copy()
         env['PATH'] = self.apps_dir + ":" + env['PATH']
         env.update(self.env)
