@@ -166,6 +166,16 @@ class Run(threading.Thread):
         # Get the path to the exe
         self._find_exe()
 
+        # Flatten the args into a single string, and redirect stdout and
+        # stderr using bash options > and 2> . Can't use stdout and stderr in
+        # Popen because mpmd mode which has a single long command redirects
+        # all applications' output to a single file. Set shell=True in the
+        # Popen call. See #201
+        if self.args is not None:  # can be none for MPMD on Summit
+            _args = ' '.join(self.args)
+            _args += ' > ' + self.stdout_path + ' 2> ' + self.stderr_path
+            self.args = _args
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -228,9 +238,8 @@ class Run(threading.Thread):
         mpmd_args = runs[0].args
         for run in runs[1:]:
             run_args = run.runner.wrap(run, run.sched_args)
-            del run_args[0]
-            mpmd_args.extend(":")
-            mpmd_args.extend(run_args)
+            # Remove 'mpiexec' and append the remaining args with ':'
+            mpmd_args += " : " + run_args.split(' ', 1)[1]
             # no need to set run.nodes = sum(child run.nodes)
 
         r = runs[0]
@@ -387,19 +396,10 @@ class Run(threading.Thread):
         #     # finishes? reqd. for dependency mgmt
         #     self.add_callback(self._release_nodes)
 
-        _args = None
         if self.runner is not None:
-            _args = self.runner.wrap(self, self.sched_args)
+            args = self.runner.wrap(self, self.sched_args)
         else:
-            _args = [self.exe] + self.args
-
-        # Flatten the args into a single string, and redirect stdout and
-        # stderr using bash options > and 2> . Can't use stdout and stderr in
-        # Popen because mpmd mode which has a single long command redirects
-        # all applications' output to a single file. Set shell=True in the
-        # Popen call. See #201
-        args = ' '.join(_args)
-        args += ' > ' + self.stdout_path + ' 2> ' + self.stderr_path
+            args = self.exe + ' ' + self.args
 
         self._start_time = time.time()
         with self._state_lock:
@@ -516,9 +516,6 @@ class Run(threading.Thread):
                 break
 
     def _popen(self, args):
-        out = open(self.stdout_path, 'w')
-        err = open(self.stderr_path, 'w')
-        self._open_files = [out, err]
         # NOTE: it's important to maintain the calling environment,
         # which can contain LD_LIBRARY_PATH and other variables that are
         # required for modules and normal HPC operation (e.g aprun).

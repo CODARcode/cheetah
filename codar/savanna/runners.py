@@ -32,7 +32,8 @@ class MPIRunner(Runner):
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
         if run.hostfile is not None:
             runner_args += [self.hostfile, str(run.hostfile)]
-        return runner_args + [run.exe] + run.args
+        wrapped_args = runner_args + [run.exe] + [run.args]
+        return ' '.join(wrapped_args)
 
 
 class DTH2Runner(Runner):
@@ -70,7 +71,8 @@ class DTH2Runner(Runner):
         # for k, v in run.env:
         #     runner_args += [self.env, str(k), str(v)]
 
-        return runner_args + [run.exe] + run.args
+        wrapped_args = runner_args + [run.exe] + [run.args]
+        return ' '.join(wrapped_args)
 
 
 class SummitRunner(Runner):
@@ -86,8 +88,8 @@ class SummitRunner(Runner):
         self.machine = machines.summit
 
     def wrap(self, run, sched_args):
-        runner_args = ['jsrun', '--erf_input', run.erf_file]
-        return runner_args
+        wrapped_args = ['jsrun', '--erf_input', run.erf_file]
+        return ' '.join(wrapped_args)
 
     def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
         """This function is deprecated in favor of the above that uses erf

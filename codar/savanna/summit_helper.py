@@ -63,8 +63,7 @@ def create_erf_file_mpmd(run: 'Run'):
     app_index = 0
     crun: Run  # type hint
     for crun in run.child_runs:
-        erf_str += "app {}: {} ".format(app_index, crun.exe) + \
-                   " ".join(crun.args) + "\n"
+        erf_str += "app {}: {} ".format(app_index, crun.exe) + crun.args + "\n"
         app_index += 1
 
     # 2. Add the rest of the initial block
@@ -109,7 +108,7 @@ def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
                                  node_config):
 
     # Write first line defining app
-    str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
+    str = "app 0: {} ".format(run_exe) + run_args + "\n"
 
     # Get the initial block of text
     str += _get_first_erf_block()
