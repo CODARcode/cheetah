@@ -411,7 +411,9 @@ class Campaign(object):
         requested_group_names = []
         for group_i, group in enumerate(self.sweeps):
             if not isinstance(group, parameters.SweepGroup):
-                raise ValueError("top level run groups must be SweepGroup")
+                raise ValueError("'sweeps' must be a list of SweepGroup "
+                                 "objects. Some objects are of type "
+                                 "{}".format(type(group)))
             requested_group_names.append(group.name)
 
         existing_groups = next(os.walk(campaign_dir))[1]
