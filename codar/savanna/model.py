@@ -70,7 +70,7 @@ class Run(threading.Thread):
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, sched_args, env, working_dir, apps_dir,
-                 timeout=None, nprocs=1, res_set=None,
+                 machine, timeout=None, nprocs=1, res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -86,6 +86,7 @@ class Run(threading.Thread):
         self.env = env or {}
         self.working_dir = working_dir
         self.apps_dir = apps_dir
+        self.machine = machine
         self.timeout = timeout
         self.nprocs = nprocs
 
@@ -141,8 +142,6 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
-        self.machine = None
-
         # nodes assigned needed for Summit
         self.nodes_assigned = None
 
@@ -166,6 +165,12 @@ class Run(threading.Thread):
         # Get the path to the exe
         self._find_exe()
 
+        # Add stdout and stderr redirection to args
+        if self.machine.name.lower() != 'summit':
+            _args = self.args or []
+            _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
+            self.args = _args
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -177,6 +182,7 @@ class Run(threading.Thread):
                 sched_args=data['sched_args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
+                machine=data['machine'],
                 apps_dir=data['apps_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
@@ -207,7 +213,7 @@ class Run(threading.Thread):
             # create a run object, name it 'mpmd', and add runs as child runs
             r = Run(name='mpmd', exe=None, args=None, sched_args=None,
                     env=runs[0].env, working_dir=runs[0].working_dir,
-                    apps_dir=runs[0].apps_dir,
+                    machine=runs[0].machine, apps_dir=runs[0].apps_dir,
                     timeout=runs[0].timeout, nprocs=None, res_set=None,
                     stdout_path=None, stderr_path=None, return_path=None,
                     walltime_path=None, sleep_after=None,
@@ -387,19 +393,10 @@ class Run(threading.Thread):
         #     # finishes? reqd. for dependency mgmt
         #     self.add_callback(self._release_nodes)
 
-        _args = None
         if self.runner is not None:
-            _args = self.runner.wrap(self, self.sched_args)
+            args = self.runner.wrap(self, self.sched_args)
         else:
-            _args = [self.exe] + self.args
-
-        # Flatten the args into a single string, and redirect stdout and
-        # stderr using bash options > and 2> . Can't use stdout and stderr in
-        # Popen because mpmd mode which has a single long command redirects
-        # all applications' output to a single file. Set shell=True in the
-        # Popen call. See #201
-        args = ' '.join(_args)
-        args += ' > ' + self.stdout_path + ' 2> ' + self.stderr_path
+            args = [self.exe] + self.args
 
         self._start_time = time.time()
         with self._state_lock:
@@ -412,8 +409,7 @@ class Run(threading.Thread):
         if self._p is None:
             self._run_callbacks()
             return
-        _log.info('%s start pid=%d pgid=%d args=%r',
-                  self.log_prefix, self._p.pid, self._pgid, args)
+
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
@@ -541,10 +537,25 @@ class Run(threading.Thread):
         _log.debug("{} {}, LD_LIBRARY_PATH:{}".format(
             self.log_prefix, self.env, env.get('LD_LIBRARY_PATH', '')))
 
-        self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                   # stdout=out, stderr=err,
-                                   shell=True, preexec_fn=os.setpgrp)
+        # Flatten the args into a single string, and redirect stdout and
+        # stderr using bash options > and 2> . Can't use stdout and stderr in
+        # Popen because mpmd mode which has a single long command redirects
+        # all applications' output to a single file. Set shell=True in the
+        # Popen call. Doesn't work for Summit with ERF files. See #201
+        if self.machine.name.lower() != 'summit':
+            _args = args
+            args = ' '.join(_args)
+            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+                                       shell=True, preexec_fn=os.setpgrp)
+        else:
+            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+                                       stdout=out, stderr=err,
+                                       preexec_fn=os.setpgrp)
+
         self._pgid = os.getpgid(self._p.pid)
+
+        _log.info('%s start pid=%d pgid=%d args=%r',
+                  self.log_prefix, self._p.pid, self._pgid, args)
 
     def _save_returncode(self, rcode):
         assert rcode is not None
@@ -626,7 +637,6 @@ class Pipeline(object):
         for run in runs:
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
-            run.machine = machines.get_by_name(machine_name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
@@ -677,6 +687,7 @@ class Pipeline(object):
             rd["tau_profiling"] = tau_profiling
             rd["tau_tracing"] = tau_tracing
             rd["apps_dir"] = apps_dir
+            rd["machine"] = machines.get_by_name(data["machine_name"])
         if not isinstance(runs_data, list):
             _log.error("'runs' key must be a list of dictionaries")
             return None
