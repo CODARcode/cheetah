@@ -90,6 +90,9 @@ class Run(threading.Thread):
         self.timeout = timeout
         self.nprocs = nprocs
 
+        # Get the path to the exe
+        self._find_exe()
+
         # Check tau options and set self.exe to tau_exec
         self.tau_profiling = tau_profiling
         self.tau_tracing = tau_tracing
@@ -161,9 +164,6 @@ class Run(threading.Thread):
 
         # For mpmd mode on machines such as Summit, keep a list of child runs
         self.child_runs = None
-
-        # Get the path to the exe
-        self._find_exe()
 
         # Add stdout and stderr redirection to args
         if self.machine.name.lower() != 'summit':
