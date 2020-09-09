@@ -63,8 +63,9 @@ def create_erf_file_mpmd(run: 'Run'):
     app_index = 0
     crun: Run  # type hint
     for crun in run.child_runs:
-        erf_str += "app {}: {} ".format(app_index, crun.exe) + \
-                   " ".join(crun.args) + "\n"
+        exe_filename = _create_exe_script(crun.working_dir, crun.name,
+                                          crun.exe, crun.args)
+        erf_str += "app {}: bash {}".format(app_index, exe_filename) + "\n"
         app_index += 1
 
     # 2. Add the rest of the initial block
@@ -93,7 +94,8 @@ def create_erf_file(run):
         "to the Sweep using the SummitNode object."
 
     if run.node_config:
-        _create_erf_file_node_config(run.erf_file, run.exe, run.args,
+        _create_erf_file_node_config(run.erf_file, run.name,
+                                     run.working_dir, run.exe,run.args,
                                      run.nprocs, run.nodes,
                                      run.nodes_assigned, run.node_config)
     else:  # if run.res_set:
@@ -104,12 +106,13 @@ def _create_erf_file_res_set(run, nodes_assigned, res_set):
     pass
 
 
-def _create_erf_file_node_config(erf_file_path, run_exe, run_args,
-                                 nprocs, num_nodes_reqd, nodes_assigned,
-                                 node_config):
+def _create_erf_file_node_config(erf_file_path, run_name, run_dir, run_exe,
+                                 run_args, nprocs, num_nodes_reqd,
+                                 nodes_assigned, node_config):
 
     # Write first line defining app
-    str = "app 0: {} ".format(run_exe) + " ".join(run_args) + "\n"
+    exe_filename = _create_exe_script(run_dir, run_name, run_exe, run_args)
+    str = "app 0: bash {}".format(exe_filename) + "\n"
 
     # Get the initial block of text
     str += _get_first_erf_block()
@@ -169,6 +172,27 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
             if i+rank_offset-starting_global_rank_id == nprocs-1:
                 break
     return str
+
+
+def _create_exe_script(run_dir, handle, exe, args):
+    """
+    Create a run*.sh executable file to run this executable.
+    You cannot have 'exe 1> stdout 2> stderr' in the erf file, so you need
+    to have a 'run-x.sh' in the erf file which has the stdout and stderr
+    redirection operators in it.
+    """
+    exe_filename = None
+
+    str = "{} ".format(exe) + " ".join(args)
+    exe_filename = run_dir + '/.savanna.run.{}.sh'.format(handle)
+    try:
+        with open(exe_filename,'w') as f:
+            f.write(str)
+    except:
+        print(err_msg['f_create'].format(exe_filename))
+        # To exit or not to exit
+
+    return exe_filename
 
 
 def _get_first_erf_block():
