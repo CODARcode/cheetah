@@ -53,8 +53,8 @@ def print_campaign_status(campaign_directory, filter_user=None,
                 status_data, state_counts, reason_counts, rc_counts = \
                                     get_workflow_status(status_file_path)
                 total = len(status_data)
+                ok = reason_counts['succeeded']
                 if os.path.exists(walltime_file_path):
-                    ok = reason_counts['succeeded']
                     if ok < total:
                         print(user_group, ':', 'DONE,',
                               total-ok, '/', total, 'failed')
@@ -63,8 +63,15 @@ def print_campaign_status(campaign_directory, filter_user=None,
                 else:
                     in_progress = (state_counts['running']
                                    + state_counts['not_started'])
-                    print(user_group, ':', 'IN PROGRESS,', 'job', jobid,
-                          ',', total-in_progress, '/', total)
+                    if state_counts['running'] > 0:
+                        print(user_group, ':', 'IN PROGRESS,', 'job', jobid,
+                              ',', in_progress, '/', total)
+                    elif state_counts['not_started'] > 0:
+                        print(user_group, ':', 'DONE; INCOMPLETE,',
+                              in_progress, '/', total)
+                    else:  # some runs were killed due to timeout or cancel.sh
+                        print(user_group, ':', 'DONE,',
+                              total - ok - in_progress, '/', total, 'failed')
                 if group_summary:
                     get_workflow_status(status_file_path, print_counts=True,
                                         indent=2)
