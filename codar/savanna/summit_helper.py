@@ -146,15 +146,6 @@ def _get_erf_map_str_block(nprocs, erf_map, num_nodes_reqd, nodes_assigned,
             core_start = res_map.core_ids[0]
             core_end = res_map.core_ids[-1]
 
-            # Logically, the 22nd core represents the first core on the
-            # second socket, as the real core 22 on the first socket is
-            # skipped. So if you are on the second socket, convert the logical
-            # mapping to physical mapping by upshifting the core id by 1.
-            # This requires the 'cpu_index_using' to be set to 'physical'
-            if core_start >= 21:
-                core_start = core_start + 1
-                core_end = core_end + 1
-
             str += "{{{}-{}}}".format(core_start*4, core_end*4+3)
 
             if res_map.gpu_ids:
@@ -196,7 +187,7 @@ def _create_exe_script(run_dir, handle, exe, args):
 
 
 def _get_first_erf_block():
-    str = "cpu_index_using: physical\n"
+    str = "cpu_index_using: logical\n"
     str += "overlapping_rs: warn\n"
     str += "skip_missing_cpu: warn\n"
     str += "skip_missing_gpu: allow\n"
