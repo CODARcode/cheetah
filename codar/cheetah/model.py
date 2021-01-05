@@ -488,6 +488,8 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
             if component_inputs:
+                assert type(component_inputs) is list, \
+                    "component_inputs for {} must be a list.".format(target)
                 # Get the full path of inputs
                 # Separate the strings from symlinks to preserve their type
                 str_inputs = [input for input in component_inputs if type(

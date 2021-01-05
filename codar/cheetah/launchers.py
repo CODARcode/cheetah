@@ -21,6 +21,7 @@ from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
+from codar.cheetah import error_messages as err
 
 
 class Launcher(object):
@@ -132,7 +133,7 @@ class Launcher(object):
 
                         else:
                             raise exc.CheetahException \
-                                ("Could not component input {}"
+                                ("Could not copy component input {}"
                                  .format(input_file))
 
             # ADIOS XML param support
