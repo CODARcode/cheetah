@@ -187,6 +187,17 @@ rhea_gpu = Machine('rhea_gpu', "slurm", "srun", MachineNode,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="",queue="gpu", reservation=""))
 
+andes = Machine('andes', "slurm", "srun", MachineNode,
+                processes_per_node=32, node_exclusive=True,
+                dataspaces_servers_per_node=1, # needs to be removed
+                scheduler_options=dict(project="",queue="batch",
+                                       reservation=""))
+
+andes_gpu = Machine('andes_gpu', "slurm", "srun", MachineNode,
+                processes_per_node=28, node_exclusive=True,
+                dataspaces_servers_per_node=1, # needs to be removed
+                scheduler_options=dict(project="",queue="gpu", reservation=""))
+
 theta = Machine('theta', "cobalt", "aprun", MachineNode,
                 processes_per_node=64, node_exclusive=True,
                 dataspaces_servers_per_node=8,
