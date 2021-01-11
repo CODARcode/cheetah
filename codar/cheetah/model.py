@@ -24,6 +24,7 @@ import pdb
 from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
 from codar.cheetah import parameters, config, templates, exc, machine_launchers
+from codar.cheetah.launchers import Launcher
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
@@ -260,9 +261,9 @@ class Campaign(object):
             # TODO: support alternate template for dirs?
             group_name = group.name
             group_output_dir = os.path.join(output_dir, group_name)
-            launcher = machine_launchers.get_launcher(self.machine,
-                                                      group_output_dir,
-                                                      len(self.codes))
+            launcher = Launcher(self.machine.name, self.machine.scheduler_name,
+                                self.machine.runner_name, group_output_dir,
+                                len(self.codes))
             group_runs = []
             for repeat_index in range(0, group.run_repetitions+1):
                 group_run_offset = 0
