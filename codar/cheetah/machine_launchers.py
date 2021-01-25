@@ -5,8 +5,8 @@ from codar.cheetah import launchers
 # machine_launchers = dict()
 # machine_launchers[machines.local] = launchers.Launcher
 # machine_launchers[machines.sdg_tm76] = launchers.Launcher
-# machine_launchers[machines.rhea] = launchers.Launcher
-# machine_launchers[machines.rhea_gpu] = launchers.Launcher
+# machine_launchers[machines.andes] = launchers.Launcher
+# machine_launchers[machines.andes_gpu] = launchers.Launcher
 # machine_launchers[machines.cori] = launchers.Launcher
 # machine_launchers[machines.theta] = launchers.Launcher
 # machine_launchers[machines.titan] = launchers.Launcher

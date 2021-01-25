@@ -24,7 +24,7 @@ class ProducerConsumer(Campaign):
     # CAMPAIGN SETTINGS
     #------------------
     # A list of machines that this campaign is supported on
-    supported_machines = ['local', 'titan', 'theta', 'summit', 'rhea', 'deepthought2_cpu', 'sdg_tm76']
+    supported_machines = ['local', 'titan', 'theta', 'summit', 'andes', 'deepthought2_cpu', 'sdg_tm76']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
     kill_on_partial_failure = True
@@ -42,7 +42,7 @@ class ProducerConsumer(Campaign):
 
     # Scheduler information: job queue, account-id etc. Leave it to None if running on a local machine
     scheduler_options = {'theta': {'project': '', 'queue': 'batch'},
-            'summit': {'project':'csc299'}, 'rhea': {'project':'csc143'}}
+            'summit': {'project':'csc299'}, 'andes': {'project':'csc143'}}
 
     # Setup your environment. Loading modules, setting the LD_LIBRARY_PATH etc.
     # Ensure this script is executable

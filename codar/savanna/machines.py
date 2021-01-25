@@ -176,14 +176,14 @@ sdg_tm76 = Machine('sdg_tm76', "slurm", "srun", MachineNode,
                 scheduler_options=dict(project="", queue="default",
                                        reservation=""))
 
-rhea = Machine('rhea', "slurm", "srun", MachineNode,
-                processes_per_node=16, node_exclusive=True,
+andes = Machine('andes', "slurm", "srun", MachineNode,
+                processes_per_node=32, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="",queue="batch",
                                        reservation=""))
 
-rhea_gpu = Machine('rhea_gpu', "slurm", "srun", MachineNode,
-                processes_per_node=14, node_exclusive=True,
+andes_gpu = Machine('andes_gpu', "slurm", "srun", MachineNode,
+                processes_per_node=28, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="",queue="gpu", reservation=""))
 
