@@ -10,16 +10,14 @@ def separate_nodes():
     # Create a node layout for the simulation
     # Lets have max 20 ranks evenly spread out between 2 sockets
     sim_node = SummitNode()
-    for i in range(10):
+    for i in range(16):
         sim_node.cpu[i] = "simulation:{}".format(i)
-        sim_node.cpu[21+i] = "simulation:{}".format(10+i)
 
     # Create a node layout for the analysis.
     # Lets have max 10 ranks evenly spread out
     analysis_node = SummitNode()
-    for i in range(5):
+    for i in range(8):
         analysis_node.cpu[i] = "pdf_calc:{}".format(i)
-        analysis_node.cpu[21+i] = "pdf_calc:{}".format(5+i)
 
     # Return a list object
     return [sim_node, analysis_node]

@@ -23,7 +23,7 @@ class ProducerConsumer(Campaign):
     # CAMPAIGN SETTINGS
     #------------------
     # A list of machines that this campaign is supported on
-    supported_machines = ['local', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
+    supported_machines = ['local', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76', 'andes']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
     kill_on_partial_failure = True

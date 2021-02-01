@@ -54,7 +54,7 @@ class ProducerConsumer(Campaign):
     # Use ParamCmdLineArg to setup a command line arg, ParamCmdLineOption to setup a command line option, and so on.
     sweep1_parameters = [
             p.ParamRunner       ('producer', 'nprocs', [2]),
-            p.ParamRunner       ('mean_calc', 'nprocs', [2]),
+            # p.ParamRunner       ('mean_calc', 'nprocs', [2]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [10]),
             p.ParamADIOS2XML    ('producer', 'engine_sst', 'producer', 'engine', [ {"SST": {}} ]),

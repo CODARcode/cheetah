@@ -18,7 +18,8 @@ class ProducerConsumer(Campaign):
     # Use runner_override to run the code without the default launcher (mpirun/aprun/jsrun etc.). This runs the 
     #   code as a serial application
     codes = [ ("producer",  dict(exe="producer.py",         adios_xml_file='adios2.xml', sleep_after=5)),
-              ("mean_calc", dict(exe="mean_calculator.py",  adios_xml_file='adios2.xml', runner_override=False))
+              ("mean_calc", dict(exe="mean_calculator.py",  adios_xml_file='adios2.xml', runner_override=False)),
+              ("analysis1", dict(exe="mean_calculator.py",  adios_xml_file='adios2.xml', runner_override=False))
             ]
 
     # CAMPAIGN SETTINGS
@@ -55,74 +56,35 @@ class ProducerConsumer(Campaign):
     sweep1_parameters = [
             p.ParamRunner       ('producer', 'nprocs', [128]),
             p.ParamRunner       ('mean_calc', 'nprocs', [36]),
+            p.ParamRunner       ('analysis1', 'nprocs', [36]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [10]),
             p.ParamADIOS2XML    ('producer', 'staging', 'producer', 'engine', [ {"SST": {}} ]),
     ]
 
-    shared_node = SummitNode()
-    for i in range(18):
-        shared_node.cpu[i] = "producer:{}".format(math.floor(i / 6))
-        shared_node.cpu[i + 21] = "producer:{}".format(math.floor((i + 18) / 6))
-    for i in range(3):
-        shared_node.cpu[i + 18] = "mean_calc:0"
-        shared_node.cpu[i + 18 + 21] = "mean_calc:0"
-    for i in range(6):
-        shared_node.gpu[i] = ["producer:{}".format(i)]
-    shared_node_layout = [shared_node]
-    
-    
-    shared_node_1_per_rank = SummitNode()
-    for i in range(18):
-        shared_node_1_per_rank.cpu[i] = "producer:{}".format(i)
-        shared_node_1_per_rank.cpu[i + 21] = "producer:{}".format(i+18)
-    for i in range(3):
-        shared_node_1_per_rank.cpu[i + 18] = "mean_calc:{}".format(i)
-        shared_node_1_per_rank.cpu[i + 18 + 21] = "mean_calc:{}".format(i+3)
-    for i in range(6):
-        shared_node_1_per_rank.gpu[i] = ["producer:{}".format(i)]
-    shared_node_layout_2 = [shared_node_1_per_rank]
-    
-    shared_node_shared_gpu = SummitNode()
-    for i in range(18):
-        shared_node_shared_gpu.cpu[i] = "producer:{}".format(math.floor(i / 6))
-        shared_node_shared_gpu.cpu[i + 21] = "producer:{}".format(math.floor((i + 18) / 6))
-    for i in range(3):
-        shared_node_shared_gpu.cpu[i + 18] = "mean_calc:0"
-        shared_node_shared_gpu.cpu[i + 18 + 21] = "mean_calc:0"
-    shared_node_shared_gpu.gpu[0] = ["producer:0"]
-    shared_node_shared_gpu.gpu[1] = ["producer:0", "producer:1",]
-    shared_node_shared_gpu.gpu[2] = ["producer:0", "producer:1",'mean_calc:0']
-    shared_node_layout_3 = [shared_node_shared_gpu]
-    
-    sep_node_producer = SummitNode()
-    sep_node_mean_calc = SummitNode()
-    for i in range(18):
-        sep_node_producer.cpu[i] = "producer:{}".format(math.floor(i / 6))
-    for i in range(3):
-        sep_node_mean_calc.cpu[i + 18] = "mean_calc:0"
-        sep_node_mean_calc.cpu[i + 18 + 21] = "mean_calc:0"
-    for i in range(3):
-        sep_node_producer.gpu[i] = ["producer:{}".format(i)]
-    sep_node_layout = [sep_node_producer, sep_node_mean_calc]
+    node1 = SummitNode()
+    for i in range(20):
+        node1.cpu[i] = "producer:{}".format(i)
+    for i in range(20):
+        node1.cpu[i + 21] = "mean_calc:{}".format(i)
+
+    node2 = SummitNode()
+    for i in range(20):
+        node2.cpu[i+10] = 'analysis1:{}'.format(i)
+
+    node_layout = [node1, node2]
 
     # Create a sweep
     # node_layout represents no. of processes per node
-    sweep1 = p.Sweep (node_layout = {'summit': shared_node_layout },
-                      parameters = sweep1_parameters, rc_dependency=None)
-    sweep2 = p.Sweep (node_layout = {'summit': shared_node_layout_2 },
-                      parameters = sweep1_parameters, rc_dependency=None)
-    sweep3 = p.Sweep (node_layout = {'summit': shared_node_layout_3 },
-                      parameters = sweep1_parameters, rc_dependency=None)
-    sweep4 = p.Sweep (node_layout = {'summit': sep_node_layout},
-                      parameters = sweep1_parameters, rc_dependency=None)
+    sweep1 = p.Sweep (node_layout = {'summit': node_layout },
+            parameters = sweep1_parameters, rc_dependency={'analysis1':'producer'})
 
     # Create a sweep group from the above sweep. You can place multiple sweeps in the group.
     # Each group is submitted as a separate job.
     sweepGroup1 = p.SweepGroup ("sg-1",
                                 walltime=300,
                                 per_run_timeout=60,
-                                parameter_groups=[sweep1, sweep2, sweep3, sweep4],
+                                parameter_groups=[sweep1],
                                 launch_mode='default',  # or MPMD
                                 # optional:
                                 # tau_profiling=True,

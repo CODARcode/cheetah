@@ -7,7 +7,7 @@ import os.path
 import importlib.machinery
 import inspect
 
-from codar.cheetah import model, exc
+from codar.cheetah import campaign, exc
 
 def load_experiment_class(file_path):
     """Given the path to a python module containing an experiment, load the
@@ -20,8 +20,8 @@ def load_experiment_class(file_path):
     experiment_class = None
     for m in inspect.getmembers(module, inspect.isclass):
         mvalue = m[1]
-        if (not issubclass(mvalue, model.Campaign)
-                or mvalue == model.Campaign):
+        if (not issubclass(mvalue, campaign.Campaign)
+                or mvalue == campaign.Campaign):
             continue
         experiment_class = mvalue
         break

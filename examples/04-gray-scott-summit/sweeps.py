@@ -28,7 +28,7 @@ def insitu_analysis(node_layout):
             p.ParamCmdLineArg   ('simulation', 'settings', 1, ["settings-staging.json"]),
             p.ParamADIOS2XML    ('simulation', 'sim output engine', 'SimulationOutput', 'engine', [ {'SST':{}} ]),
 
-            p.ParamRunner       ('pdf_calc', 'nprocs', [4,8,16,32]),
+            p.ParamRunner       ('pdf_calc', 'nprocs', [32]),
             p.ParamCmdLineArg   ('pdf_calc', 'infile', 1, ['gs.bp']),
             p.ParamCmdLineArg   ('pdf_calc', 'outfile', 2, ['pdf.bp']),
     ]
