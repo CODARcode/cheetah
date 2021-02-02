@@ -14,6 +14,11 @@ SCHEDULER_OPTIONS = {"project", "queue", "constraint", "license",
                      "reservation"}
 
 
+class MachineProperties:
+    def __init__(self):
+        self.mpmd_supported = True
+        self.node_sharing = False
+
 class MachineNode:
     def __init__(self, num_cpus, num_gpus):
         # self.id = id

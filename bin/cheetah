@@ -63,7 +63,7 @@ def create_campaign(prog, argv):
     output_dir = os.path.abspath(args.output_directory)
 
     e = eclass(machine_name, app_dir)
-    e.make_experiment_run_dir(output_dir)
+    e.create_campaign_dirs(output_dir)
 
 
 def generate_report(prog, argv):

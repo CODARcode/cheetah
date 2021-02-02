@@ -213,3 +213,10 @@ def find_subdir_path(where, what):
     if len(files_found) > 0:
         return files_found[0]
     return None
+
+def get_first_list_dup(l):
+    s = set()
+    for e in l:
+        if e in s: return e
+        s.add(e)
+    return None

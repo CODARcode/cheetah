@@ -25,7 +25,7 @@ from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
 from codar.cheetah import parameters, config, templates, exc, machine_launchers
 from codar.cheetah.launchers import Launcher
-from codar.cheetah.helpers import copy_to_dir, copy_to_path
+from codar.cheetah.helpers import copy_to_dir, copy_to_path, get_first_list_dup
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
 from codar.cheetah.parameters import SymLink
@@ -34,6 +34,7 @@ from codar.cheetah.parameters import ParamCmdLineArg
 from codar.cheetah.exc import CheetahException
 from codar.cheetah.run import Run
 from codar.cheetah.runcomponent import RunComponent
+from codar.cheetah import sweepgroup as sg
 
 
 RESERVED_CODE_NAMES = {'post-process'}
@@ -126,6 +127,8 @@ class Campaign(object):
         self.machine = self._get_machine(machine_name)
         self.app_dir = os.path.abspath(app_dir)
         self.runs = []
+        self.root_dir = None
+        self._id_file = ".campaign"
 
         # Allow inputs to be either absolute paths or relative to app_dir
         self.inputs = relative_or_absolute_path_list(self.app_dir, self.inputs)
@@ -138,8 +141,8 @@ class Campaign(object):
 
         # Set path of a Run post process script
         if self.run_post_process_script is not None:
-            self.run_post_process_script = self._experiment_relative_path(
-                                                self.run_post_process_script)
+            self.run_post_process_script = \
+                self._experiment_relative_path(self.run_post_process_script)
 
         # Set SOS options: path to daemon and analysis code
         self._set_sos_paths()
@@ -151,8 +154,8 @@ class Campaign(object):
 
         # Set path of the run_dir_setup_script
         if self.run_dir_setup_script is not None:
-            self.run_dir_setup_script = self._experiment_relative_path(
-                                                self.run_dir_setup_script)
+            self.run_dir_setup_script = \
+                self._experiment_relative_path(self.run_dir_setup_script)
 
         # Set path to the machine_app_config_script
         self._set_machine_app_config_script(machine_name)
@@ -164,8 +167,17 @@ class Campaign(object):
         # Create a list of all Sweep Groups for this machine
         self._get_all_mc_sg()
 
+        # Basic type checking and verification after getting SGs
+        self._assert_members_type()
+
         # Validate component inputs
         self._validate_component_inputs()
+
+    def add_to_campaign(self, sg):
+        """
+        Add Sweep Groups to an existing campaign.
+        """
+        sg.create_sweep_group_root(sg, self.root_dir)
 
     def create_campaign_dirs(self, output_dir, _check_code_paths=False):
         """Produce scripts and directory structure for running the experiment.
@@ -174,171 +186,23 @@ class Campaign(object):
         and within each scheduler group directory, a subdirectory for each
         run."""
 
-        # set to False for unit tests
-        if _check_code_paths:
-            self._check_code_paths()
+        # Create a list of SG objects of this campaign
+        # self._init_sweep_groups()
 
-        # Create the top level campaign directory
-        _output_dir = os.path.abspath(output_dir)
-        os.makedirs(_output_dir, exist_ok=True)
+        self.root_dir = os.path.abspath(output_dir)
 
-        # Write campaign id file at the top-level campaign directory
-        id_fpath = os.path.join(_output_dir, self._id_file)
-        Path(id_fpath).touch()
+        # Ensure sweep groups look ok before we creating the campaign dirs
+        for sg in self.sweep_groups:
+            sg.set_campaign_root(self.root_dir)
+            sg.set_machine(self.machine)
+            sg.validate()
 
-        # Create a directory for the user and set it as the campaign location
-        output_dir = os.path.join(_output_dir, getpass.getuser())
-        run_all_script = os.path.join(config.CHEETAH_PATH_SCHEDULER,
-                                      self.machine.scheduler_name,
-                                      'run-all.sh')
-        os.makedirs(output_dir, exist_ok=True)
+        # Create the campaign root dir
+        self._create_campaign_root()
 
-        # Check if campaign dir already has groups with the same name
-        self._assert_unique_group_names(output_dir)
-
-        # Create run script and campaign environment info file
-        copy_to_dir(run_all_script, output_dir)
-
-        campaign_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
-            experiment_dir=output_dir,
-            machine_config=config.machine_submit_env_path(self.machine.name),
-            app_config=self.machine_app_config_script or "",
-            workflow_script_path=config.WORKFLOW_SCRIPT,
-            workflow_runner=self.machine.runner_name,
-            workflow_debug_level="DEBUG",
-            umask=(self.umask or ""),
-            codar_python=self.python_path,
-        )
-        campaign_env_path = os.path.join(output_dir, 'campaign-env.sh')
-        with open(campaign_env_path, 'w') as f:
-            f.write(campaign_env)
-
-        # Traverse through sweep groups
-        for group_i, group in enumerate(self.sweep_groups):
-
-            # each scheduler group gets it's own subdir
-            # TODO: support alternate template for dirs?
-            group_name = group.name
-            group_output_dir = os.path.join(output_dir, group_name)
-            launcher = Launcher(self.machine.name, self.machine.scheduler_name,
-                                self.machine.runner_name, group_output_dir,
-                                len(self.codes))
-            group_runs = []
-            for repeat_index in range(0, group.run_repetitions+1):
-                group_run_offset = 0
-                for sweep in group.parameter_groups:
-                    # node layout is map of machine names to layout for each
-                    # machine. If unspecified, or certain machine is
-                    # unspecified, use default.
-                    if sweep.node_layout is None:
-                        node_layout = None
-                    else:
-                        node_layout = sweep.node_layout.get(self.machine.name)
-
-                    # Summit requires a node layout
-                    if self.machine.name.lower() == "summit":
-                        assert node_layout is not None, \
-                            "Must provide a node layout for a Sweep on Summit"
-
-                    if node_layout is None:
-                        node_layout = NodeLayout.default_no_share_layout(
-                                            self.machine.processes_per_node,
-                                            self.codes.keys())
-                    else:
-                        node_layout = NodeLayout(node_layout)
-
-                    # TODO: validate node layout against machine model
-
-                    sweep_runs = [Run(inst, self.codes, self.app_dir,
-                                      os.path.join(
-                                          group_output_dir,
-                                          'run-{}.trial-{}'.format(
-                                              group_run_offset + i,
-                                              repeat_index)),
-                                      self.inputs,
-                                      self.machine,
-                                      node_layout,
-                                      sweep.rc_dependency,
-                                      group.component_subdirs,
-                                      group.sosflow_profiling,
-                                      group.sosflow_analysis,
-                                      group.component_inputs)
-                                  for i, inst in enumerate(
-                            sweep.get_instances())]
-
-                    # we dont support mpmd mode with dependencies
-                    try:
-                        if group.launch_mode.lower() == 'mpmd':
-                            assert sweep.rc_dependency is None, \
-                                "Dependencies in MPMD mode not supported"
-                    except AttributeError:
-                        pass
-
-                    # we dont support mpmd on deepthought2
-                    try:
-                        if self.machine.machine_name.lower() == 'deepthought2':
-                            assert group.launch_mode.lower() not in 'mpmd',\
-                                "mpmd mode not implemented for deepthought2"
-                    except AttributeError:
-                        pass
-
-                    group_runs.extend(sweep_runs)
-                    group_run_offset += len(sweep_runs)
-            self.runs.extend(group_runs)
-
-            if group.max_procs is None:
-                max_procs = max([r.get_total_nprocs() for r in group_runs])
-            else:
-                procs_per_run = max([r.get_total_nprocs() for r in group_runs])
-                if group.max_procs < procs_per_run:
-                    # TODO: improve error message, specifying which
-                    # group and by how much it's off etc
-                    raise exc.CheetahException("max_procs for group is too low")
-                max_procs = group.max_procs
-
-            if group.per_run_timeout:
-                per_run_seconds = parse_timedelta_seconds(group.per_run_timeout)
-                walltime_guess = (per_run_seconds * len(group_runs)) + 60
-                walltime_group = parse_timedelta_seconds(group.walltime)
-                if walltime_group < walltime_guess:
-                    warnings.warn('group "%s" walltime %d is less than '
-                                  '(per_run_timeout * nruns) + 60 = %d, '
-                                  'it is recommended to set it higher to '
-                                  'avoid problems with the workflow '
-                                  'engine being killed before it can write '
-                                  'all status information'
-                                % (group.name, walltime_group, walltime_guess))
-
-            # TODO: refactor so we can just pass the campaign and group
-            # objects, i.e. add methods so launcher can get all info it needs
-            # and simplify this loop.
-            group.nodes = launcher.create_group_directory(
-                self.name, self.app_dir, group_name,
-                group_runs,
-                max_procs,
-                nodes=group.nodes,
-                launch_mode=group.launch_mode,
-                component_subdirs=group.component_subdirs,
-                walltime=group.walltime,
-                timeout=group.per_run_timeout,
-                node_exclusive=self.machine.node_exclusive,
-                tau_profiling=group.tau_profiling,
-                tau_tracing=group.tau_tracing,
-                machine=self.machine,
-                sosd_path=self.sosd_path,
-                sos_analysis_path=self.sos_analysis_path,
-                kill_on_partial_failure=self.kill_on_partial_failure,
-                run_post_process_script=self.run_post_process_script,
-                run_post_process_stop_on_failure=
-                    self.run_post_process_stop_group_on_failure,
-                scheduler_options=self.machine_scheduler_options,
-                run_dir_setup_script=self.run_dir_setup_script)
-
-        # TODO: track directories and ids and add to this file
-        all_params_json_path = os.path.join(output_dir, "params.json")
-        with open(all_params_json_path, "w") as f:
-            json.dump([run.get_app_param_dict()
-                       for run in self.runs], f, indent=2)
+        # Create the individual sweep groups
+        for sg in self.sweep_groups:
+            sg.create_sweep_group_root(sg, self.root_dir)
 
     def _get_machine(self, machine_name):
         machine = None
@@ -366,18 +230,20 @@ class Campaign(object):
                     'code "%s" exe at "%s" is not executable by current user'
                     % (code_name, exe_path))
 
-    def _assert_unique_group_names(self, campaign_dir):
+    def _assert_unique_sg_names(self, campaign_dir):
         """Assert new groups being added to the campaign do not have the
         same name as existing groups.
         """
-        requested_group_names = []
-        for group_i, group in enumerate(self.sweeps):
-            if not isinstance(group, parameters.SweepGroup):
-                raise ValueError("'sweeps' must be a list of SweepGroup "
-                                 "objects. Some objects are of type "
-                                 "{}".format(type(group)))
-            requested_group_names.append(group.name)
 
+        sg_names = [sg.name for sg in self.sweep_groups]
+        dupl = get_first_list_dup(sg_names)
+        assert dupl is None, \
+            "Found duplicate Sweep Group name {}".format(dupl.name)
+
+    def _assert_sg_dont_exist(self):
+        """
+        Assert Sweep Groups don't exist already
+        """
         existing_groups = next(os.walk(campaign_dir))[1]
         common_groups = set(requested_group_names) & set(existing_groups)
         if common_groups:
@@ -461,7 +327,7 @@ class Campaign(object):
             self.sweep_groups.extend(_sg_any_mc)
 
             assert len(self.sweep_groups) > 0, \
-                "No sweep groups found in campaign specification."
+                "No sweep groups found for this system"
 
     def _validate_component_inputs(self):
         """
@@ -475,3 +341,55 @@ class Campaign(object):
                     assert key in code_names, \
                         "Error in component_inputs for {}. '{}' not a valid " \
                         "code name".format(group.name, key)
+
+    def _assert_members_type(self):
+        """
+        Assert the type of the object members
+        """
+
+        # Assert sweep_groups is list
+        assert isinstance(self.sweep_groups, list), \
+            "sweep_groups must a list of SweepGroup objects"
+
+        # Assert elements in sweep_groups are SweepGroup objects
+        for sg in self.sweep_groups:
+            assert isinstance(sg, sg.SweepGroup), \
+                "Incorrect object type. Found {} instead of SweepGroup in " \
+                "sweep_groups".format(type(sg))
+
+    def _create_campaign_root(self):
+        """
+        Create the top level campaign root dir along with the user-level dir.
+        Create top-level metadata files.
+        """
+        
+        # Create top-level root dir
+        os.makedirs(self.root_dir, exist_ok=True)
+        
+        # Write .campaign id file
+        Path(os.path.join(self.root_dir, self._id_file)).touch()
+        
+        # Create user directory under root
+        user_dir = os.path.join(self.root_dir, getpass.getuser())
+        os.makedirs(user_dir, exist_ok=True)
+        
+        # Write the top-level run-all.sh script to the user dir
+        run_all_sh = os.path.join(config.CHEETAH_PATH_SCHEDULER,
+                                  self.machine.scheduler_name, 
+                                  "run-all.sh")
+        copy_to_dir(run_all_sh, user_dir)
+
+        # Write campaign-env.sh
+        camp_env = templates.CAMPAIGN_ENV_TEMPLATE.format(
+            experiment_dir = self.root_dir,
+            machine_config = config.machine_submit_env_path(self.machine.name),
+            app_config = self.machine_app_config_script or "",
+            workflow_script_path = config.WORKFLOW_SCRIPT,
+            workflow_runner = self.machine.runner_name,
+            workflow_debug_level = "DEBUG",
+            umask = (self.umask or ""),
+            codar_python = self.python_path,
+        )
+        camp_env_fpath = os.path.join(self.root_dir, 'campaign-env.sh')
+        with open(camp_env_fpath, 'w') as f:
+            f.write(camp_env)
