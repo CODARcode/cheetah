@@ -34,7 +34,8 @@ class Run(object):
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
                  machine, node_layout, rc_dependency, component_subdirs,
-                 sosflow_profiling, sosflow_analyis, component_inputs=None):
+                 component_inputs=None, sosflow_profiling=None,
+                 sosflow_analyis=None):
         self.instance = instance
         self.codes = codes
         self.codes_path = codes_path

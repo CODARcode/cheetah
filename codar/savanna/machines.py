@@ -16,7 +16,7 @@ SCHEDULER_OPTIONS = {"project", "queue", "constraint", "license",
 
 class MachineProperties:
     def __init__(self):
-        self.mpmd_supported = True
+        self.suports_mpmd = True
         self.node_sharing = False
 
 class MachineNode:
@@ -128,6 +128,7 @@ class Machine(object):
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)
         self.scheduler_options = scheduler_options or {}
         self.dataspaces_servers_per_node = dataspaces_servers_per_node
+        self.machine_properties = MachineProperties()
 
     def get_scheduler_options(self, options):
         """Validate supplied options and add default values where missing.

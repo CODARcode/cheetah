@@ -215,8 +215,21 @@ def find_subdir_path(where, what):
     return None
 
 def get_first_list_dup(l):
+    """
+    Finds the first duplicate item in a list
+    """
     s = set()
     for e in l:
         if e in s: return e
         s.add(e)
     return None
+
+def list_has_dup(l):
+    """
+    Returns True if list has duplicate entries, else returns False
+    """
+    s = set()
+    for e in l:
+        if e in s: return True
+        s.add(e)
+    return False

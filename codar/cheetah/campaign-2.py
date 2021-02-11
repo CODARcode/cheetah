@@ -17,7 +17,7 @@ import shlex
 import inspect
 import getpass
 from pathlib import Path
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import warnings
 import pdb
 
@@ -173,6 +173,11 @@ class Campaign(object):
         # Validate component inputs
         self._validate_component_inputs()
 
+        # A Global run info object that can be passed to lower layers - SG,
+        # Sweep, Run, RunComponent.
+        self.GlobalRunInfo = namedtuple('GlobalRunInfo',
+                                        'codes appdir inputs machinename')
+
     def add_to_campaign(self, sg):
         """
         Add Sweep Groups to an existing campaign.
@@ -190,11 +195,15 @@ class Campaign(object):
         # self._init_sweep_groups()
 
         self.root_dir = os.path.abspath(output_dir)
+        g_run_objs = self._gather_global_run_objs()
 
         # Ensure sweep groups look ok before we creating the campaign dirs
         for sg in self.sweep_groups:
-            sg.set_campaign_root(self.root_dir)
+            sg.init_2(parent_path=self.root_dir, machine=self.machine,
+                      global_run_objs=g_run_objs)
+            sg.set_parent_path(self.root_dir)
             sg.set_machine(self.machine)
+            sg.set_global_run_objs(g_run_objs)
             sg.validate()
 
         # Create the campaign root dir
@@ -202,7 +211,19 @@ class Campaign(object):
 
         # Create the individual sweep groups
         for sg in self.sweep_groups:
-            sg.create_sweep_group_root(sg, self.root_dir)
+            sg.create_sweep_group(sg, self.root_dir)
+
+    def _gather_global_run_objs(self):
+        """
+        Create a named tuple of run objects and information that can be
+        passed on to the lower layers - SweepGroup, Sweep, Run, RunComponent
+        """
+
+        g_run_info = self.GlobalRunInfo(codes=self.codes,
+                                        appdir=self.app_dir,
+                                        inputs=self.inputs,
+                                        machinename=self.machine)
+        return g_run_info
 
     def _get_machine(self, machine_name):
         machine = None

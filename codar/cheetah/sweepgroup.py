@@ -6,6 +6,8 @@ import os
 from codar.cheetah.exc import CheetahException
 from codar.cheetah import sweep
 from codar.cheetah import config
+from codar.cheetah import helpers as ch_util
+from codar.cheetah.helpers import get_first_list_dup
 
 class SweepGroup(object):
     """
@@ -18,13 +20,25 @@ class SweepGroup(object):
     How this gets converted into a script depends on the target machine and
     which scheduler (if any) that machine uses.
     """
-    def __init__(self, name, sweeps,
-                 component_subdirs=False, component_inputs=None,
-                 walltime=3600, max_procs=None, per_run_timeout=None,
-                 sosflow_profiling=False, sosflow_analysis=False,
-                 nodes=None, launch_mode=None, tau_profiling=False,
-                 tau_tracing=False, num_trials=1,
+    def __init__(self,
+                 name,
+                 sweeps,
+                 component_subdirs=False,
+                 component_inputs=None,
+                 walltime=3600,
+                 max_procs=None,
+                 per_run_timeout=None,
+                 sosflow_profiling=False,
+                 sosflow_analysis=False,
+                 nodes=None,
+                 launch_mode=None,
+                 tau_profiling=False,
+                 tau_tracing=False,
+                 num_trials=1,
                  max_concurrent=-1):
+        """
+
+        """
         self.name = name
         self.nodes = nodes
         self.component_subdirs = component_subdirs
@@ -53,15 +67,17 @@ class SweepGroup(object):
 
         self._parent_campaign = None
         self._machine = None
+        self._global_run_objs = None
         self._path = None
         self._id_file = ".sweepgroup"
 
-    def set_parent_campaign(self, parent_campaign):
-        self._parent_campaign = parent_campaign
-        self._path = os.path.join(self._parent_campaign, self.name)
-
-    def set_machine(self, machine):
+    def init_2(self, parent_path, machine, g_run_objs):
+        """
+        Initialize rest of the attributes of the SweepGroup
+        """
+        self._parent_path = parent_path
         self._machine = machine
+        self._global_run_objs = g_run_objs
 
     def validate(self):
         """
@@ -81,12 +97,10 @@ class SweepGroup(object):
         # Assert sweep group doesn't exist already
         self._assert_no_exist()
 
-        # Validate sweeps
-        for s in self.sweeps:
-            s.set_parent_sg(self._path)
-            s.validate()
+        # Assert Sweep names are unique
+        self._assert_unique_sweep_names()
 
-    def create_sweep_group_dir(self):
+    def create_sweep_group(self):
         """
         Create the Sweep Group directory
         """
@@ -94,15 +108,39 @@ class SweepGroup(object):
         # Create top-level sweep group dir
         os.makedirs(self._path)
 
+        # Init remaining variables/attributes of the sweep objs
+        self._init_sweeps()
+
         # Copy generic scheduler scripts
         self._copy_scheduler_scripts()
+
+        # for s in self.sweeps:
+        #   sw.create_sweep(s)
+
+        # Create fob manifest
+
+
+    def _init_sweeps(self):
+        """
+        Further initialize sweep objects and validate them
+        """
+        for s in self.sweeps:
+            s.init_2(parent_path = self._path,
+                     global_run_objs = self._global_run_objs,
+                     component_subdirs = self.component_subdirs,
+                     component_inputs = self.component_inputs,
+                     num_trials = self.num_trials,
+                     launch_mode = self.launch_mode)
+
+            s.validate()
 
     def _copy_scheduler_scripts(self):
         script_dir = os.path.join(config.CHEETAH_PATH_SCHEDULER,
                                   self._machine.scheduler_name, "group")
         assert os.path.isdir(script_dir), \
             "Internal error. Could not find {}".format(script_dir)
-        
+
+        ch_util.copytree_to_dir(script_dir, self._path)
 
     def _assert_no_exist(self):
         """
@@ -115,3 +153,14 @@ class SweepGroup(object):
         # Assert sweep group dir doesn't exist
         assert os.path.isdir(self._path) is False, \
             "Sweep group {} already exists".format(self.name)
+
+    def _assert_unique_sweep_names(self):
+        """
+        Assert names of Sweep names in this SG are unique
+        """
+
+        sweep_names = [s.name for s in self.sweeps]
+        dup_item = get_first_list_dup(sweep_names)
+        assert dup_item is None, \
+            "Found duplicate Sweep name {} in SweepGroup {}".format(
+                dup_item, self.name)
