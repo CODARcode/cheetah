@@ -88,6 +88,7 @@ class Sweep(object):
                         self._runs_opts.component_inputs,
                         sosflow_profiling=None,
                         sosflow_analyis=None)
+                r.init_2()
                 self._runs.append(r)
 
     def _assert_no_exist(self):

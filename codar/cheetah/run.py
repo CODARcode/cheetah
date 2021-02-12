@@ -71,6 +71,47 @@ class Run(object):
         self._pre_submit_dir_size_fname = \
             ".codar.cheetah.pre_submit_dir_size.out"
 
+    def init_2(self):
+        """
+
+        """
+        # Make run directory
+
+        # Make RC run dirs
+
+        # Copy global inputs to all RCs
+
+        # Copy component input files
+
+        # Setup ADIOS parameters
+
+        # Calculate the no. of nodes required by this run
+
+        # Setup generic config file support (.txt, .json)
+
+        # Setup key-value config file support - should this be a separate
+        # option?
+
+        # Setup environment variable support
+
+        # Write codar.cheetah.run-params.txt
+
+        # Write codar.cheetah.run-params.json
+
+        # Create the fob serialization of this
+        
+
+    def get_fob_data_list(self):
+        return [comp.as_fob_data() for comp in self.run_components]
+
+    def get_total_nprocs(self):
+        return sum(rc.nprocs for rc in self.run_components)
+
+    def get_app_param_dict(self):
+        """Return dictionary containing only the app parameters
+        (does not include nprocs or exe paths)."""
+        return self.instance.as_dict()
+
     def _get_run_components(self):
         comps = []
         codes_argv = self._get_codes_argv_ordered()
@@ -154,9 +195,6 @@ class Run(object):
                 # assert v_rc is not None, "RC {0} not found".format(v)
                 # k_rc.after_rc_done = v_rc
 
-    def get_fob_data_list(self):
-        return [comp.as_fob_data() for comp in self.run_components]
-
     def _get_codes_argv_ordered(self):
         """Wrapper around instance.get_codes_argv which uses correct order
         from self.codes OrderedDict."""
@@ -170,9 +208,6 @@ class Run(object):
         # case app runs that don't use adios stage_write or dataspaces.
         return OrderedDict((k, codes_argv[k]) for k in self.codes.keys()
                            if k in codes_argv)
-
-    def get_total_nprocs(self):
-        return sum(rc.nprocs for rc in self.run_components)
 
     def _get_rc_by_name(self, name):
         for rc in self.run_components:
@@ -255,9 +290,3 @@ class Run(object):
         done = False
         while not done:
             done = parse_dicts(code_groups)
-
-    def get_app_param_dict(self):
-        """Return dictionary containing only the app parameters
-        (does not include nprocs or exe paths)."""
-        return self.instance.as_dict()
-

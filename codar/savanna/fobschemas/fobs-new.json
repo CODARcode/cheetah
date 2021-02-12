@@ -1,0 +1,153 @@
+{
+    "type":"SweepGroup",
+    "name":"SG-1",
+    "uid": "sdgfsd890f",
+    "rel_path":"N/A?",
+    "parent_campaign":"C1",
+    "predecessor":null,
+    "machine_name":"local",
+    "children":["sg-2","sg-3"],
+    "post-process-script":null,
+    "sweeps_list": [
+        {
+            "type":"Sweep",
+            "name":"sweep1",
+            "parent_sweepgroup":"SG-1",
+            "runs": [
+                {
+                    "apps_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling",
+                    "id": "run-0.iteration-0",
+                    "kill_on_partial_failure": true,
+                    "launch_mode": "default",
+                    "machine_name": "local",
+                    "node_layout": [
+                        {
+                            "producer": 32
+                        }
+                    ],
+                    "post_process_args": [
+                        "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-0/codar.cheetah.run-params.json"
+                    ],
+                    "post_process_script": null,
+                    "post_process_stop_on_failure": false,
+                    "run_components": [
+                        {
+                            "adios_xml_file": "/home/kmehta/vshare/cheetah/examples/02-coupling/adios2.xml",
+                            "after_rc_done": null,
+                            "args": [
+                                "1048576",
+                                "2"
+                            ],
+                            "exe": "producer.py",
+                            "hostfile": null,
+                            "linked_with_sosflow": false,
+                            "name": "producer",
+                            "nprocs": 2,
+                            "num_nodes": 1,
+                            "runner_override": false,
+                            "sched_args": null,
+                            "sleep_after": 5,
+                            "timeout": 60,
+                            "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-0"
+                        }
+                    ],
+                    "tau_profiling": false,
+                    "tau_tracing": false,
+                    "total_nodes": 1,
+                    "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-0"
+                }
+            ]
+        },
+        {
+            "type":"Sweep",
+            "name":"sweep1",
+            "parent_sweepgroup":"SG-1",
+            "runs": [
+                {
+                    "apps_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling",
+                    "id": "run-0.iteration-1",
+                    "kill_on_partial_failure": true,
+                    "launch_mode": "default",
+                    "machine_name": "local",
+                    "node_layout": [
+                        {
+                            "producer": 32
+                        }
+                    ],
+                    "post_process_args": [
+                        "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-1/codar.cheetah.run-params.json"
+                    ],
+                    "post_process_script": null,
+                    "post_process_stop_on_failure": false,
+                    "runs_components": [
+                        {
+                            "adios_xml_file": "/home/kmehta/vshare/cheetah/examples/02-coupling/adios2.xml",
+                            "after_rc_done": null,
+                            "args": [
+                                "1048576",
+                                "2"
+                            ],
+                            "exe": "producer.py",
+                            "hostfile": null,
+                            "linked_with_sosflow": false,
+                            "name": "producer",
+                            "nprocs": 2,
+                            "num_nodes": 1,
+                            "runner_override": false,
+                            "sched_args": null,
+                            "sleep_after": 5,
+                            "timeout": 60,
+                            "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-1"
+                        }
+                    ],
+                    "tau_profiling": false,
+                    "tau_tracing": false,
+                    "total_nodes": 1,
+                    "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-1"
+                },
+                {
+                    "apps_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling",
+                    "id": "run-0.iteration-2",
+                    "kill_on_partial_failure": true,
+                    "launch_mode": "default",
+                    "machine_name": "local",
+                    "node_layout": [
+                        {
+                            "producer": 32
+                        }
+                    ],
+                    "post_process_args": [
+                        "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-2/codar.cheetah.run-params.json"
+                    ],
+                    "post_process_script": null,
+                    "post_process_stop_on_failure": false,
+                    "runs": [
+                        {
+                            "adios_xml_file": "/home/kmehta/vshare/cheetah/examples/02-coupling/adios2.xml",
+                            "after_rc_done": null,
+                            "args": [
+                                "1048576",
+                                "2"
+                            ],
+                            "exe": "producer.py",
+                            "hostfile": null,
+                            "linked_with_sosflow": false,
+                            "name": "producer",
+                            "nprocs": 2,
+                            "num_nodes": 1,
+                            "runner_override": false,
+                            "sched_args": null,
+                            "sleep_after": 5,
+                            "timeout": 60,
+                            "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-2"
+                        }
+                    ],
+                    "tau_profiling": false,
+                    "tau_tracing": false,
+                    "total_nodes": 1,
+                    "working_dir": "/home/kmehta/vshare/cheetah/examples/02-coupling/campaign/kmehta/sg-1/run-0.iteration-2"
+                }
+            ]
+        }
+    ]
+}
