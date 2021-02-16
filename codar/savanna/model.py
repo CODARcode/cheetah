@@ -607,7 +607,7 @@ class Pipeline(object):
                  post_process_script=None,
                  post_process_args=None,
                  post_process_stop_on_failure=False,
-                 node_layout=None, launch_mode=None):
+                 node_layout=None, mpmd_launch=None):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
@@ -638,7 +638,7 @@ class Pipeline(object):
             run.log_prefix = "%s:%s" % (self.id, run.name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = total_nodes
-        self.launch_mode = launch_mode
+        self.mpmd_launch = mpmd_launch
 
         # List of node IDs assigned to this pipeline. Get initialized in
         # start()
@@ -706,7 +706,7 @@ class Pipeline(object):
                                "in %s", working_dir)
                     return None
 
-        launch_mode = data.get("launch_mode")
+        mpmd_launch = data.get("mpmd_launch")
         kill_on_partial_failure = data.get("kill_on_partial_failure", False)
         post_process_script = data.get("post_process_script")
         post_process_args = data.get("post_process_args", [])
@@ -725,7 +725,7 @@ class Pipeline(object):
                         post_process_stop_on_failure=
                         post_process_stop_on_failure,
                         node_layout=node_layout,
-                        launch_mode=launch_mode,
+                        mpmd_launch=mpmd_launch,
                         total_nodes=total_nodes,
                         machine_name=machine_name)
 
