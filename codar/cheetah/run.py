@@ -76,8 +76,11 @@ class Run(object):
 
         """
         # Make run directory
+        os.makedirs(self.run_path, exist_ok=False)
 
         # Make RC run dirs
+        for rc in run.run_components:
+            os.makedirs(rc.working_dir, exist_ok=False)
 
         # Copy global inputs to all RCs
 
