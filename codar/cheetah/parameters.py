@@ -22,7 +22,7 @@ class SweepGroup(object):
     def __init__(self, name, parameter_groups, component_subdirs=False,
                  component_inputs=None, walltime=3600, max_procs=None,
                  per_run_timeout=None, sosflow_profiling=False,
-                 sosflow_analysis=False, nodes=None, launch_mode=None,
+                 sosflow_analysis=False, nodes=None,
                  tau_profiling=False, tau_tracing=False, run_repetitions=0):
         self.name = name
         self.nodes = nodes
@@ -35,10 +35,6 @@ class SweepGroup(object):
         self.sosflow_profiling = sosflow_profiling
         self.sosflow_analysis = sosflow_analysis
         self.component_inputs = component_inputs
-        if launch_mode:
-            if launch_mode.lower() not in ('default', 'mpmd'):
-                raise CheetahException("launch mode must be None/default/mpmd")
-        self.launch_mode = launch_mode
         self.tau_profiling=tau_profiling
         self.tau_tracing=tau_tracing
         self.run_repetitions = run_repetitions
@@ -49,9 +45,11 @@ class Sweep(object):
     Class representing a set of parameter values to search over as
     a cross product.
     """
-    def __init__(self, parameters, node_layout=None, rc_dependency=None):
+    def __init__(self, parameters, node_layout=None,
+                 mpmd_launch=None, rc_dependency=None):
         self.parameters = parameters
         self.node_layout = node_layout
+        self.mpmd_launch = mpmd_launch
         self.rc_dependency = rc_dependency
 
     def get_instances(self):

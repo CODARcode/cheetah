@@ -299,6 +299,7 @@ class Campaign(object):
                                       self.inputs,
                                       self.machine,
                                       node_layout,
+                                      sweep.mpmd_launch,
                                       sweep.rc_dependency,
                                       group.component_subdirs,
                                       group.sosflow_profiling,
@@ -306,22 +307,6 @@ class Campaign(object):
                                       group.component_inputs)
                                   for i, inst in enumerate(
                             sweep.get_instances())]
-
-                    # we dont support mpmd mode with dependencies
-                    try:
-                        if group.launch_mode.lower() == 'mpmd':
-                            assert sweep.rc_dependency is None, \
-                                "Dependencies in MPMD mode not supported"
-                    except AttributeError:
-                        pass
-
-                    # we dont support mpmd on deepthought2
-                    try:
-                        if self.machine.machine_name.lower() == 'deepthought2':
-                            assert group.launch_mode.lower() not in 'mpmd',\
-                                "mpmd mode not implemented for deepthought2"
-                    except AttributeError:
-                        pass
 
                     group_runs.extend(sweep_runs)
                     group_run_offset += len(sweep_runs)
@@ -358,7 +343,6 @@ class Campaign(object):
                 group_runs,
                 max_procs,
                 nodes=group.nodes,
-                launch_mode=group.launch_mode,
                 component_subdirs=group.component_subdirs,
                 walltime=group.walltime,
                 timeout=group.per_run_timeout,
@@ -431,7 +415,8 @@ class Run(object):
     TODO: create a model shared between workflow and cheetah, i.e. codar.model
     """
     def __init__(self, instance, codes, codes_path, run_path, inputs,
-                 machine, node_layout, rc_dependency, component_subdirs,
+                 machine, node_layout, mpmd_launch, rc_dependency,
+                 component_subdirs,
                  sosflow_profiling, sosflow_analyis, component_inputs=None):
         self.instance = instance
         self.codes = codes
@@ -448,6 +433,7 @@ class Run(object):
         self.sosflow_analysis = sosflow_analyis
         self.component_inputs = component_inputs
         self.total_nodes = 0
+        self.mpmd_launch = mpmd_launch
         self.run_components = self._get_run_components()
 
         # populate nodelayout to contain all RCs
@@ -467,6 +453,8 @@ class Run(object):
         # prior to submitting the campaign
         self._pre_submit_dir_size_fname = \
             ".codar.cheetah.pre_submit_dir_size.out"
+
+        self._validate_mpmd_launch()
 
     def _get_run_components(self):
         comps = []
@@ -544,12 +532,6 @@ class Run(object):
                 k_rc = self._get_rc_by_name(k)
                 v_rc = self._get_rc_by_name(v)
                 k_rc.after_rc_done = v_rc
-
-                # k_rc = self._get_rc_by_name(k)
-                # assert k_rc is not None, "RC {0} not found".format(k)
-                # v_rc = self._get_rc_by_name(v)
-                # assert v_rc is not None, "RC {0} not found".format(v)
-                # k_rc.after_rc_done = v_rc
 
     def get_fob_data_list(self):
         return [comp.as_fob_data() for comp in self.run_components]
@@ -657,6 +639,46 @@ class Run(object):
         """Return dictionary containing only the app parameters
         (does not include nprocs or exe paths)."""
         return self.instance.as_dict()
+
+    def _validate_mpmd_launch(self):
+        if self.mpmd_launch is None: return
+
+        # Assert MPMD launch is supported on the target machine
+        assert self.machine.supports_mpmd == True, \
+            "{} does not support MPMD mode".format(self.machine.name)
+
+        # Assert type is a list of lists
+        err_msg = "Sweep.mpmd_launch {} must be a list of lists. \n " \
+            "For example: mpmd_launch = [ ['sim1', 'sim2'], ['sim3', " \
+            "'sim4'] ]".format(self.mpmd_launch)
+
+        assert type(self.mpmd_launch) is list, err_msg
+        for mpmd_set in self.mpmd_launch:
+            assert type(mpmd_set) is list, err_msg
+
+        # Assert it has at least 2 RCs
+        for mpmd_set in self.mpmd_launch:
+            assert len(mpmd_set) > 1, "Need at least 2 applications in the " \
+                                      "MPMD launch: {}".format(mpmd_set)
+
+        # Assert no duplicates in the mpmd list
+        s = set()
+        for mpmd_set in self.mpmd_launch:
+            for rc in mpmd_set:
+                if rc not in s:
+                    s.add(rc)
+                else:
+                    raise exc.CheetahException("{} found multiple times in "
+                        "the MPMD launch list".format(rc))
+
+        # Assert no dependencies between MPMD applications
+        for mpmd_set in self.mpmd_launch:
+            for rc in mpmd_set:
+                child_rc = self._get_rc_by_name(rc).after_rc_done
+                if child_rc is not None:
+                    if child_rc.name in mpmd_set:
+                        raise exc.CheetahException("Cannot have applications "
+                            "with dependency in an MPMD launch")
 
 
 class RunComponent(object):

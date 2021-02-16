@@ -113,7 +113,8 @@ class Machine(object):
 
     def __init__(self, name, scheduler_name, runner_name, node_class,
                  processes_per_node=None, node_exclusive=False,
-                 scheduler_options=None, dataspaces_servers_per_node=1):
+                 scheduler_options=None,
+                 supports_mpmd = True, dataspaces_servers_per_node=1):
         self.name = name
         self.scheduler_name = scheduler_name
         self.runner_name = runner_name
@@ -123,6 +124,7 @@ class Machine(object):
         _check_known_scheduler_options(SCHEDULER_OPTIONS, scheduler_options)
         self.scheduler_options = scheduler_options or {}
         self.dataspaces_servers_per_node = dataspaces_servers_per_node
+        self.supports_mpmd = supports_mpmd
 
     def get_scheduler_options(self, options):
         """Validate supplied options and add default values where missing.
@@ -212,11 +214,13 @@ summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
 
 deepthought2_cpu = Machine('deepthought2_cpu', "slurm", "mpirunc", DTH2CPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project="", queue="default"))
+                           scheduler_options=dict(project="",queue="default"),
+                           supports_mpmd=False)
 
 deepthought2_gpu = Machine('deepthought2_gpu', "slurm", "mpirung", DTH2GPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project="", queue="default"))
+                           scheduler_options=dict(project="",queue="default"),
+                           supports_mpmd=False)
 
 
 def get_by_name(name):
