@@ -136,7 +136,6 @@ class Launcher(object):
 
             # ADIOS XML param support
             adios_xml_params = \
-                run.instance.get_parameter_values_by_type(ParamAdiosXML) or \
                 run.instance.get_parameter_values_by_type(ParamADIOS2XML)
             for pv in adios_xml_params:
                 working_dir = working_dirs[pv.target]
@@ -148,50 +147,25 @@ class Launcher(object):
                 xml_filepath = os.path.join(working_dir,
                                             os.path.basename(rc_adios_xml))
 
-                # Check if this is adios1 or adios2
-                adios_version = get_adios_version(rc_adios_xml)
-
-                if adios_version == 1:
-                    if pv.param_type == "adios_transform":
-                        adios_params.adios_xml_transform(
-                            xml_filepath,pv.group_name, pv.var_name, pv.value)
-                    elif pv.param_type == "adios_transport":
-                        # value could be
-                        # "MPI_AGGREGATE:num_aggregators=64;num_osts"
-                        # extract the method name and the method options
-                        method_name = pv.value
-                        method_opts = ""
-                        if ":" in pv.value:
-                            value_tokens = pv.value.split(":", 1)
-                            method_name = value_tokens[0]
-                            method_opts = value_tokens[1]
-
-                        adios_params.adios_xml_transport(
-                            xml_filepath, pv.group_name, method_name,
-                            method_opts)
+                operation_value = list(pv.value.keys())[0]
+                if pv.operation_name in ('engine', 'transport'):
+                    parameters = list(pv.value.values())[0]
+                    if pv.operation_name == 'engine':
+                        adios2.set_engine(xml_filepath, pv.io_name,
+                                          operation_value, parameters)
                     else:
-                        raise exc.CheetahException("Unrecognized adios param")
-
-                else:   # adios version == 2
-                    operation_value = list(pv.value.keys())[0]
-                    if pv.operation_name in ('engine', 'transport'):
-                        parameters = list(pv.value.values())[0]
-                        if pv.operation_name == 'engine':
-                            adios2.set_engine(xml_filepath, pv.io_name,
-                                              operation_value, parameters)
-                        else:
-                            adios2.set_transport(xml_filepath, pv.io_name,
-                                                 operation_value, parameters)
-                    else:   # operation_name == 'var_operation'
-                        var_name = list(pv.value.keys())[0]
-                        var_name_dict = pv.value[var_name]
-                        var_operation_value = list(var_name_dict.keys())[0]
-                        var_op_dict = var_name_dict[var_operation_value]
-                        parameters = var_op_dict
-                        adios2.set_var_operation(xml_filepath, pv.io_name,
-                                                 var_name,
-                                                 var_operation_value,
-                                                 parameters)
+                        adios2.set_transport(xml_filepath, pv.io_name,
+                                             operation_value, parameters)
+                else:   # operation_name == 'var_operation'
+                    var_name = list(pv.value.keys())[0]
+                    var_name_dict = pv.value[var_name]
+                    var_operation_value = list(var_name_dict.keys())[0]
+                    var_op_dict = var_name_dict[var_operation_value]
+                    parameters = var_op_dict
+                    adios2.set_var_operation(xml_filepath, pv.io_name,
+                                             var_name,
+                                             var_operation_value,
+                                             parameters)
 
             # Calculate the no. of nodes required by this run.
             # This must be done after dataspaces support is added.
