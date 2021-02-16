@@ -70,6 +70,7 @@ class SweepGroup(object):
         self._global_run_objs = None
         self._path = None
         self._id_file = ".sweepgroup"
+        self.min_nodes = None
 
     def init_2(self, parent_path, machine, g_run_objs):
         """
@@ -116,6 +117,13 @@ class SweepGroup(object):
 
         # for s in self.sweeps:
         #   sw.create_sweep(s)
+
+        # Calculate the minimum no. of nodes required
+        self.min_nodes = max([s.min_nodes for s in self.sweeps])
+        if self.nodes is not None:
+            assert self.nodes >= self.min_nodes, \
+                "Nodes for group is too low, need at least {}, " \
+                "got {}".format(self.min_nodes, self.nodes)
 
         # Create fob manifest
 

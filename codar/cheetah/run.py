@@ -15,14 +15,16 @@ from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
 from codar.cheetah import parameters, config, templates, exc, machine_launchers
 from codar.cheetah.launchers import Launcher
-from codar.cheetah.helpers import copy_to_dir, copy_to_path
-from codar.cheetah.helpers import relative_or_absolute_path, \
+from codar.cheetah.helpers import copy_to_dir, copy_to_path, \
+    json_config_set_option, relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
-from codar.cheetah.parameters import SymLink
+from codar.cheetah.parameters import SymLink, ParamADIOS2XML, ParamConfig, \
+    ParamKeyValue, ParamEnvVar
 from codar.cheetah.adios_params import xml_has_transport
 from codar.cheetah.parameters import ParamCmdLineArg
 from codar.cheetah.exc import CheetahException
 from codar.cheetah.runcomponent import RunComponent
+from codar.cheetah import adios2_interface as adios2
 
 class Run(object):
     """
@@ -71,38 +73,57 @@ class Run(object):
         self._pre_submit_dir_size_fname = \
             ".codar.cheetah.pre_submit_dir_size.out"
 
-    def init_2(self):
+    def init_2(self, global_run_objs):
         """
 
         """
+        self.global_run_objs = global_run_objs
+
         # Make run directory
         os.makedirs(self.run_path, exist_ok=False)
 
         # Make RC run dirs
-        for rc in run.run_components:
+        for rc in self.run_components:
             os.makedirs(rc.working_dir, exist_ok=False)
 
         # Copy global inputs to all RCs
+        for input_rpath in self.inputs:
+            copy_to_dir(input_rpath, self.run_path)
 
         # Copy component input files
+        for rc in self.run_components:
+            rc.copy_input_files_to_workspace()
 
         # Setup ADIOS parameters
-
-        # Calculate the no. of nodes required by this run
+        self._setup_adios_params()
 
         # Setup generic config file support (.txt, .json)
+        self._setup_config_params()
 
         # Setup key-value config file support - should this be a separate
         # option?
+        self._setup_keyvalue_params()
 
         # Setup environment variable support
+        self._setup_envvar_params()
 
-        # Write codar.cheetah.run-params.txt
-
-        # Write codar.cheetah.run-params.json
+        # Write codar.cheetah.run-params.txt and json
+        self._write_run_metadata()
 
         # Create the fob serialization of this
-        
+        self._write_fob()
+
+    def as_fob(self):
+        fob = dict(id=self.run_id, launch_mode=launch_mode, runs=fob_runs,
+                   working_dir=self.run_path,
+                   apps_dir=self.global_run_objs.app_dir,
+                   post_process_script=self.run_post_process_script,
+                   post_process_stop_on_failure=
+                   run_post_process_stop_on_failure,
+                   post_process_args=[params_path_json],
+                   node_layout=self.node_layout.serialize_to_dict(),
+                   total_nodes=self.total_nodes,
+                   tau_profiling=tau_profiling, tau_tracing=tau_tracing)
 
     def get_fob_data_list(self):
         return [comp.as_fob_data() for comp in self.run_components]
@@ -293,3 +314,157 @@ class Run(object):
         done = False
         while not done:
             done = parse_dicts(code_groups)
+
+    def _setup_adios_params(self):
+        """
+        Set up adios parameter support for this Run
+        """
+
+        adios_par = self.instance.get_parameter_values_by_type(ParamADIOS2XML)
+        for pv in adios_par:
+            rc = self._get_rc_by_name(pv.target)
+            working_dir = rc.working_dir
+            adios_xml = rc.adios_xml_file
+            xml_path = os.path.join(working_dir, os.path.basename(adios_xml))
+
+            op_val = list(pv.value.keys())[0]
+
+            # Set the engine or transport
+            if pv.operation_name in ('engine','transport'):
+                params = list(pv.value.values())[0]
+                if pv.operation_name == 'engine':
+                    adios2.set_engine(xml_path, pv.io_name, op_val, params)
+                else:
+                    adios2.set_transport(xml_path, pv.io_name, op_val, params)
+
+            # operation_name == 'var_operation'
+            else:
+                var_name = list(pv.value.keys())[0]
+                var_name_dict = pv.value[var_name]
+                var_operation_value = list(var_name_dict.keys())[0]
+                var_op_dict = var_name_dict[var_operation_value]
+                params = var_op_dict
+                adios2.set_var_operation(xml_path, pv.io_name,var_name,
+                                         var_operation_value, params)
+
+    def _setup_config_params(self):
+        """
+        Set up config file (.txt, .json) file param
+        """
+
+        config_params = \
+            self.instance.get_parameter_values_by_type(ParamConfig)
+        for pv in config_params:
+            working_dir = self._get_rc_by_name(pv.target).working_dir
+            src_filepath = relative_or_absolute_path(
+                self.global_run_objs.app_dir, pv.config_filename)
+            # Allow for relative pathnames in the spec
+            src_filename = pv.config_filename
+
+            if pv.config_filename[0] == '/':
+                src_filename = os.path.basename(src_filepath)
+            config_filepath = os.path.join(working_dir,
+                                           src_filename)
+
+            if not os.path.isfile(config_filepath):
+                copy_to_path(src_filepath, config_filepath)
+
+            lines = []
+            # read and modify lines
+            # hack: handle json files. currently works only on singly
+            # nested json files
+            if config_filepath.endswith(".json"):
+                json_config_set_option(config_filepath, pv.match_string,
+                                       pv.value)
+
+            else:  # handle other file types
+                with open(config_filepath) as config_f:
+                    for line in config_f:
+                        line = line.replace(pv.match_string, pv.value)
+                        lines.append(line)
+                # rewrite file with modified lines
+                with open(config_filepath, 'w') as config_f:
+                    config_f.write("".join(lines))
+
+    def _setup_keyvalue_params(self):
+        kv_params = \
+            self.instance.get_parameter_values_by_type(ParamKeyValue)
+        for pv in kv_params:
+            working_dir = self._get_rc_by_name(pv.target).working_dir
+            src_filepath = relative_or_absolute_path(
+                self.global_run_objs.app_dir, pv.config_filename)
+
+            # Allow for relative pathnames in the spec
+            src_filename = pv.config_filename
+            if pv.config_filename[0] == '/':
+                src_filename = os.path.basename(src_filepath)
+
+            kv_filepath = os.path.join(working_dir, src_filename)
+            if not os.path.isfile(kv_filepath):
+                copy_to_path(src_filepath, kv_filepath)
+
+            lines = []
+            # read and modify lines
+            key_found = False
+            with open(kv_filepath) as kv_f:
+                for line in kv_f:
+                    parts = line.split('=', 1)
+                    if len(parts) == 2:
+                        k = parts[0].strip()
+                        if k == pv.key_name:
+                            # assume all k=v type formats will
+                            # support no spaces around equals
+                            line = k + '=' + str(pv.value)
+                            # preserve a user comment if it exists
+                            if '!' in parts[1]:
+                                line = line + " !" + \
+                                       parts[1].strip().split('!')[1]
+                            line = line + '\n'
+                            key_found = True
+                    lines.append(line)
+                assert key_found, \
+                    "Issue parsing a ParamKeyValue: Could not find key {}" \
+                    " in config file {}".format(pv.key_name, src_filepath)
+            # rewrite file with modified lines
+            with open(kv_filepath, 'w') as kv_f:
+                kv_f.write("".join(lines))
+
+    def _setup_envvar_params(self):
+        kv_params = self.instance.get_parameter_values_by_type(ParamEnvVar)
+        for pv in kv_params:
+            rc = self._get_rc_by_name(pv.target)
+            rc.env[pv.option] = str(pv.value)
+
+    def _write_run_metadata(self):
+        """
+        Write codar.cheetah.run-params.txt and json
+        """
+
+        run_command_name = 'codar.cheetah.run-params.txt'
+        run_json_name = 'codar.cheetah.run-params.json'
+        run_out_name = 'codar.cheetah.run-output.txt'
+
+        params_path_txt = os.path.join(self.run_path, run_command_name)
+        with open(params_path_txt, 'w') as params_f:
+            for rc in self.run_components:
+                params_f.write(' '.join(map(shlex.quote, [rc.exe] + rc.args)))
+                params_f.write('\n')
+
+        # save params as JSON for use in post-processing, more
+        # useful for post-processing scripts then the command
+        # text
+        params_path_json = os.path.join(self.run_path, run_json_name)
+        run_data = self.get_app_param_dict()
+        with open(params_path_json, 'w') as params_f:
+            json.dump(run_data, params_f, indent=2)
+
+    def _write_fob(self):
+        """
+        Write Run as a serialized fob to codar.cheetah.fob.json
+        """
+
+        fob = self.as_fob()
+        run_fob_path = os.path.join(self.run_path, "codar.cheetah.fob.json")
+        with open(run_fob_path, "w") as runf:
+            runf.write(json.dumps(fob, sort_keys=True, indent=4))
+            runf.write("\n")

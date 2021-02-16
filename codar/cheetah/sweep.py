@@ -26,6 +26,7 @@ class Sweep(object):
         self._runs_opts = None
         self.global_run_objs = None
         self._path = None
+        self.min_nodes = None
 
     def init_2(self, parent_path, g_run_objs, component_subdirs,
                component_inputs, num_trials, launch_mode='default'):
@@ -88,8 +89,11 @@ class Sweep(object):
                         self._runs_opts.component_inputs,
                         sosflow_profiling=None,
                         sosflow_analyis=None)
-                r.init_2()
+                r.init_2(self.global_run_objs)
                 self._runs.append(r)
+
+        # Calculate the minimum no. of nodes needed by this Sweep
+        self.min_nodes = max([r.total_nodes for r in self._runs])
 
     def _assert_no_exist(self):
         """

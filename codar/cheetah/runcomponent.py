@@ -15,7 +15,7 @@ from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
 from codar.cheetah import parameters, config, templates, exc, machine_launchers
 from codar.cheetah.launchers import Launcher
-from codar.cheetah.helpers import copy_to_dir, copy_to_path
+from codar.cheetah.helpers import copy_to_dir, copy_to_path, copytree_to_dir
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
 from codar.cheetah.parameters import SymLink
@@ -45,6 +45,37 @@ class RunComponent(object):
         self.after_rc_done = None
         self.runner_override = runner_override
         self.num_nodes = 0
+
+    def init_2(self):
+        pass
+
+    def copy_input_files_to_workspace(self):
+        """
+        Copy all required input files to the working dir
+        """
+
+        # Copy adios file to work dir
+        if self.adios_xml_file:
+            copy_to_dir(self.adios_xml_file, self.working_dir)
+
+        # Copy other input files marked under 'component_inputs'
+        if self.component_inputs is None: return
+
+        for input_file in self.component_inputs:
+            dest = os.path.join(self.working_dir, os.path.basename(input_file))
+
+            # input file is a symlink
+            if type(input_file) == SymLink:
+                os.symlink(input_file, dest)
+            # input file is a regular file
+            elif os.path.isfile(input_file):
+                copy_to_dir(input_file, self.working_dir)
+            # input file is a directory
+            elif os.path.isdir(input_file):
+                copytree_to_dir(input_file, dest)
+            else:
+                raise exc.CheetahException("Could not determine the type of "
+                    "required input {}".format(input_file))
 
     def as_fob_data(self):
         data = dict(name=self.name,
