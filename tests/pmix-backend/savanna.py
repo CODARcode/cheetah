@@ -127,6 +127,8 @@ class Pipeline():
         for s in self.runs.values():
             s.join()
 
+        print("Done")
+
     def min_nodes(self):
         """The minimum no. of Summit nodes required to run this pipeline.
         """
@@ -188,53 +190,4 @@ class Pipeline():
                     rank_id = rank_info.split(':')[1]
                     run = self.runs[run_name]
                     run.node_config.gpu[int(rank_id)].append(i)
-
-
-#----------------------------------------------------------------------------#
-def node_layout_to_json(layouts):
-    d = []
-    for nl in layouts:
-        d.append(nl.to_dict())
-    return d
-
-
-def num_nodes_available():
-    """Placeholder for fetching the number of allocated nodes
-    """
-
-    # Put a try-except for testing. At runtime, you can get 
-    # the no. of nodes in this allocating by inspecting the
-    # LSB_HOSTS env var.
-    try:
-        hosts = os.environ.get['LSB_HOSTS']
-    except:  # Mock values for testing purposes
-        hosts = "batch4 h4cn1 h4cn2"
-
-    s = set()
-    for h in hosts.split():
-        if ('batch' not in h) and ('login' not in h):
-            s.add(h)
-    return len(s)
-
-
-#----------------------------------------------------------------------------#
-# Create the applications (objects of class Run)
-#s = Run(name='simulation', exe='gray-scott', 
-#        args=['settings-files.json'], nprocs=32)
-s = Run(name='simulation', exe='hostname', args=[], nprocs=2)
-
-# Create a pipeline (workflow) of concurrently running applications
-p = Pipeline(runs=[s])
-
-# Create a mapping of ranks to resources using the VirtualNode model
-node = SummitNode()
-for i in range(32):
-    node.cpu[i] = "simulation:{}".format(i)
-node_layout = [node]
-
-# Temporary Cheetah functionality to serialize VirtualNode objects
-d = node_layout_to_json(node_layout)
-
-# Launch the pipeline
-p.run(d, num_nodes_available())
 
