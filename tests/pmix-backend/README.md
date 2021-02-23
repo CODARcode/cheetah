@@ -7,8 +7,7 @@ Depending on the backend being used, Savanna will invoke an executor to run the 
 
 The jsrun executor creates ERF files for each application in the workflow, and submits them using the `jsrun --erf_input=<erf_file_name>` command.
 
-To Run
-======
+### To Run
 
 Get an allocation on Summit, and run `python example.py` to run the example.
 
