@@ -17,9 +17,11 @@
 import sys
 import os
 import subprocess
+import logging
 import pdb
 
 
+#----------------------------------------------------------------------------#
 class Runner():
     def __init__(self, apps):
         self.runner = None
@@ -29,23 +31,31 @@ class Runner():
         pass
 
 
+#----------------------------------------------------------------------------#
 class JsrunRunner(Runner):
     def __init__(self, apps):
         Runner.__init__(self, apps)
         self.runner = 'jsrun'
-        self._erf = "cheetah-mpmd.erf"
-
+        self._erf = "mpmd-cheetah.erf"
+        try:
+            os.remove(self._erf)
+        except:
+            pass
 
     def execute(self):
         self._create_erf()
-        self._run_erf()
+        run_cmd = ["jsrun","--erf_input={}".format(self._erf)]
+        log.info("Executing `{}`".format(" ".join(run_cmd)))
+        self._run_erf(run_cmd)
+        # os.remove(self._erf)
+        log.info("DONE")
 
     def _create_erf(self):
         sub_erfs = []
         for i,a in enumerate(self.apps):
             sub_erfs.append(self._create_erf_dummy(a, i))
         self._create_main_erf_file(sub_erfs)
-        self._remove_erf_dummies()
+        self._remove_erf_dummies(sub_erfs)
 
     def _create_erf_dummy(self, app, index):
         erf_dummy = ".cheetah-mpmd-{}.erf".format(index)
@@ -54,7 +64,9 @@ class JsrunRunner(Runner):
         for arg in app.runner_args:
             run_cmd.append(arg)
         run_cmd.append("--erf_output={}".format(erf_dummy))
-        run_cmd.append("echo")
+        run_cmd.append("true")
+        log.debug("Running jsrun to create temporary erf file " \
+                  "{}".format(erf_dummy))
         self._run_erf(run_cmd)
         return erf_dummy
 
@@ -62,17 +74,17 @@ class JsrunRunner(Runner):
         app_block = self._get_main_erf_app_block(sub_erfs)
         config_block = self._get_main_erf_config_block(sub_erfs[0])
         mapping_block = self._get_main_erf_mapping_block(sub_erfs)
-
+        with open(self._erf, "w") as f:
+            f.write(app_block)
+            f.write(config_block)
+            f.write(mapping_block)
 
     def _get_main_erf_app_block(self, sub_erfs):
         appid = -1
         app_block = ""
-        for erf_out in sub_erfs:
-            appid = appid + 0
-            with open(erf_out) as f:
-                line = f.readline()
-                s = "app {}:".format(appid) + line.split(":")[1]
-                app_block = app_block + s
+        for app in self.apps:
+            appid = appid + 1
+            app_block = app_block + "app {}: {}\n".format(appid, app.app)
         return app_block
 
     def _get_main_erf_config_block(self, sub_erf0):
@@ -80,10 +92,10 @@ class JsrunRunner(Runner):
         with open(sub_erf0) as f:
             lines = f.readlines()
         for line in lines:
+            if line.startswith("rank:"):
+                break
             if not line.startswith("app"):
                 config_block = config_block + line
-            if line.startswith("rank:"):
-                return config_block
         return config_block
 
     def _get_main_erf_mapping_block(self, sub_erfs):
@@ -99,26 +111,34 @@ class JsrunRunner(Runner):
             with open(erf_out) as f:
                 lines = f.readlines()
             for line in lines:
-                if line.startswith("rank"):
+                if line.startswith("rank:"):
                     cpu_mapping = line.split("cpu: ")[1].split(" : app")[0]
                     mapping_block = mapping_block + \
                                     "rank: {}:".format(mpmd_rankid) + \
-                                    " { host: {};".format(hostid) + \
+                                    " {{ host: {};".format(hostid) + \
                                     " cpu: {}".format(cpu_mapping) + \
                                     " : app {}\n".format(appid)
                     mpmd_rankid = mpmd_rankid + 1
         return mapping_block
 
     def _run_erf(self, run_cmd):
-        print(run_cmd)
-        pid = subprocess.Popen(run_cmd)
-        pid.wait()
+        try:
+            pid = subprocess.Popen(run_cmd)
+            pid.communicate()
+            pid.wait()
+            if pid.returncode != 0:
+                log.error("Could not run intermediate erf files. Aborting.")
+                sys.exit(-1)
+        except:
+            log.error("Could not create intermediate erf files. Aborting.")
+            sys.exit(-1)
 
     def _remove_erf_dummies(self, sub_erfs):
         for f in sub_erfs:
             os.remove(f)
 
 
+#----------------------------------------------------------------------------#
 class SlurmRunner(Runner):
     def __init__(self):
         Runner.__init__(apps)
@@ -128,6 +148,7 @@ class SlurmRunner(Runner):
         pass
 
 
+#----------------------------------------------------------------------------#
 class MpiexecRunner(Runner):
     def __init__(self):
         Runner.__init__(apps)
@@ -137,15 +158,17 @@ class MpiexecRunner(Runner):
         pass
 
 
+#----------------------------------------------------------------------------#
 class App:
     def __init__(self, l):
         self.exe = l[0]
         self.args = l[1:]
 
     def __str__(self):
-        return (self.exe + " ".join(self.args))
+        return (self.exe + " " + " ".join(self.args))
 
 
+#----------------------------------------------------------------------------#
 class AppCmd:
     """
     An object to hold each application launched in the MPMD command
@@ -165,7 +188,6 @@ class AppCmd:
         str = ""
         str_l_argv = " ".join(self.cmd)
 
-        # print(type(self.app_args))
         # str_app_args = " ".join(self.app_args)
 
         str = str + "App command: {}\n".format(" ".join(self.cmd))
@@ -208,6 +230,7 @@ class AppCmd:
         return app
 
 
+#----------------------------------------------------------------------------#
 def extract_cheetah_apps():
     """
     Extract all app execution commands.
@@ -238,13 +261,19 @@ def verify_same_runner(apps):
             "{} ".format(runner, a.runner)
 
 
+#----------------------------------------------------------------------------#
+loglevel = os.environ.get("LOG_LEVEL", "INFO")
+logging.basicConfig(format='%(levelname)s:%(message)s',level=loglevel)
+log = logging.getLogger("")
+
 runners = {'jsrun':JsrunRunner, 'srun':SlurmRunner, 'mpirun':MpiexecRunner,
            'mpiexec': MpiexecRunner}
 
 apps = extract_cheetah_apps()
 verify_same_runner(apps)
-for a in apps:
-    print(a)
+# for a in apps:
+#    print(a)
 
 runner = runners[apps[0].runner](apps)
 runner.execute()
+
