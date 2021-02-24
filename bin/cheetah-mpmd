@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+
+# Example using jsrun:
+#   cheetah-mpmd jsrun -n1 -r1 -a1 -c1 --cheetah-app ./gray-scott
+#   settings-files.json : jsrun -n1 -r1 -a1 -c1 --cheetah-app pdf_calc
+#   gs.bp pdf.bp
+#
+#   Easy solution is to bind each app to a different set of hosts.
+#   Provide an option to share nodes and resources.
+
+# Example using srun:
+#   How do you express the no. of ranks per node in an srun conf file for MPMD?
+#   I guess you dont need to.
+
+#!/usr/bin/env python3
+
+import sys
+import os
+import subprocess
+import pdb
+
+
+class Runner():
+    def __init__(self, apps):
+        self.runner = None
+        self.apps = apps
+
+    def execute(self):
+        pass
+
+
+class JsrunRunner(Runner):
+    def __init__(self, apps):
+        Runner.__init__(self, apps)
+        self.runner = 'jsrun'
+        self._erf = "cheetah-mpmd.erf"
+
+
+    def execute(self):
+        self._create_erf()
+        self._run_erf()
+
+    def _create_erf(self):
+        sub_erfs = []
+        for i,a in enumerate(self.apps):
+            sub_erfs.append(self._create_erf_dummy(a, i))
+        self._create_main_erf_file(sub_erfs)
+        self._remove_erf_dummies()
+
+    def _create_erf_dummy(self, app, index):
+        erf_dummy = ".cheetah-mpmd-{}.erf".format(index)
+        run_cmd = []
+        run_cmd.append(self.runner)
+        for arg in app.runner_args:
+            run_cmd.append(arg)
+        run_cmd.append("--erf_output={}".format(erf_dummy))
+        run_cmd.append("echo")
+        self._run_erf(run_cmd)
+        return erf_dummy
+
+    def _create_main_erf_file(self, sub_erfs):
+        starting_host = 0
+        app_block = ""
+        config_block = ""
+        mapping_block = ""
+
+    def _run_erf(self, run_cmd):
+        print(run_cmd)
+        pid = subprocess.Popen(run_cmd)
+        pid.wait()
+
+    def _remove_erf_dummies(self, sub_erfs):
+        for f in sub_erfs:
+            os.remove(f)
+
+
+class SlurmRunner(Runner):
+    def __init__(self):
+        Runner.__init__(apps)
+        self.runner = 'srun'
+
+    def execute(self):
+        pass
+
+
+class MpiexecRunner(Runner):
+    def __init__(self):
+        Runner.__init__(apps)
+        self.runner = 'mpirun'
+
+    def execute(self):
+        pass
+
+
+class App:
+    def __init__(self, l):
+        self.exe = l[0]
+        self.args = l[1:]
+
+    def __str__(self):
+        return (self.exe + " ".join(self.args))
+
+
+class AppCmd:
+    """
+    An object to hold each application launched in the MPMD command
+    """
+    def __init__(self, l_argv):
+        """
+        Attributes:
+        l_argv
+        """
+        self._validate(l_argv)
+        self.cmd = l_argv
+        self.runner = self._get_runner()
+        self.runner_args = self._get_runner_args()
+        self.app = self._extract_app()
+
+    def __str__(self):
+        str = ""
+        str_l_argv = " ".join(self.cmd)
+
+        # print(type(self.app_args))
+        # str_app_args = " ".join(self.app_args)
+
+        str = str + "App command: {}\n".format(" ".join(self.cmd))
+        str = str + "Runner: {}\n".format(self.runner)
+        str = str + "Runner args: {}\n".format(" ".join(self.runner_args))
+        str = str + "App exe: {}\n".format(self.app.exe)
+        str = str + "App arguments: {}\n".format(" ".join(self.app.args))
+        return str
+
+    def _validate(self, cmd):
+        assert '--cheetah-app' in cmd, \
+            "Did not find --cheetah-app in app run command '{}'".format(cmd)
+
+    def _get_runner(self):
+        """
+        Get the runner (jsrun/srun/mpirun)
+        """
+        runner = self.cmd[0]
+        assert runner in ('jsrun', 'srun', 'mpirun', 'mpiexec'), \
+            "App runner must be one of jsrun/srun/mpirun/mpiexec. " \
+            "Found {}".format(runner)
+        return runner
+
+    def _get_runner_args(self):
+        runner_args = []
+        for i,e in enumerate(self.cmd[1:]):
+            if e == '--cheetah-app':
+                runner_args = self.cmd[1:i+1]
+        assert len(runner_args) > 0, \
+            "No arguments to {} found".format(self.runner)
+        return runner_args
+
+    def _extract_app(self):
+        app = None
+        for i,e in enumerate(self.cmd):
+            if '--cheetah-app' in e:
+                app = App(self.cmd[i+1:])
+        assert app is not None, \
+            "Cheetah app command cannot be None '{}'".format(self)
+        return app
+
+
+def extract_cheetah_apps():
+    """
+    Extract all app execution commands.
+    For example: The following command has two applications
+    "cheetah-mpmd jsrun -p1 --cheetah-app echo hello :
+    jsrun -p2 --cheetah-app echo hello2"
+    """
+    apps = []
+    start_index = 1
+    for i,e in enumerate(sys.argv[1:]):
+        if e == ':':
+            app_cmd = AppCmd(sys.argv[start_index:i+1])
+            apps.append(app_cmd)
+            start_index = start_index + i+1
+    app_cmd = AppCmd(sys.argv[start_index:])
+    apps.append(app_cmd)
+    return apps
+
+def verify_same_runner(apps):
+    """
+    Verify that all apps are launched using the same runner. e.g., you cannot
+    have jsrun and srun in an MPMD launch.
+    """
+    runner = apps[0].runner
+    for a in apps:
+        assert a.runner == runner, \
+            "Apps must have the same runner. Found different runners {} and " \
+            "{} ".format(runner, a.runner)
+
+
+runners = {'jsrun':JsrunRunner, 'srun':SlurmRunner, 'mpirun':MpiexecRunner,
+           'mpiexec': MpiexecRunner}
+
+apps = extract_cheetah_apps()
+verify_same_runner(apps)
+for a in apps:
+    print(a)
+
+runner = runners[apps[0].runner](apps)
+runner.execute()
