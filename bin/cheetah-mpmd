@@ -30,13 +30,29 @@ class Runner():
     def execute(self):
         pass
 
+    def _run(self, run_cmd):
+        assert self.runner is not None
+        err_msg = "{} failed. Aborting".format(self.runner)
+        log.info("Running `{}`".format(" ".join(run_cmd)))
+        try:
+            pid = subprocess.Popen(run_cmd)
+            pid.communicate()
+            pid.wait()
+            if pid.returncode != 0:
+                log.error(err_msg)
+                sys.exit(-1)
+        except:
+            log.error(err_msg)
+            sys.exit(-1)
+        log.info("DONE")
+
 
 #----------------------------------------------------------------------------#
 class JsrunRunner(Runner):
     def __init__(self, apps):
         Runner.__init__(self, apps)
         self.runner = 'jsrun'
-        self._erf = "mpmd-cheetah.erf"
+        self._erf = "mpmd-cheetah-jsrun.erf"
         try:
             os.remove(self._erf)
         except:
@@ -45,10 +61,8 @@ class JsrunRunner(Runner):
     def execute(self):
         self._create_erf()
         run_cmd = ["jsrun","--erf_input={}".format(self._erf)]
-        log.info("Executing `{}`".format(" ".join(run_cmd)))
-        self._run_erf(run_cmd)
+        Runner._run(self, run_cmd)
         # os.remove(self._erf)
-        log.info("DONE")
 
     def _create_erf(self):
         sub_erfs = []
@@ -121,18 +135,6 @@ class JsrunRunner(Runner):
                     mpmd_rankid = mpmd_rankid + 1
         return mapping_block
 
-    def _run_erf(self, run_cmd):
-        try:
-            pid = subprocess.Popen(run_cmd)
-            pid.communicate()
-            pid.wait()
-            if pid.returncode != 0:
-                log.error("Could not run intermediate erf files. Aborting.")
-                sys.exit(-1)
-        except:
-            log.error("Could not create intermediate erf files. Aborting.")
-            sys.exit(-1)
-
     def _remove_erf_dummies(self, sub_erfs):
         for f in sub_erfs:
             os.remove(f)
@@ -140,12 +142,44 @@ class JsrunRunner(Runner):
 
 #----------------------------------------------------------------------------#
 class SlurmRunner(Runner):
-    def __init__(self):
-        Runner.__init__(apps)
+    def __init__(self, apps):
+        Runner.__init__(self, apps)
         self.runner = 'srun'
+        self.conf_file = "mpmd-cheetah-slurm.conf"
 
     def execute(self):
-        pass
+        self._create_slurm_conf()
+        run_cmd = ['srun', '--multi-prog', '{}'.format(self.conf_file)]
+        Runner._run(self, run_cmd)
+
+    def _create_slurm_conf(self):
+        log.info("Creating mpmd conf file {}".format(self.conf_file))
+        mpmd_rankid = 0
+        s = ""
+        for app in self.apps:
+            nprocs = self._get_app_nprocs(app.runner_args)
+            s = s + "{}-{}".format(mpmd_rankid, mpmd_rankid+nprocs-1)
+            s = s + "\t{}\n".format(app.app)
+            mpmd_rankid = mpmd_rankid + nprocs
+        try:
+            with open(self.conf_file, "w") as f:
+                f.write(s)
+        except:
+            log.error("Could not create conf file. Aborting")
+            sys.exit(-1)
+        log.info("Created conf file successfully")
+
+    def _get_app_nprocs(self, runner_args):
+        nprocs = 0
+        for i,a in enumerate(runner_args):
+            if a == '-n':
+                nprocs = int(runner_args[i+1])
+                break
+            elif a.startswith('-n'):
+                nprocs = int(a.split('-n')[1])
+                break
+        assert nprocs > 0
+        return nprocs
 
 
 #----------------------------------------------------------------------------#
@@ -263,7 +297,7 @@ def verify_same_runner(apps):
 
 #----------------------------------------------------------------------------#
 loglevel = os.environ.get("LOG_LEVEL", "INFO")
-logging.basicConfig(format='%(levelname)s:%(message)s',level=loglevel)
+logging.basicConfig(format='%(levelname)s: %(message)s',level=loglevel)
 log = logging.getLogger("")
 
 runners = {'jsrun':JsrunRunner, 'srun':SlurmRunner, 'mpirun':MpiexecRunner,
