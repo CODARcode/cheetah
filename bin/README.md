@@ -4,13 +4,17 @@
 
 ### How to run
 Get an allocation, and run
+
 [Summit]
+
 `cheetah-mpmd jsrun -n1 -a4 -c4 --cheetah-app ./gray-scott settings-files.json : -n1 -a1 -c1 --cheetah-app ./pdf-calc gs.bp pdf.bp`
 
 [Andes and other Slurm clusters]
+
 `cheetah-mpmd srun -n4 -N1 --cheetah-app ./gray-scott settings-files.json : -n1 --cheetah-app ./pdf-calc gs.bp pdf.bp`
 
 [local machines]
+
 `cheetah-mpmd mpirun -np 4 --cheetah-app ./gray-scott settings-files.json : -np 1 --cheetah-app ./pdf-calc gs.bp pdf.bp`
 
 You must mark your application executable using the `--cheetah-app` argument.
