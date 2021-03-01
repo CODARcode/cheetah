@@ -245,6 +245,10 @@ class AppCmd:
         assert '--cheetah-app' in cmd, \
             "Did not find --cheetah-app in app run command '{}'".format(cmd)
 
+        assert cmd[0] not in ['jsrun', 'srun', 'mpirun'], \
+            "First argument in {} cannot be jsrun/srun/mpirun".format(
+            " ".join(cmd))
+
     def _get_runner_args(self):
         runner_args = []
         for i,e in enumerate(self.cmd[:]):
