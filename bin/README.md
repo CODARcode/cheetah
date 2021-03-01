@@ -17,9 +17,9 @@ Get an allocation, and run
 
 `cheetah-mpmd mpirun -np 4 --cheetah-app ./gray-scott settings-files.json : -np 1 --cheetah-app ./pdf-calc gs.bp pdf.bp`
 
-You must mark your application executable using the `--cheetah-app` argument.
-
-By default, the logging level is set to INFO. You can set the `LOG_LEVEL` environment variable to `DEBUG` for more information.
+You must mark your application executable using the `--cheetah-app` argument.  
+By default, the logging level is set to INFO. You can set the `LOG_LEVEL` environment variable to `DEBUG` for more information.  
+You can have as many applications in the mpmd launch (you need at least 2).
 
 ### Underlying Implementation
 #### Summit
