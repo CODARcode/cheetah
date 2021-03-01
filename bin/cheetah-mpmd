@@ -87,7 +87,7 @@ class JsrunRunner(Runner):
         run_cmd.append("true")
         log.debug("Running jsrun to create temporary erf file " \
                   "{}".format(erf_dummy))
-        self._run_erf(run_cmd)
+        self._run(run_cmd)
         return erf_dummy
 
     def _create_main_erf_file(self, sub_erfs):
