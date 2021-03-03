@@ -798,11 +798,14 @@ class Pipeline(object):
             if layout_type == 'NodeConfig':
                 self._parse_node_layouts()
 
-            launch_mode = self.launch_mode or 'None'
-            if launch_mode.lower() == 'mpmd':
-                mpmd_run = Run.mpmd_run(self.runs)
-                mpmd_run.nodes = self.total_nodes
-                self.runs = [mpmd_run]
+            for l in self.mpmd_launch:
+                runs = []
+                for r in l:
+                    robj = self._get_run_by_name(r)
+                    runs.append(robj)
+                    self.runs.remove(robj)
+                mpmd_run = Run.mpmd_run(runs)
+                self.runs.append(mpmd_run)
 
             for run in self.runs:
                 run.set_runner(runner)
