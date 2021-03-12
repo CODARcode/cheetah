@@ -648,13 +648,13 @@ class Run(object):
             "{} does not support MPMD mode".format(self.machine.name)
 
         # Assert type is a list of lists
-        err_msg = "Sweep.mpmd_launch {} must be a list of lists. \n " \
-            "For example: mpmd_launch = [ ['sim1', 'sim2'], ['sim3', " \
-            "'sim4'] ]".format(self.mpmd_launch)
+        err_msg = "Sweep.mpmd_launch {} must be a list of MPMDGroup objects." \
+            "\nFor example: mpmd_launch = [ MPMDGroup('sim1', 'sim2'), " \
+            "MPMDGroup('sim3', 'sim4') ]".format(self.mpmd_launch)
 
         assert type(self.mpmd_launch) is list, err_msg
         for mpmd_set in self.mpmd_launch:
-            assert type(mpmd_set) is list, err_msg
+            assert type(mpmd_set) is MPMDGroup, err_msg
 
         # Assert it has at least 2 RCs
         for mpmd_set in self.mpmd_launch:
@@ -726,3 +726,8 @@ class RunComponent(object):
         if self.after_rc_done:
             data['after_rc_done'] = self.after_rc_done.name
         return data
+
+
+class MPMDGroup(list):
+    def __init__(self, *args):
+        super().__init__(args)
