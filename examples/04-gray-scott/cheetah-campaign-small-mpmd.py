@@ -2,6 +2,7 @@ from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.model import MPMDGroup
+from codar.savanna.machines import SummitNode
 import copy
 
 
@@ -23,7 +24,7 @@ class GrayScott(Campaign):
             ]
 
     # List of machines on which this code can be run
-    supported_machines = ['local', 'titan', 'theta']
+    supported_machines = ['local', 'titan', 'theta', 'summit']
 
     # Kill an experiment right away if any workflow components fail (just the experiment, not the whole group)
     kill_on_partial_failure = True
@@ -38,10 +39,11 @@ class GrayScott(Campaign):
     umask = '027'
 
     # Options for the underlying scheduler on the target system. Specify the project ID and job queue here.
-    scheduler_options = {'theta': {'project':'CSC249ADCD01', 'queue': 'default'}}
+    scheduler_options = {'theta': {'project':'CSC249ADCD01', 'queue': 'default'}, 
+                         'summit': {'project':'csc299'} }
 
     # A way to setup your environment before the experiment runs. Export environment variables such as LD_LIBRARY_PATH here.
-    app_config_scripts = {'local': 'setup.sh', 'theta': 'env_setup.sh'}
+    app_config_scripts = {'local': 'setup.sh', 'theta': 'env_setup.sh', 'summit':'env-setup.sh'}
 
     # Setup the sweep parameters for a Sweep
     sweep1_parameters = [
@@ -82,13 +84,28 @@ class GrayScott(Campaign):
             p.ParamCmdLineArg   ('pdf2', 'outfile', 2, ['pdf-2.bp']),
     ]
 
+    node = SummitNode()
+    node.cpu[0] = 'simulation:0'
+    node.cpu[1] = 'simulation:1'
+    node.cpu[2] = 'sim2:0'
+    node.cpu[3] = 'sim2:1'
+    node.cpu[4] = 'pdf_calc:0'
+    node.cpu[5] = 'pdf_calc:1'
+    node.cpu[6] = 'pdf2:0'
+    node.cpu[7] = 'pdf2:1'
+    node.cpu[8] = 'analysis:0'
+    shared_node_layout = [node]
+
     # Create a Sweep object. This one does not define a node-layout, and thus, all cores of a compute node will be 
     #   utilized and mapped to application ranks.
-    sweep1 = p.Sweep (parameters = sweep1_parameters, mpmd_launch = [MPMDGroup('simulation','pdf_calc'), MPMDGroup('sim2', 'pdf2')])
+    sweep1 = p.Sweep (parameters = sweep1_parameters,
+                      mpmd_launch = [MPMDGroup('simulation','pdf_calc'), MPMDGroup('sim2', 'pdf2')],
+                      node_layout={'summit':shared_node_layout}
+                      )
 
     # Create a SweepGroup and add the above Sweeps. Set batch job properties such as the no. of nodes, 
     sweepGroup1 = p.SweepGroup ("sg-1", # A unique name for the SweepGroup
-                                walltime=3600,  # Total runtime for the SweepGroup
+                                walltime=600,  # Total runtime for the SweepGroup
                                 per_run_timeout=600,    # Timeout for each experiment                                
                                 parameter_groups=[sweep1],   # Sweeps to include in this group
                                 # nodes=128,  # No. of nodes for the batch job.
