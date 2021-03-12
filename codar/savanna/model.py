@@ -208,7 +208,7 @@ class Run(threading.Thread):
         # For Summit, just return runs. The ERF helper will handle it. For
         # other machines, return a single aggregated Run object
 
-        if runs[0].machine.name.lower() == 'summit':
+        if runs[0].machine.runner_name != 'mpiexec':
             mpmd_name = "mpmd-" + "-".join([run.name for run in runs])
             # create a run object, name it 'mpmd', and add runs as child runs
             r = Run(name=mpmd_name, exe=None, args=None, sched_args=None,

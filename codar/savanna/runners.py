@@ -1,4 +1,5 @@
 import shutil
+import sys
 from codar.savanna import machines
 
 
@@ -31,6 +32,44 @@ class MPIRunner(Runner):
         if run.hostfile is not None:
             runner_args += [self.hostfile, str(run.hostfile)]
         return runner_args + [run.exe] + run.args
+
+
+class SlurmRunner(MPIRunner):
+    def __init__(self, exe, nprocs_arg, nodes_arg=None,
+                 tasks_per_node_arg=None, hostfile=None, mpmd_arg=None):
+        super().__init__(exe, nprocs_arg, nodes_arg, tasks_per_node_arg,
+                         hostfile)
+        self.mpmd_arg = mpmd_arg
+
+    def wrap(self, run, sched_args, find_in_path=True):
+        if run.child_runs is not None:
+            return self._mpmd_wrap(run)
+        else:
+            return super().wrap(run, sched_args, find_in_path)
+
+    def _mpmd_wrap(self, run):
+        conf_fname = "mpmd-" + "-".join([crun.name for crun in
+                                         run.child_runs]) + ".conf"
+        conf_path = run.working_dir + "/" + conf_fname
+
+        self._create_conf(conf_path, run)
+        return ['srun', '--multi-prog', conf_path]
+
+    def _create_conf(self, conf_path, run):
+        mpmd_rankid = 0
+        s = ""
+        for crun in run.child_runs:
+            run_cmd = crun.exe + " ".join(crun.args)
+            nprocs = crun.nprocs
+            s = s + "{}-{}".format(mpmd_rankid, mpmd_rankid+nprocs-1)
+            s = s + "\t{}\n".format(run_cmd)
+            mpmd_rankid = mpmd_rankid + nprocs
+        try:
+            with open(conf_path, "w") as f:
+                f.write(s)
+        except:
+            raise Exception("Could not create Slurm conf file {} for MPMD "
+                            "run. ABORTING..".format(conf_path))
 
 
 class DTH2Runner(Runner):
@@ -122,7 +161,7 @@ class SummitRunner(Runner):
 
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
-srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
+srun = SlurmRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
 mpirunc = DTH2Runner(0)
 mpirung = DTH2Runner(1)
 jsrun = SummitRunner()
