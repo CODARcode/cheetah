@@ -209,8 +209,9 @@ class Run(threading.Thread):
         # other machines, return a single aggregated Run object
 
         if runs[0].machine.name.lower() == 'summit':
+            mpmd_name = "-".join([run.name for run in runs])
             # create a run object, name it 'mpmd', and add runs as child runs
-            r = Run(name='mpmd', exe=None, args=None, sched_args=None,
+            r = Run(name=mpmd_name, exe=None, args=None, sched_args=None,
                     env=runs[0].env, working_dir=runs[0].working_dir,
                     machine=runs[0].machine, apps_dir=runs[0].apps_dir,
                     timeout=runs[0].timeout, nprocs=None, res_set=None,
