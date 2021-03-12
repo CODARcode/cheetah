@@ -59,7 +59,7 @@ class SlurmRunner(MPIRunner):
         mpmd_rankid = 0
         s = ""
         for crun in run.child_runs:
-            run_cmd = crun.exe + " ".join(crun.args)
+            run_cmd = crun.exe + " " + " ".join(crun.args)
             nprocs = crun.nprocs
             s = s + "{}-{}".format(mpmd_rankid, mpmd_rankid+nprocs-1)
             s = s + "\t{}\n".format(run_cmd)
