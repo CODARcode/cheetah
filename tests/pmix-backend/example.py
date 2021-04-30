@@ -11,7 +11,18 @@ def node_layout_to_json(layouts):
 
 
 def num_nodes_available():
-    """Placeholder for fetching the number of allocated nodes
+    """Detect the number of nodes in this allocation
+    """
+
+    # If not on Summit, provide a way to get the no. of nodes, 
+    #   or hardcode them if you want
+
+    # If running on Summit
+    return num_nodes_available_Summit()
+
+
+def num_nodes_available_Summit():
+    """Placeholder for fetching the number of allocated nodes on Summit
     """
 
     # Put a try-except for testing. At runtime, you can get 
