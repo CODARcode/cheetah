@@ -51,6 +51,7 @@ OUTPUT=$(sbatch --parsable \
         --nodes=$CODAR_CHEETAH_GROUP_NODES \
         --time=$SLURM_WALLTIME \
         $extra_args \
+		$CODAR_CHEETAH_SCHEDULER_CUSTOM \
         run-group.sbatch)
 
 rval=$?

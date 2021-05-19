@@ -34,6 +34,7 @@ OUTPUT=$(qsub \
         --nodecount=$CODAR_CHEETAH_GROUP_NODES \
         --time $HMS_WALLTIME \
         --jobname="$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
+		$CODAR_CHEETAH_SCHEDULER_CUSTOM \
         run-group.cobalt)
 
 rval=$?

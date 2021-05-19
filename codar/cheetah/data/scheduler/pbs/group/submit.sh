@@ -34,6 +34,7 @@ OUTPUT=$(qsub \
         -N "$CODAR_CHEETAH_CAMPAIGN_NAME-$CODAR_CHEETAH_GROUP_NAME" \
         -l nodes=$CODAR_CHEETAH_GROUP_NODES \
         -l walltime=$PBS_WALLTIME \
+		$CODAR_CHEETAH_SCHEDULER_CUSTOM \
         run-group.pbs)
 
 rval=$?
