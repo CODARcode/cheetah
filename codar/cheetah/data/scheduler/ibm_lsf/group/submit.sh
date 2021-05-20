@@ -42,6 +42,7 @@ OUTPUT=$(bsub \
         -W $LSF_WALLTIME \
         -alloc_flags "gpudefault NVME" \
         $extra_args \
+		$CODAR_CHEETAH_SCHEDULER_CUSTOM \
         run-group.lsf)
 
 rval=$?

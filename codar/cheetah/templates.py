@@ -30,6 +30,9 @@ export CODAR_CHEETAH_SCHEDULER_CONSTRAINT="{constraint}"
 export CODAR_CHEETAH_SCHEDULER_LICENSE="{license}"
 export CODAR_CHEETAH_SCHEDULER_RESERVATION="{reservation}"
 
+# User-defined
+export CODAR_CHEETAH_SCHEDULER_CUSTOM="{custom}"
+
 export CODAR_CHEETAH_CAMPAIGN_NAME="{campaign_name}"
 
 export CODAR_CHEETAH_GROUP_NAME="{group_name}"
