@@ -1,6 +1,6 @@
 title: Cheetah
 description: An Experiment Harness and Campaign Management System for In Situ Data Management <br> ECP CODAR
-theme: jekyll-theme-hacker
+theme: jekyll-theme-leap-day
 markdown: kramdown
 kramdown:
   input: GFM
