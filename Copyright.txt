@@ -17,6 +17,7 @@ limitations under the License.
 The following individuals and institutions are among the Contributors:
 
 * Kshitij Mehta <mehtakv@ornl.gov>
+* Eric Suchyta <suchytaed@ornl.gov>
 * Bryce Allen <bdallen@uchicago.edu>
 * Igor Yakushin <iyakushin@anl.gov>
 

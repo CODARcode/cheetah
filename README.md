@@ -29,7 +29,7 @@ Installation
   source venv-cheetah/bin/activate
   pip install --editable .
   ```
-* Cheetah has been tested so far on Summit, Theta, Cori, and standalone Linux computers
+* Cheetah has been tested on Summit (ORNL), Andes (ORNL), Theta (ANL), Cori (LBNL), and standalone Linux computers
 
 ##### Setting up a Cheetah environment
    ```bash
@@ -50,9 +50,9 @@ System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Shar
 :-----------| :---------------| :----------------------------| :---------------------------
 Local Linux machines | :white_check_mark: | N/A | N/A
 Summit (ORNL) | :white_check_mark: | :white_check_mark: | :white_check_mark:
-Andes (ORNL) | :white_check_mark: | In progress | In progress
+Andes (ORNL) | :white_check_mark: | :x: | :x:
 Theta (ANL) | :white_check_mark: | :x: | N/A
-Cori (LBNL | :white_check_mark: | :white_check_mark: | In progress
+Cori (LBNL) | :white_check_mark: | :white_check_mark: | In progress
 
 Authors
 -------
