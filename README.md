@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Cheetah - An Experiment Harness and Campaign Management System
 ==============================================================
 
@@ -84,4 +86,6 @@ Please open an issue on the [github issues](https://github.com/CODARcode/cheetah
 
 License
 -------
+Cheetah is licensed under the Apache License v2.0.
+See the accompanying [Copyright.txt](Copyright.txt) for more details.
 
