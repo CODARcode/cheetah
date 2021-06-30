@@ -158,6 +158,8 @@ def dir_size(path):
     def get_dir_size(path):
         size = 0
         for entry in os.scandir(path):
+            if entry.is_symlink():
+                continue
             if entry.is_file():
                 size += entry.stat(follow_symlinks=False).st_size
             elif entry.is_dir():
