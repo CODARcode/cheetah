@@ -1,3 +1,5 @@
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 Cheetah - An Experiment Harness and Campaign Management System
 ==============================================================
 
@@ -27,7 +29,7 @@ Installation
   source venv-cheetah/bin/activate
   pip install --editable .
   ```
-* Cheetah has been tested so far on Summit, Theta, Cori, and standalone Linux computers
+* Cheetah has been tested on Summit (ORNL), Andes (ORNL), Theta (ANL), Cori (LBNL), and standalone Linux computers
 
 ##### Setting up a Cheetah environment
    ```bash
@@ -41,21 +43,20 @@ The Cheetah documentation can be found at [https://codarcode.github.io/cheetah](
 
 Releases
 --------
-The current release is [1.1.0](https://github.com/CODARcode/cheetah/releases/tag/v1.1.0).
+The current release is [1.1.1](https://github.com/CODARcode/cheetah/releases/tag/v1.1.1).
 
 ### Supported Systems
 System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Sharing Support 
 :-----------| :---------------| :----------------------------| :---------------------------
 Local Linux machines | :white_check_mark: | N/A | N/A
-Summit | :white_check_mark: | :white_check_mark: | :white_check_mark:
-Rhea| :white_check_mark: | In progress | In progress
-Titan | :white_check_mark: | :x: | N/A
-Theta | :white_check_mark: | :x: | N/A
-Cori | :white_check_mark: | :white_check_mark: | In progress
+Summit (ORNL) | :white_check_mark: | :white_check_mark: | :white_check_mark:
+Andes (ORNL) | :white_check_mark: | :x: | :x:
+Theta (ANL) | :white_check_mark: | :x: | N/A
+Cori (LBNL) | :white_check_mark: | :white_check_mark: | In progress
 
 Authors
 -------
-The primary authors of Cheetah are Bryce Allen (University of Chicago) and Kshitij Mehta (ORNL).
+The primary authors of Cheetah are Kshitij Mehta (ORNL) and Bryce Allen (University of Chicago).
 All contributors are listed [here](https://github.com/CODARcode/cheetah/graphs/contributors).
 
 Citing Cheetah
@@ -85,4 +86,6 @@ Please open an issue on the [github issues](https://github.com/CODARcode/cheetah
 
 License
 -------
+Cheetah is licensed under the Apache License v2.0.
+See the accompanying [Copyright.txt](Copyright.txt) for more details.
 

@@ -21,6 +21,7 @@ from codar.cheetah.helpers import copy_to_dir, copytree_to_dir, dir_size, \
 from codar.cheetah.parameters import SymLink
 from codar.cheetah.adios2_interface import get_adios_version
 from codar.cheetah import adios2_interface as adios2
+from codar.cheetah import error_messages as err
 
 
 class Launcher(object):
@@ -132,7 +133,7 @@ class Launcher(object):
 
                         else:
                             raise exc.CheetahException \
-                                ("Could not component input {}"
+                                ("Could not copy component input {}"
                                  .format(input_file))
 
             # ADIOS XML param support
@@ -306,7 +307,7 @@ class Launcher(object):
                 fob_runs.append(rc.as_fob_data())
 
             fob = dict(id=run.run_id, launch_mode=launch_mode, runs=fob_runs,
-                       working_dir=run.run_path,
+                       working_dir=run.run_path, apps_dir=app_dir,
                        kill_on_partial_failure=kill_on_partial_failure,
                        post_process_script=run_post_process_script,
                        post_process_stop_on_failure=
@@ -361,6 +362,7 @@ class Launcher(object):
             account=scheduler_options.get('project', ''),
             queue=scheduler_options.get('queue', ''),
             reservation=scheduler_options.get('reservation', ''),
+            custom=scheduler_options.get('custom', ''),
             # TODO: require name be valid for all schedulers
             campaign_name='codar.cheetah.'+campaign_name,
             group_name=group_name,

@@ -11,7 +11,7 @@ import pdb
 # possible. For example, queue is mapped to partition on cori/slurm.
 # TODO: deeper validation, probably bring back a scheduler model.
 SCHEDULER_OPTIONS = {"project", "queue", "constraint", "license",
-                     "reservation"}
+                     "reservation", "custom"}
 
 
 class MachineNode:
@@ -168,44 +168,57 @@ cori = Machine('cori', "slurm", "srun", MachineNode,
                scheduler_options=dict(project="",
                                       queue="debug",
                                       constraint="haswell",
-                                      license="SCRATCH,project"))
+                                      license="SCRATCH,project",
+                                      custom=""))
 
 sdg_tm76 = Machine('sdg_tm76', "slurm", "srun", MachineNode,
                 processes_per_node=96, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="", queue="default",
-                                       reservation=""))
+                                       reservation="", custom=""))
 
 rhea = Machine('rhea', "slurm", "srun", MachineNode,
                 processes_per_node=16, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
                 scheduler_options=dict(project="",queue="batch",
-                                       reservation=""))
+                                       reservation="", custom=""))
 
 rhea_gpu = Machine('rhea_gpu', "slurm", "srun", MachineNode,
                 processes_per_node=14, node_exclusive=True,
                 dataspaces_servers_per_node=1, # needs to be removed
-                scheduler_options=dict(project="",queue="gpu", reservation=""))
+                scheduler_options=dict(project="",queue="gpu", reservation="", custom=""))
+
+andes = Machine('andes', "slurm", "srun", MachineNode,
+                processes_per_node=32, node_exclusive=True,
+                dataspaces_servers_per_node=1, # needs to be removed
+                scheduler_options=dict(project="",queue="batch",
+                                       reservation="", custom=""))
+
+andes_gpu = Machine('andes_gpu', "slurm", "srun", MachineNode,
+                processes_per_node=28, node_exclusive=True,
+                dataspaces_servers_per_node=1, # needs to be removed
+                scheduler_options=dict(project="",queue="gpu", reservation="", custom=""))
 
 theta = Machine('theta', "cobalt", "aprun", MachineNode,
                 processes_per_node=64, node_exclusive=True,
                 dataspaces_servers_per_node=8,
                 scheduler_options=dict(project="",
-                                       queue="debug-flat-quad"))
+                                       queue="debug-flat-quad",
+                                       custom=""))
 
 
 summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
                  processes_per_node=42, node_exclusive=True,
-                 scheduler_options=dict(project="", reservation=""))
+                 scheduler_options=dict(project="", reservation="", custom=""))
 
 
 deepthought2_cpu = Machine('deepthought2_cpu', "slurm", "mpirunc", DTH2CPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project="", queue="default"))
+                           scheduler_options=dict(project="", queue="default", custom=""))
 
 deepthought2_gpu = Machine('deepthought2_gpu', "slurm", "mpirung", DTH2GPUNode,
                            processes_per_node=20, node_exclusive=False,
-                           scheduler_options=dict(project="", queue="default"))
+                           scheduler_options=dict(project="", queue="default", custom=""))
 
 
 def get_by_name(name):

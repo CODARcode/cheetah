@@ -24,6 +24,7 @@ import pdb
 from codar.savanna import machines
 from codar.savanna.node_layout import NodeLayout
 from codar.cheetah import parameters, config, templates, exc, machine_launchers
+from codar.cheetah.launchers import Launcher
 from codar.cheetah.helpers import copy_to_dir, copy_to_path
 from codar.cheetah.helpers import relative_or_absolute_path, \
     relative_or_absolute_path_list, parse_timedelta_seconds
@@ -137,15 +138,6 @@ class Campaign(object):
                 'Code names conflict with reserved names: '
                 + ", ".join(str(name) for name in conflict_names))
 
-        # Resolve relative code exe pahts. Checking for existence is not
-        # done until make_experiment_run_dir is called to simplify unit
-        # testing.
-        for code_name, code in self.codes.items():
-            exe_path = code['exe']
-            if not exe_path.startswith('/'):
-                exe_path = os.path.join(self.app_dir, exe_path)
-                code['exe'] = exe_path
-
         if self.run_post_process_script is not None:
             self.run_post_process_script = self._experiment_relative_path(
                                                 self.run_post_process_script)
@@ -189,7 +181,7 @@ class Campaign(object):
                 % (machine_name, self.name))
         return machine
 
-    def make_experiment_run_dir(self, output_dir, _check_code_paths=True):
+    def make_experiment_run_dir(self, output_dir, _check_code_paths=False):
         """Produce scripts and directory structure for running the experiment.
 
         Directory structure will be a subdirectory for each scheduler group,
@@ -269,9 +261,9 @@ class Campaign(object):
             # TODO: support alternate template for dirs?
             group_name = group.name
             group_output_dir = os.path.join(output_dir, group_name)
-            launcher = machine_launchers.get_launcher(self.machine,
-                                                      group_output_dir,
-                                                      len(self.codes))
+            launcher = Launcher(self.machine.name, self.machine.scheduler_name,
+                                self.machine.runner_name, group_output_dir,
+                                len(self.codes))
             group_runs = []
             for repeat_index in range(0, group.run_repetitions+1):
                 group_run_offset = 0
@@ -411,7 +403,9 @@ class Campaign(object):
         requested_group_names = []
         for group_i, group in enumerate(self.sweeps):
             if not isinstance(group, parameters.SweepGroup):
-                raise ValueError("top level run groups must be SweepGroup")
+                raise ValueError("'sweeps' must be a list of SweepGroup "
+                                 "objects. Some objects are of type "
+                                 "{}".format(type(group)))
             requested_group_names.append(group.name)
 
         existing_groups = next(os.walk(campaign_dir))[1]
@@ -495,6 +489,8 @@ class Run(object):
             if self.component_inputs:
                 component_inputs = self.component_inputs.get(target)
             if component_inputs:
+                assert type(component_inputs) is list, \
+                    "component_inputs for {} must be a list.".format(target)
                 # Get the full path of inputs
                 # Separate the strings from symlinks to preserve their type
                 str_inputs = [input for input in component_inputs if type(

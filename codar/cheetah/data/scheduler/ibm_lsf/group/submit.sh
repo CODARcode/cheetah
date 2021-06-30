@@ -17,6 +17,12 @@ if [ -f codar.workflow.status.json ]; then
     fi
 fi
 
+# Copy the env setup to the Sweep Group
+if [ -n "$CODAR_CHEETAH_APP_CONFIG" ]; then
+  ENV_SETUP_SCRIPT="codar.savanna.env_setup.$CODAR_CHEETAH_MACHINE_NAME"
+  cp "$CODAR_CHEETAH_APP_CONFIG" "$ENV_SETUP_SCRIPT"
+fi
+
 # Gather flags for gpumps and SMT level to be passed on to -alloc_flags
 alloc_flags=
 
@@ -36,6 +42,7 @@ OUTPUT=$(bsub \
         -W $LSF_WALLTIME \
         -alloc_flags "gpudefault NVME" \
         $extra_args \
+		$CODAR_CHEETAH_SCHEDULER_CUSTOM \
         run-group.lsf)
 
 rval=$?

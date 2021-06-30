@@ -15,9 +15,6 @@ export CODAR_WORKFLOW_RUNNER="{workflow_runner}"
 export CODAR_CHEETAH_WORKFLOW_LOG_LEVEL="{workflow_debug_level}"
 export CODAR_CHEETAH_UMASK="{umask}"
 export CODAR_PYTHON="{codar_python}"
-
-# Copy the env setup to the campaign
-cp "{app_config}" "{experiment_dir}/."
 """
 
 
@@ -32,6 +29,9 @@ export CODAR_CHEETAH_SCHEDULER_QUEUE="{queue}"
 export CODAR_CHEETAH_SCHEDULER_CONSTRAINT="{constraint}"
 export CODAR_CHEETAH_SCHEDULER_LICENSE="{license}"
 export CODAR_CHEETAH_SCHEDULER_RESERVATION="{reservation}"
+
+# User-defined
+export CODAR_CHEETAH_SCHEDULER_CUSTOM="{custom}"
 
 export CODAR_CHEETAH_CAMPAIGN_NAME="{campaign_name}"
 

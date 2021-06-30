@@ -15,15 +15,18 @@ permanent and not subject to outside forces like the job walltime expiring.
 import time
 import subprocess
 import os
+import shutil
 import math
 import threading
 import signal
 import logging
+import json
 from queue import Queue
 import pdb
 
 from codar.savanna import tau, status, machines, summit_helper, \
     deepthought2_helper
+from codar.savanna.error_messages import err_msg
 from codar.savanna.exc import SavannaException
 from codar.savanna.node_layout import NodeLayout
 
@@ -32,6 +35,8 @@ STDOUT_NAME = 'codar.workflow.stdout'
 STDERR_NAME = 'codar.workflow.stderr'
 RETURN_NAME = 'codar.workflow.return'
 WALLTIME_NAME = 'codar.workflow.walltime'
+RUN_ENVIRON_NAME = '.codar.savanna.{}.environment.json'
+EXE_INFO_FNAME = '.codar.savanna.{}.exe.info.txt'
 
 KILL_WAIT = 30
 WAIT_DELAY_KILL = 30
@@ -64,8 +69,8 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, sched_args, env, working_dir,
-                 timeout=None, nprocs=1, res_set=None,
+    def __init__(self, name, exe, args, sched_args, env, working_dir, apps_dir,
+                 machine, timeout=None, nprocs=1, res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -75,12 +80,18 @@ class Run(threading.Thread):
         threading.Thread.__init__(self, name="Thread-Run-" + name)
         self.name = name
         self.exe = exe
-        self.args = list(filter(None, args))
+        self.args = args
+        if args: self.args = list(filter(None, args))
         self.sched_args = sched_args
         self.env = env or {}
         self.working_dir = working_dir
+        self.apps_dir = apps_dir
+        self.machine = machine
         self.timeout = timeout
         self.nprocs = nprocs
+
+        # Get the path to the exe
+        self._find_exe()
 
         # Check tau options and set self.exe to tau_exec
         self.tau_profiling = tau_profiling
@@ -134,8 +145,6 @@ class Run(threading.Thread):
         # mpi hostfile option
         self.hostfile = hostfile
 
-        self.machine = None
-
         # nodes assigned needed for Summit
         self.nodes_assigned = None
 
@@ -156,6 +165,11 @@ class Run(threading.Thread):
         # For mpmd mode on machines such as Summit, keep a list of child runs
         self.child_runs = None
 
+        # Add stdout and stderr redirection to args
+        _args = self.args or []
+        _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
+        self.args = _args
+
     @classmethod
     def from_data(cls, data):
         """Create Run instance from nested dictionary data structure, e.g.
@@ -167,6 +181,8 @@ class Run(threading.Thread):
                 sched_args=data['sched_args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
                 working_dir=data['working_dir'],
+                machine=data['machine'],
+                apps_dir=data['apps_dir'],
                 timeout=data.get('timeout'),
                 nprocs=data.get('nprocs', 1),
                 res_set=data.get('res_set'),
@@ -196,6 +212,7 @@ class Run(threading.Thread):
             # create a run object, name it 'mpmd', and add runs as child runs
             r = Run(name='mpmd', exe=None, args=None, sched_args=None,
                     env=runs[0].env, working_dir=runs[0].working_dir,
+                    machine=runs[0].machine, apps_dir=runs[0].apps_dir,
                     timeout=runs[0].timeout, nprocs=None, res_set=None,
                     stdout_path=None, stderr_path=None, return_path=None,
                     walltime_path=None, sleep_after=None,
@@ -305,6 +322,32 @@ class Run(threading.Thread):
     def remove_callback(self, fn):
         self.callbacks.remove(fn)
 
+    def _find_exe(self):
+        """
+        Find the absolute path of the exe in the app dir pointed to by -a
+        during campaign creation time, or in $PATH.
+        """
+
+        # Fucking exception for MPMD mode on Summit. The top-level run
+        # object is an empty placeholder, so its exe is None. The actual runs
+        # are in its child runs.
+        if self.exe is None:
+            return
+
+        env = os.environ.copy()
+        env['PATH'] = self.apps_dir + ":" + env['PATH']
+        env.update(self.env)
+
+        exe_path = shutil.which(self.exe, path=env['PATH'])
+        if exe_path is not None:
+            self.exe = exe_path
+
+        # Write the exe path to file
+        exe_info_file = self.working_dir + "/" + \
+                        EXE_INFO_FNAME.format(self.name)
+        with open(exe_info_file, 'w') as f:
+            f.write(self.exe)
+
     def run(self):
         try:
             self._run()
@@ -365,8 +408,7 @@ class Run(threading.Thread):
         if self._p is None:
             self._run_callbacks()
             return
-        _log.info('%s start pid=%d pgid=%d args=%r',
-                  self.log_prefix, self._p.pid, self._pgid, args)
+
         try:
             self._p.wait(self.timeout)
         except subprocess.TimeoutExpired:
@@ -478,14 +520,41 @@ class Run(threading.Thread):
         # TODO: should this do a smart merge per variable, so you could
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
+        env['PATH'] = self.apps_dir + ":" + env['PATH']
         env.update(self.env)
-        _log.debug("{} {}, LD_LIBRATY_PATH:{}".format(
-            self.log_prefix,self.env, env.get('LD_LIBRARY_PATH','')))
 
-        self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                   stdout=out, stderr=err,
-                                   preexec_fn=os.setpgrp)
+        # Write the environment information to file
+        env_out_name = RUN_ENVIRON_NAME.format(self.name)
+        env_out_path = os.path.join(self.working_dir, env_out_name)
+        try:
+            with open(env_out_path, 'w') as f:
+                json.dump(env, f, indent=4)
+        except:  # Continue if it fails, not fatal
+            _log.warning(err_msg['rc_env_out_fail'].format(self.name,
+                                                           env_out_path))
+
+        _log.debug("{} {}, LD_LIBRARY_PATH:{}".format(
+            self.log_prefix, self.env, env.get('LD_LIBRARY_PATH', '')))
+
+        # Flatten the args into a single string, and redirect stdout and
+        # stderr using bash options > and 2> . Can't use stdout and stderr in
+        # Popen because mpmd mode which has a single long command redirects
+        # all applications' output to a single file. Set shell=True in the
+        # Popen call. Doesn't work for Summit with ERF files. See #201
+        if self.machine.name.lower() != 'summit':
+            _args = args
+            args = ' '.join(_args)
+            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+                                       shell=True, preexec_fn=os.setpgrp)
+        else:
+            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+                                       stdout=out, stderr=err,
+                                       preexec_fn=os.setpgrp)
+
         self._pgid = os.getpgid(self._p.pid)
+
+        _log.info('%s start pid=%d pgid=%d args=%r',
+                  self.log_prefix, self._p.pid, self._pgid, args)
 
     def _save_returncode(self, rcode):
         assert rcode is not None
@@ -532,7 +601,8 @@ class Run(threading.Thread):
 
 
 class Pipeline(object):
-    def __init__(self, pipe_id, runs, working_dir, total_nodes, machine_name,
+    def __init__(self, pipe_id, runs, working_dir, apps_dir, total_nodes,
+                 machine_name,
                  kill_on_partial_failure=False,
                  post_process_script=None,
                  post_process_args=None,
@@ -541,6 +611,7 @@ class Pipeline(object):
         self.id = pipe_id
         self.runs = runs
         self.working_dir = working_dir
+        self.apps_dir = apps_dir
         self.kill_on_partial_failure = kill_on_partial_failure
         self.post_process_script = post_process_script
         self.post_process_args = post_process_args
@@ -565,7 +636,6 @@ class Pipeline(object):
         for run in runs:
             self.total_procs += run.nprocs
             run.log_prefix = "%s:%s" % (self.id, run.name)
-            run.machine = machines.get_by_name(machine_name)
         # requires ppn to determine, in case node layout is not specified
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
@@ -598,6 +668,7 @@ class Pipeline(object):
 
         runs_data = data["runs"]
         working_dir = data["working_dir"]
+        apps_dir = data.get("apps_dir")
 
         # Read tau options and ensure tau_exec is in PATH
         tau_profiling = data.get("tau_profiling", False)
@@ -614,6 +685,8 @@ class Pipeline(object):
             rd["working_dir"] = run_working_dir
             rd["tau_profiling"] = tau_profiling
             rd["tau_tracing"] = tau_tracing
+            rd["apps_dir"] = apps_dir
+            rd["machine"] = machines.get_by_name(data["machine_name"])
         if not isinstance(runs_data, list):
             _log.error("'runs' key must be a list of dictionaries")
             return None
@@ -645,6 +718,7 @@ class Pipeline(object):
         total_nodes = data.get("total_nodes")
         machine_name = data.get("machine_name")
         return Pipeline(pipe_id, runs=runs, working_dir=working_dir,
+                        apps_dir=apps_dir,
                         kill_on_partial_failure=kill_on_partial_failure,
                         post_process_script=post_process_script,
                         post_process_args=post_process_args,
