@@ -434,6 +434,7 @@ class Run(threading.Thread):
                   self._p.returncode)
         self._save_walltime(self._end_time - self._start_time)
         self._save_returncode(self._p.returncode)
+        self._close_files()
         self._run_callbacks()
 
     def _run_callbacks(self):
@@ -577,7 +578,7 @@ class Run(threading.Thread):
             raise ValueError('not running')
         return self._p.pid
 
-    def close(self):
+    def _close_files(self):
         for f in self._open_files:
             f.close()
         self._open_files = []
