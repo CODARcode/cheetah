@@ -3,6 +3,7 @@
 import json
 import os
 import logging
+import pickle
 from codar.savanna.model import Pipeline
 from codar.savanna.status import DONE, NOT_STARTED
 
@@ -17,7 +18,7 @@ class JSONFilePipelineReader(object):
     def __init__(self, file_path):
         self.file_path = file_path
 
-    def read_pipelines(self):
+    def read_pipelines_old(self):
 
         # If the group has been run before, open status file and get the
         # status of all runs
@@ -46,3 +47,34 @@ class JSONFilePipelineReader(object):
                 if pipeline:
                     _log.debug("adding pipeline %s to run queue", pipe_id)
                     yield pipeline
+
+
+    def read_pipelines(self):
+        status_file = os.path.join(os.path.dirname(self.file_path),
+                                   'codar.workflow.status.json')
+        try:
+            with open(status_file, 'r') as sf:
+                pipelines_status = json.load(sf)
+        except:
+            pipelines_status = {}
+        
+        with open("./combined-fobs.pkl", "rb") as f:
+            try:
+                while True:
+                    l = pickle.load(f)
+                    for pipeline_data in l:
+                        pipe_id = pipeline_data['id']
+                        status_d = pipelines_status.get(pipe_id, {})
+                        status = status_d.get('state', NOT_STARTED)
+
+                        # Add pipeline if not done
+                        if status == DONE:
+                            _log.info("pipeline %s already done, skipping", pipe_id)
+                        else:
+                            pipeline = Pipeline.from_data(pipeline_data)
+                            if pipeline:
+                                _log.debug("adding pipeline %s to run queue", pipe_id)
+                                yield pipeline
+            except Exception as e:
+                pass
+
