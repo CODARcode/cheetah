@@ -37,10 +37,8 @@ def parse_args():
     return args
 
 
-def main():
+def main_2(args, node_list):
     global consumer
-
-    args = parse_args()
 
     if args.runner == 'mpiexec':
         runner = mpiexec
@@ -76,7 +74,90 @@ def main():
                               max_nodes=args.max_nodes,
                               machine_name=args.machine_name,
                               processes_per_node=args.processes_per_node,
-                              status_file=args.status_file)
+                              status_file=args.status_file,
+                              node_list=node_list)
+                              # node_list=[4,8,16,20])
+
+    producer = JSONFilePipelineReader(args.producer_input_file)
+
+    t_consumer = threading.Thread(target=consumer.run_pipelines)
+    t_consumer.start()
+
+    # producer runs in this main thread
+    for pipeline in producer.read_pipelines():
+        consumer.add_pipeline(pipeline)
+
+    # signal that there are no more pipelines and thread should exit
+    # when reached
+    consumer.stop()
+
+    # set up signal handlers for graceful exit
+    def handle_signal_kill_consumer(signum, frame):
+        consumer.kill_all()
+
+    signal.signal(signal.SIGTERM, handle_signal_kill_consumer)
+    signal.signal(signal.SIGINT,  handle_signal_kill_consumer)
+
+    # All threads created for workflow are non-daemon, so the
+    # interpreter will not exit until all threads exit. Doing an
+    # explicit join on the consumer thread is not necessary, and
+    # actually causes problems because Python can't handle signals if
+    # the main thread is in a join, since that is basically pure C code
+    # (pthread_join).
+
+
+def main():
+    global consumer
+
+    args = parse_args()
+
+    if args.runner == 'mpiexec':
+        runner = mpiexec
+    elif args.runner == 'aprun':
+        runner = aprun
+    elif args.runner == 'srun':
+        runner = srun
+    elif args.runner == 'jsrun':
+        runner = jsrun
+    elif args.runner == 'none':
+        runner = None
+    elif args.runner == 'mpirunc':
+        runner = mpirunc
+    elif args.runner == 'mpirung':
+        runner = mpirung
+    else:
+        # Note: arg parser should have caught this already
+        raise ValueError('Unknown runner: %s' % args.runner)
+
+    logger = logging.getLogger('codar.savanna')
+    if args.log_file:
+        handler = logging.FileHandler(args.log_file)
+        formatter = logging.Formatter('%(asctime)s:%(levelname)s:%(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        logger.setLevel(args.log_level)
+    else:
+        logger.addHandler(logging.NullHandler())
+
+
+    # Retrieve node list
+    node_list = None
+    nodelist_str = os.environ['CODAR_CHEETAH_NODE_LIST']
+    if nodelist_str is not None:
+        node_list = []
+        for token in nodelist_str.split(';'):
+            if len(token) > 0:
+                node_list.append(int(token))
+
+    logger.info('starting savanna job %s', get_job_id())
+
+    consumer = PipelineRunner(runner=runner,
+                              max_nodes=args.max_nodes,
+                              machine_name=args.machine_name,
+                              processes_per_node=args.processes_per_node,
+                              status_file=args.status_file,
+                              # node_list=[4,8,16,20])
+                              node_list=node_list)
 
     producer = JSONFilePipelineReader(args.producer_input_file)
 
