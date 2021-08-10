@@ -72,17 +72,22 @@ def populate_nq():
     """
     Get num nodes allocated to this job and add them to queue
     """
-    s = set()
-    nodes_str = os.environ['LSB_HOSTS'].split()
-    for n in nodes_str:
-        if 'batch' not in n:
-            s.add(n)
+    # s = set()
+    # nodes_str = os.environ['LSB_HOSTS'].split()
+    # for n in nodes_str:
+    #     if 'batch' not in n:
+    #         s.add(n)
 
-    assert len(s) > 0, \
-        "ERROR: Number of allocated nodes found to be zero. Aborting."
-    
-    logger.info("{} nodes allocated to this job".format(len(s)))
-    for i in range(len(s)):
+    # assert len(s) > 0, \
+    #     "ERROR: Number of allocated nodes found to be zero. Aborting."
+    # 
+    # logger.info("{} nodes allocated to this job".format(len(s)))
+    # for i in range(len(s)):
+    #     nq.put(i+1)
+
+    n = sg_nodes_reqd("./")
+    logger.info("{} nodes allocated to this job".format(n))
+    for i in range(n):
         nq.put(i+1)
 
 
