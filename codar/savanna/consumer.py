@@ -31,7 +31,7 @@ class PipelineRunner(object):
     Pipeline or Run threads."""
 
     def __init__(self, runner, max_nodes, machine_name, processes_per_node,
-                 status_file=None):
+                 status_file=None, node_list=None):
         self.max_nodes = max_nodes
         self.machine_name = machine_name
         self.ppn = processes_per_node
@@ -59,17 +59,22 @@ class PipelineRunner(object):
         self._killed = False
 
         # a queue of allocated nodes
-        self.allocated_nodes = self._get_node_list(machine_name, max_nodes)
+        self.allocated_nodes = self._get_node_list(machine_name, max_nodes, node_list)
 
-    def _get_node_list(self, machine_name, max_nodes):
+    def _get_node_list(self, machine_name, max_nodes, node_list):
         """Get a list of hostnames in this allocation.
         Currently supported for Summit only. Hostnames start with 'host1'"""
 
         q = Queue()
-        # if machine_name.lower() == 'summit':
-        "add relative node names starting with 1 for creating ERF files"
-        for i in range(max_nodes):
-            q.put('{}'.format(i+1))
+
+        if node_list is None:
+            # if machine_name.lower() == 'summit':
+            "add relative node names starting with 1 for creating ERF files"
+            for i in range(max_nodes):
+                q.put('{}'.format(i+1))
+        else:
+            for n in node_list:
+                q.put(n)
         return q
 
     def add_pipeline(self, p):
