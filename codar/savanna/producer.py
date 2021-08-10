@@ -18,8 +18,7 @@ class JSONFilePipelineReader(object):
     def __init__(self, file_path):
         self.file_path = file_path
 
-    def read_pipelines_old(self):
-
+    def read_pipelines(self):
         # If the group has been run before, open status file and get the
         # status of all runs
         status_file = os.path.join(os.path.dirname(self.file_path),
@@ -49,7 +48,7 @@ class JSONFilePipelineReader(object):
                     yield pipeline
 
 
-    def read_pipelines(self):
+    def read_pipelines_pkl(self):
         status_file = os.path.join(os.path.dirname(self.file_path),
                                    'codar.workflow.status.json')
         try:
