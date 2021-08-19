@@ -2,6 +2,7 @@ import sys
 import os
 import glob
 import pdb
+import json
 import logging
 import threading
 import subprocess
@@ -110,11 +111,36 @@ def sg_nodes_reqd(sg):
     """
     group_env = os.path.join(".", sg, "group-env.sh")
     key = 'CODAR_CHEETAH_GROUP_NODES'
-    with open(group_env, "r") as f:
-        lines = f.readlines()
-    for line in lines:
-        if key in line:
-            return int(line.split(key)[1].split('"')[1])
+    try:
+        with open(group_env, "r") as f:
+            lines = f.readlines()
+        for line in lines:
+            if key in line:
+                return int(line.split(key)[1].split('"')[1])
+    except:
+        return 0
+
+
+def any_runs_remaining(sg_path):
+    """
+    Read an SG's codar.workflow.status.json file to see if there are runs
+    remaining.
+    """
+    
+    wf_status = os.path.join(sg_path, "codar.workflow.status.json")
+    try:
+        with open(wf_status) as f:
+            r_stat = json.load(f)
+            for key in r_stat:
+                if r_stat[key]['state'] != 'done':
+                    # Return sg not done 
+                    return False
+    except:
+        # Return not done if status file not found
+        return False
+
+    # Return sg done otherwise
+    return True
 
 
 def run_sg(sg_path, node_list):
@@ -123,6 +149,7 @@ def run_sg(sg_path, node_list):
     This is called by a separate thread.
     """
  
+    logger.info("Started thread for {}".format(sg_path))
     # Set up inputs args for the savanna function
     sa = SavannaArgs(sg_path)
     run_str = "python3 {} " \
@@ -171,7 +198,8 @@ def run_sg(sg_path, node_list):
         nq.put(n)
 
     # Signal task done
-    q.task_done() 
+    q.task_done()
+    logger.info("Thread for {} exiting".format(sg_path))
 
 
 #----------------------------------------------------------------------------#
@@ -186,12 +214,25 @@ if __name__=='__main__':
     # Start processing sweepgroups
     while not q.empty():
         sg = q.get()
-        logger.info("Retrieved sg {}. Now fetching nodes".format(sg))
+        logger.info("Retrieved sg {}".format(sg))
+
+        # Check if all runs done
+        sg_done = any_runs_remaining(sg)
+        if sg_done:
+            logger.info("No runs remaining for {}. Skipping sg".format(sg))
+            q.task_done()
+            continue
+        
         fn = sg_nodes_reqd(sg)
+        if fn == 0:
+            logger.info("0 nodes requested by {}. Skipping sg".format(sg))
+            q.task_done()
+            continue
+
         sg_nodes = []
         for i in range(fn):
             sg_nodes.append(nq.get())
-        logger.info("Obtained {} nodes for {}".format(fn, sg))
+        logger.info("Obtained {} nodes {} for {}. Now spawning thread".format(fn, sg_nodes, sg))
 
         # Launch thread to run sweepgroup
         t = threading.Thread(target=run_sg, args=(sg, sg_nodes))
