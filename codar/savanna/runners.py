@@ -1,4 +1,5 @@
 import shutil
+import math
 from codar.savanna import machines
 
 
@@ -85,7 +86,14 @@ class SummitRunner(Runner):
 
     def wrap(self, run, sched_args):
         runner_args = ['jsrun', '--erf_input', run.erf_file]
-        return runner_args
+        
+        # Override with regular jsrun options for GTC.
+        # Needs multiple of 6 MPI ranks
+        n_rs = math.ceil(run.nprocs/6)
+        ppn = min(run.nprocs, 6)
+        runstr = 'jsrun --smpiargs "-gpu" -n {} -r 1 -a {} -E OMP_NUM_THREADS=7 -c 42 -g 6 -b packed:7 -d packed {}'.format(n_rs, ppn, run.exe)
+        runner_args = runstr.split()
+        return runner_args + run.args
 
     def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
         """This function is deprecated in favor of the above that uses erf

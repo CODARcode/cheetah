@@ -166,9 +166,9 @@ class Run(threading.Thread):
         self.child_runs = None
 
         # Add stdout and stderr redirection to args
-        _args = self.args or []
-        _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
-        self.args = _args
+        # _args = self.args or []
+        # _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
+        # self.args = _args
 
     @classmethod
     def from_data(cls, data):
