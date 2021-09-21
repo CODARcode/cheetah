@@ -910,7 +910,7 @@ class Pipeline(object):
                 run.node_config.gpu.append([])
 
         #--------------------------------------------------------------------#
-        # 214. Disable node sharing for Summit due to ERF issue.
+        # 241. Disable node sharing for Summit due to ERF issue.
         if self.machine_name.lower() == 'summit':
             if len(codes_on_node) > 1:
                 raise Exception("Node-sharing on Summit temporarily disabled "\
