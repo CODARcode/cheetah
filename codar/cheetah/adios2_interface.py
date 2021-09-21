@@ -199,7 +199,7 @@ def _get_io_node(tree, io_obj):
 
 
 def _add_parameters(node, parameters):
-    if len(parameters) is 0:
+    if len(parameters) == 0:
         return
 
     for key, value in parameters.items():
