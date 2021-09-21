@@ -247,6 +247,16 @@ class Campaign(object):
 
         # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
+
+            #----------------------------------------------------------------#
+            # #241: Disable MPMD on Summit as ERF on Summit is broken
+            if group.launch_mode.lower() == 'mpmd' and \
+                self.machine.name.lower() == 'summit':
+                raise exc.CheetahException(
+                    "MPMD mode currently disabled on Summit due to a jsrun "
+                    "bug on Summit")
+            #----------------------------------------------------------------#
+
             # Validate component inputs.
             #   1. Ensure all keys are valid code names
             code_names = list(self.codes.keys())
@@ -317,7 +327,7 @@ class Campaign(object):
 
                     # we dont support mpmd on deepthought2
                     try:
-                        if self.machine.machine_name.lower() == 'deepthought2':
+                        if self.machine.name.lower() == 'deepthought2':
                             assert group.launch_mode.lower() not in 'mpmd',\
                                 "mpmd mode not implemented for deepthought2"
                     except AttributeError:

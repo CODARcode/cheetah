@@ -909,6 +909,14 @@ class Pipeline(object):
                 run.node_config.cpu.append([])
                 run.node_config.gpu.append([])
 
+        #--------------------------------------------------------------------#
+        # 241. Disable node sharing for Summit due to ERF issue.
+        if self.machine_name.lower() == 'summit':
+            if len(codes_on_node) > 1:
+                raise Exception("Node-sharing on Summit temporarily disabled "\
+                      "due to a jsrun issue.")
+        # --------------------------------------------------------------------#
+
         # Loop over the cpu core mapping
         for i in range(len(layout_info['cpu'])):
             rank_info = layout_info['cpu'][i]
