@@ -1,5 +1,7 @@
 import shutil
+import math
 from codar.savanna import machines
+from codar.savanna.jsrun_opts import JsrunGenerator
 
 
 class Runner(object):
@@ -84,38 +86,57 @@ class SummitRunner(Runner):
         self.machine = machines.summit
 
     def wrap(self, run, sched_args):
+        """
+        Call either the ERF file feature or regular jsrun command-line
+        functionality to submit tasks.
+        """
+
+        #--------------------------------------------------------------------#
+        # #241: ERF files broken on Summit. Switch to regular jsrun options.
+        # This disables MPMD runs, which is handled in cheetah.model .
+        return self._wrap_jsrun_noerf(run, sched_args)
+        # --------------------------------------------------------------------#
+
+    def _wrap_erf(self, run, sched_args):
+        """
+        Use the ERF feature to launch tasks with jsrun.
+        """
         runner_args = ['jsrun', '--erf_input', run.erf_file]
         return runner_args
 
-    def wrap_deprecated(self, run, jsrun_opts, find_in_path=True):
-        """This function is deprecated in favor of the above that uses erf
-        files"""
-        if find_in_path:
-            exe_path = shutil.which(self.exe)
-        else:
-            # for test cases
-            exe_path = self.exe
-        if exe_path is None:
-            raise ValueError('Could not find "%s" in path' % self.exe)
+    def _wrap_jsrun_noerf(self, run, sched_args):
+        """
+        Use regular, command-line options to jsrun to launch tasks, instead
+        of using ERF files for jsrun.
+        """
 
-        # nrs = math.ceil(run.nprocs/run.tasks_per_node)
-        # tasks_per_rs = run.tasks_per_node
-        # cpus_per_rs = tasks_per_rs
-        # gpus_per_rs = 6
-        # rs_per_host = 1
+        j = JsrunGenerator(run.node_config, run.nprocs)
 
-        runner_args = [exe_path,
-                       self.nrs_arg, jsrun_opts.nrs,
-                       self.tasks_per_rs_arg, jsrun_opts.tasks_per_rs,
-                       self.cpus_per_rs_arg, jsrun_opts.cpus_per_rs,
-                       self.gpus_per_rs_arg, jsrun_opts.gpus_per_rs,
-                       self.rs_per_host_arg, jsrun_opts.rs_per_host,
+        nrs = j.n
+        rs_per_host = j.r
+        tasks_per_rs = j.a
+        cpus_per_task = j.c
+        gpus_per_rs = j.g
 
-                       # Omit for now
-                       # self.launch_distribution_arg,
-                       # run.summit_params['launch_distribution'],
-                       # self.bind_arg, run.summit_params['bind']
+        runner_args = [self.exe,
+                       self.nrs_arg, str(nrs),
+                       self.rs_per_host_arg, str(rs_per_host),
+                       self.tasks_per_rs_arg, str(tasks_per_rs),
+                       self.cpus_per_rs_arg, str(cpus_per_task),
+                       self.gpus_per_rs_arg, str(gpus_per_rs),
+                       # "-b", "packed:{}".format(cpus_per_task//tasks_per_rs),
+                       self.launch_distribution_arg, "packed",
                        ]
+
+        # When you have more cpus per rank, usually OMP_NUM_THREADS is set,
+        # and the option '-b packed:7' is provided.
+        if cpus_per_task > 1:
+            bind_value = cpus_per_task//tasks_per_rs
+            runner_args.extend([self.bind_arg, "packed:{}".format(bind_value)])
+
+        if sched_args:
+            for (k, v) in sched_args.items():
+                runner_args += [str(k), str(v)]
 
         return runner_args + [run.exe] + run.args
 
