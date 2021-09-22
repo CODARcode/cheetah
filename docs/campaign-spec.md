@@ -74,7 +74,7 @@ class SweepGroup(name, walltime, per_run_timeout, parameter_groups,
 
     `name` - Choose a name for the SweepGroup  
 
-    `walltime` - The total walltime to run the SweepGroup, in minutes  
+    `walltime` - The total walltime to run the SweepGroup, in seconds  
 
     `per_run_timeout` - Timeout for each experiment in the SweepGroup, in minutes
 
