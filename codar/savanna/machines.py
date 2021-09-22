@@ -209,7 +209,7 @@ theta = Machine('theta', "cobalt", "aprun", MachineNode,
 
 summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
                  processes_per_node=42, node_exclusive=True,
-                 scheduler_options=dict(project="", reservation="", custom=""))
+                 scheduler_options=dict(project="", reservation="", custom="", queue="batch"))
 
 
 deepthought2_cpu = Machine('deepthought2_cpu', "slurm", "mpirunc", DTH2CPUNode,
