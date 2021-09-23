@@ -3,12 +3,6 @@ from codar.savanna.jsrun_opts import JsrunGenerator
 from codar.savanna.machines import SummitNode
 
 
-# class SummitNode:
-#     def __init__(self):
-#         self.cpu = [None] * 42
-#         self.gpu = [None] * 6
-
-
 class NodeConfig:
     def __init__(self):
         """
@@ -16,7 +10,7 @@ class NodeConfig:
         cpu = [ 0=[], 1=[], 2=[], 3=[] ]
         gpu = [ 0=[], 1=[], 2=[], 3=[] ]
         """
-        self.num_ranks = 0
+        self.num_ranks_per_node = 0
         self.cpu = []
         self.gpu = []
 
@@ -176,7 +170,7 @@ def _verify_jsrun(j, n, r, a, c, g):
     print("{} {}\n".format(caller_f, status))
 
 
-#----------------------------------------------------------------------------#
+# --------------------------------------------------------------------------- #
 if __name__ == '__main__':
     test1()
     test2()
