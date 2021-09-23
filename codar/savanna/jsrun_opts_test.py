@@ -82,7 +82,7 @@ def test1():
     nprocs = 64
     nc = NodeConfig.create_from_nodelayout(nl)
     j = JsrunGenerator(nc, nprocs)
-    _verify_jsrun(j, n=2, r=32, a=1, c=1, g=0)
+    _verify_jsrun(j, n=64, r=32, a=1, c=1, g=0)
 
 
 def test2():
@@ -103,7 +103,7 @@ def test2():
     nprocs = 12
     nc = NodeConfig.create_from_nodelayout(nl)
     j = JsrunGenerator(nc, nprocs)
-    _verify_jsrun(j, n=2, r=6, a=1, c=7, g=1)
+    _verify_jsrun(j, n=12, r=6, a=1, c=7, g=1)
 
 
 def test3():

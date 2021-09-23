@@ -89,19 +89,20 @@ class JsrunGenerator:
                 "".format(len(rs.gpus), g)
 
     def _set_jsrun_options(self):
-        self.n = self.nprocs / self.ppn
-        assert self.n.is_integer(), \
-            "Total no. of ranks {} must be exactly divisible by number of " \
-            "ranks per node {}".format(self.nprocs, self.ppn)
-        self.n = self.nprocs // self.ppn
         self.a = len(list(self.rs)[0].ranks)
+        self.c = len(list(self.rs)[0].cpus)
+        self.g = len(list(self.rs)[0].gpus)
         self.r = self.ppn / self.a
         assert self.r.is_integer(), \
             "RS/node {} must be an integer. ppn={}, ranks/rs:{}" \
             "".format(self.r, self.ppn, self.a)
         self.r = self.ppn // self.a
-        self.c = len(list(self.rs)[0].cpus)
-        self.g = len(list(self.rs)[0].gpus)
+        self.n = self.nprocs / self.ppn
+        assert self.n.is_integer(), \
+            "Total no. of ranks {} must be exactly divisible by number of " \
+            "ranks per node {}".format(self.nprocs, self.ppn)
+        self.n = self.nprocs // self.a
+
 
     def _get_enclosing_rs(self, rankid=None, gpuid=None):
         if rankid is not None:
