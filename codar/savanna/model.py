@@ -167,7 +167,8 @@ class Run(threading.Thread):
 
         # Add stdout and stderr redirection to args
         _args = self.args or []
-        _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
+        # Disable adding redirection to args. Causes issues with jsrun.
+        # _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
         self.args = _args
 
     @classmethod
@@ -542,15 +543,22 @@ class Run(threading.Thread):
         # Popen because mpmd mode which has a single long command redirects
         # all applications' output to a single file. Set shell=True in the
         # Popen call. Doesn't work for Summit with ERF files. See #201
-        if self.machine.name.lower() != 'summit':
-            _args = args
-            args = ' '.join(_args)
-            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                       shell=True, preexec_fn=os.setpgrp)
-        else:
-            self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
-                                       stdout=out, stderr=err,
-                                       preexec_fn=os.setpgrp)
+
+        # -------------------------------------------------------------------#
+        # #241 Broken erf functionality. I am disabling redirection of
+        # stdout and stderr, which causes all runs to redirect to the same
+        # file when run under MPMD mode. Note that without erf, codes are
+        # NOT written to a shell script first before running.
+
+        # if self.machine.name.lower() != 'summit':
+        #     _args = args
+        #     args = ' '.join(_args)
+        #     self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+        #                                shell=True, preexec_fn=os.setpgrp)
+        # else:
+        self._p = subprocess.Popen(args, env=env, cwd=self.working_dir,
+                                   stdout=out, stderr=err,
+                                   preexec_fn=os.setpgrp)
 
         self._pgid = os.getpgid(self._p.pid)
 
