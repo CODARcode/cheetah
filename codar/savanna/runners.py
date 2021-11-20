@@ -11,12 +11,18 @@ class Runner(object):
 
 class MPIRunner(Runner):
     def __init__(self, exe, nprocs_arg, nodes_arg=None,
-                 tasks_per_node_arg=None, hostfile=None):
+                 tasks_per_node_arg=None, hostfile=None,
+                 cpus_per_task_arg=None, threads_per_core_arg=None,
+                 tasks_per_gpu_arg=None, gpus_per_task_arg=None):
         self.exe = exe
         self.nprocs_arg = nprocs_arg
         self.nodes_arg = nodes_arg
+        self.cpus_per_task_arg=cpus_per_task_arg
+        self.threads_per_core_arg=threads_per_core_arg
         self.tasks_per_node_arg = tasks_per_node_arg
         self.hostfile = hostfile
+        self.tasks_per_gpu_arg = tasks_per_gpu_arg
+        self.gpus_per_task_arg = gpus_per_task_arg
 
     def wrap(self, run, sched_args, find_in_path=True):
         runner_args = []
@@ -30,8 +36,20 @@ class MPIRunner(Runner):
             runner_args += [self.nodes_arg, str(run.nodes)]
         if self.tasks_per_node_arg:
             runner_args += [self.tasks_per_node_arg, str(run.tasks_per_node)]
+        if run.cpus_per_task is not None:
+            runner_args += [self.cpus_per_task_arg.format(str(
+                run.cpus_per_task))]
+        if run.threads_per_core is not None:
+            runner_args += [self.threads_per_core_arg.format(str(
+                run.threads_per_core))]
         if run.hostfile is not None:
             runner_args += [self.hostfile, str(run.hostfile)]
+        if run.tasks_per_gpu is not None:
+            runner_args += [self.tasks_per_gpu_arg.format(str(
+                run.tasks_per_gpu))]
+        if run.gpus_per_task is not None:
+            runner_args += [self.gpus_per_task_arg.format(str(
+                run.gpus_per_task))]
         return runner_args + [run.exe] + run.args
 
 
@@ -144,7 +162,11 @@ class SummitRunner(Runner):
 
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
 aprun = MPIRunner('aprun', '-n', tasks_per_node_arg='-N', hostfile='-L')
-srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w')
+srun = MPIRunner('srun', '-n', nodes_arg='-N', hostfile='-w',
+                 cpus_per_task_arg='--cpus-per-task={}',
+                 threads_per_core_arg='--threads-per-core={}',
+                 tasks_per_gpu_arg='--ntasks-per-gpu={}',
+                 gpus_per_task_arg='--gpus-per-task={}')
 mpirunc = DTH2Runner(0)
 mpirung = DTH2Runner(1)
 jsrun = SummitRunner()

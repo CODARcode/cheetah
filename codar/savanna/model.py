@@ -70,7 +70,8 @@ class Run(threading.Thread):
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, sched_args, env, working_dir, apps_dir,
-                 machine, timeout=None, nprocs=1, res_set=None,
+                 machine, timeout=None, nprocs=1,
+                 res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -170,6 +171,12 @@ class Run(threading.Thread):
         # Disable adding redirection to args. Causes issues with jsrun.
         # _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
         self.args = _args
+
+        # Slurm options that could be set after parsind node layout
+        self.cpus_per_task = None
+        self.threads_per_core = None
+        self.tasks_per_gpu = None
+        self.gpus_per_task = None
 
     @classmethod
     def from_data(cls, data):
@@ -349,6 +356,31 @@ class Run(threading.Thread):
         with open(exe_info_file, 'w') as f:
             f.write(self.exe)
 
+    def _set_slurm_opts(self):
+        """
+        Set slurm options cpus_per_task, threads_per_code, tasks_per_gpu,
+        and gpus_per_task required if this is a Slurm machine (read: Spock)
+        Entry into this function is because self.node_config is not None.
+        @TODO: Put this into a Slurm adapter.
+        """
+
+        # 1. cpus per task.
+        self.cpus_per_task = len(self.node_config.cpu[0])
+
+        # 2. GPUs per task
+        if len(self.node_config.gpu) == 0: return
+        self.gpus_per_task = len(self.node_config.gpu[0])
+
+        # 3. Tasks per gpu
+        tasks_per_gpu = {}
+        for gpumap in self.node_config.gpu:
+            for gpuid in gpumap:
+                if gpuid not in tasks_per_gpu:
+                    tasks_per_gpu[gpuid] = 0
+                tasks_per_gpu[gpuid] = tasks_per_gpu[gpuid] + 1
+        l = list(tasks_per_gpu.values())
+        self.tasks_per_gpu = l[0]
+
     def run(self):
         try:
             self._run()
@@ -387,6 +419,9 @@ class Run(threading.Thread):
                 self.dth_rankfile = self.working_dir + '/' + self.name + \
                                     ".rankfile"
                 deepthought2_helper.create_rankfile(self)
+
+        if self.node_config is not None:
+            self._set_slurm_opts()  # Set slurm opts if this is a Slurm machine
 
         # if self.machine.name.lower() == 'summit':
         #     # are we releasing when the run finishes, or when the pipeline

@@ -1,6 +1,7 @@
 from codar.cheetah import Campaign
 from codar.cheetah import parameters as p
 from codar.savanna.machines import SummitNode
+from codar.savanna.machines import SpockNode
 from codar.savanna.machines import DTH2CPUNode
 from codar.cheetah.parameters import SymLink
 import copy
@@ -23,7 +24,7 @@ class ProducerConsumer(Campaign):
     # CAMPAIGN SETTINGS
     #------------------
     # A list of machines that this campaign is supported on
-    supported_machines = ['local', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
+    supported_machines = ['local', 'andes', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
     kill_on_partial_failure = True
@@ -55,8 +56,19 @@ class ProducerConsumer(Campaign):
             p.ParamRunner       ('producer', 'nprocs', [2]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [2]),
-            p.ParamADIOS2XML    ('producer', 'engine_sst', 'producer', 'engine', [ {"BP4": {}} ]),
     ]
+
+
+    n1 = SpockNode()
+    for i in range(4):
+        for j in range(16):
+            n1.cpu[i*16+j] = "producer:{}".format(i)
+    for i in range(4):
+        n1.gpu[i] = []
+        for j in range(4):
+            n1.gpu[i].append('producer:{}'.format(j))
+
+    node_layout = [n1]
 
     # Create a sweep
     # node_layout represents no. of processes per node
@@ -64,7 +76,7 @@ class ProducerConsumer(Campaign):
 
     # Create a sweep group from the above sweep. You can place multiple sweeps in the group.
     # Each group is submitted as a separate job.
-    sweepGroup1 = p.SweepGroup ("sg-1",
+    sweepGroup1 = p.SweepGroup ("sg1",
                                 walltime=300,
                                 per_run_timeout=60,
                                 parameter_groups=[sweep1],
@@ -75,12 +87,18 @@ class ProducerConsumer(Campaign):
                                 # nodes=10,
                                 # tau_profiling=True,
                                 # tau_tracing=False,
-                                # run_repetitions=2, # <-- repeat each experiment this many times
+                                run_repetitions=0, # <-- repeat each experiment this many times
                                 # component_subdirs = True, <-- codes have their own separate workspace in the experiment directory
                                 # component_inputs = {'simulation': ['some_input_file'], 'norm_calc': [SymLink('some_large_file')] } <-- inputs required by codes
                                 # max_procs = 64 <-- max no. of procs to run concurrently. depends on 'nodes'
                                 )
+    sg2 = copy.deepcopy(sweepGroup1)
+    sg2.name = 'sg2'
+
+    sg3 = copy.deepcopy(sweepGroup1)
+    sg3.name = 'sg-andes'
+    sg3.parameter_groups[0].node_layout = {'andes': node_layout}
 
     # Sweep groups to be activated
-    sweeps = {'MACHINE_ANY': [sweepGroup1]}
+    sweeps = {'MACHINE_ANY': [sweepGroup1, sg2], 'andes':[sg3]}
 

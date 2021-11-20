@@ -103,6 +103,17 @@ class SummitNode(MachineNode):
         self.__dict__['__info_type__'] = 'NodeConfig'
         return self.__dict__
 
+class SpockNode(MachineNode):
+    def __init__(self):
+        MachineNode.__init__(self, 64, 4)
+
+    def validate_layout(self):
+        pass
+
+    def to_json(self):
+        self.__dict__['__info_type__'] = 'NodeConfig'
+        return self.__dict__
+
 
 class Machine(object):
     """Class to represent configuration of a specific Supercomputer or
@@ -206,11 +217,14 @@ theta = Machine('theta', "cobalt", "aprun", MachineNode,
                                        queue="debug-flat-quad",
                                        custom=""))
 
-
 summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
                  processes_per_node=42, node_exclusive=True,
                  scheduler_options=dict(project="", reservation="", custom="", queue="batch"))
 
+spock = Machine('spock', 'slurm', 'srun', SpockNode,
+                processes_per_node=64, node_exclusive=True,
+                scheduler_options=dict(project='', queue='batch',
+                                       reservation='', custom=''))
 
 deepthought2_cpu = Machine('deepthought2_cpu', "slurm", "mpirunc", DTH2CPUNode,
                            processes_per_node=20, node_exclusive=False,
