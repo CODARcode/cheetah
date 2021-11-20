@@ -372,14 +372,16 @@ class Run(threading.Thread):
         self.gpus_per_task = len(self.node_config.gpu[0])
 
         # 3. Tasks per gpu
-        tasks_per_gpu = {}
-        for gpumap in self.node_config.gpu:
-            for gpuid in gpumap:
-                if gpuid not in tasks_per_gpu:
-                    tasks_per_gpu[gpuid] = 0
-                tasks_per_gpu[gpuid] = tasks_per_gpu[gpuid] + 1
-        l = list(tasks_per_gpu.values())
-        self.tasks_per_gpu = l[0]
+        # Commenting out as ntasks_per_gpu does not exist in Slurm 
+        # even though OLCF docs say so
+        # tasks_per_gpu = {}
+        # for gpumap in self.node_config.gpu:
+        #     for gpuid in gpumap:
+        #         if gpuid not in tasks_per_gpu:
+        #             tasks_per_gpu[gpuid] = 0
+        #         tasks_per_gpu[gpuid] = tasks_per_gpu[gpuid] + 1
+        # l = list(tasks_per_gpu.values())
+        # self.tasks_per_gpu = l[0]
 
     def run(self):
         try:
