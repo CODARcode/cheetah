@@ -51,6 +51,7 @@ System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Shar
 Local Linux machines | :white_check_mark: | N/A | N/A
 Summit (ORNL) | :white_check_mark: | :white_check_mark: | :white_check_mark:
 Andes (ORNL) | :white_check_mark: | :x: | :x:
+Spock (ORNL) | :white_check_mark: | -- | --
 Theta (ANL) | :white_check_mark: | :x: | N/A
 Cori (LBNL) | :white_check_mark: | :white_check_mark: | In progress
 
