@@ -64,9 +64,9 @@ Citing Cheetah
 --------------
 To refer to Cheetah in a publication, please cite the following paper:
 
-* Mehta, Kshitij, Allen, Bryce, Wolf, Matthew, Logan, Jeremy, Suchyta, Eric, Singhal, Swati, Choi, Jong Youl, Takahashi, Keichi, Huck, Kevin, Yakushin, Igor, Sussman, Alan, Munson, Todd, Foster, Ian, and Klasky, Scott.
-A codesign framework for online data analysis and reduction.
-Journal: Concurrency and Computation: Practice and Experience
+* Mehta, Kshitij, Allen, Bryce, Wolf, Matthew, Logan, Jeremy, Suchyta, Eric, Singhal, Swati, Choi, Jong Youl, Takahashi, Keichi, Huck, Kevin, Yakushin, Igor, Sussman, Alan, Munson, Todd, Foster, Ian, and Klasky, Scott.  
+A codesign framework for online data analysis and reduction.  
+Journal: Concurrency and Computation: Practice and Experience  
 https://doi.org/10.1002/cpe.6519.
 
 Other paper:
