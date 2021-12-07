@@ -63,6 +63,13 @@ All contributors are listed [here](https://github.com/CODARcode/cheetah/graphs/c
 Citing Cheetah
 --------------
 To refer to Cheetah in a publication, please cite the following paper:
+
+* Mehta, Kshitij, Allen, Bryce, Wolf, Matthew, Logan, Jeremy, Suchyta, Eric, Singhal, Swati, Choi, Jong Youl, Takahashi, Keichi, Huck, Kevin, Yakushin, Igor, Sussman, Alan, Munson, Todd, Foster, Ian, and Klasky, Scott.
+A codesign framework for online data analysis and reduction.
+Journal: Concurrency and Computation: Practice and Experience
+https://doi.org/10.1002/cpe.6519.
+
+Other paper:
 * K. Mehta et al., "A Codesign Framework for Online Data Analysis and Reduction," 2019 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS), Denver, CO, USA, 2019, pp. 11-20.  
 doi: 10.1109/WORKS49585.2019.00007  
 URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8943548&isnumber=8943488
