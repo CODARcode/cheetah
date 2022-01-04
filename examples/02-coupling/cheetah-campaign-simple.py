@@ -24,7 +24,7 @@ class ProducerConsumer(Campaign):
     # CAMPAIGN SETTINGS
     #------------------
     # A list of machines that this campaign is supported on
-    supported_machines = ['local', 'andes', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
+    supported_machines = ['local', 'andes', 'spock', 'titan', 'theta', 'summit', 'deepthought2_cpu', 'sdg_tm76']
 
     # Option to kill an experiment (just one experiment, not the full sweep or campaign) if one of the codes fails
     kill_on_partial_failure = True
@@ -42,7 +42,7 @@ class ProducerConsumer(Campaign):
 
     # Scheduler information: job queue, account-id etc. Leave it to None if running on a local machine
     scheduler_options = {'theta': {'project': '', 'queue': 'batch'},
-                         'summit': {'project':''}}
+                         'summit': {'project':'csc299'}, 'andes':{'project': 'csc143'}, 'spock':{'project':'csc299', 'queue':'ecp'}}
 
     # Setup your environment. Loading modules, setting the LD_LIBRARY_PATH etc.
     # Ensure this script is executable
@@ -53,7 +53,7 @@ class ProducerConsumer(Campaign):
     # Setup how the workflow is run, and what values to 'sweep' over
     # Use ParamCmdLineArg to setup a command line arg, ParamCmdLineOption to setup a command line option, and so on.
     sweep1_parameters = [
-            p.ParamRunner       ('producer', 'nprocs', [2]),
+            p.ParamRunner       ('producer', 'nprocs', [16]),
             p.ParamCmdLineArg   ('producer', 'array_size_per_pe', 1, [1024*1024,]), # 1M, 2M, 10M
             p.ParamCmdLineArg   ('producer', 'num_steps', 2, [2]),
     ]
@@ -69,6 +69,13 @@ class ProducerConsumer(Campaign):
             n1.gpu[i].append('producer:{}'.format(j))
 
     node_layout = [n1]
+
+
+    ns = SummitNode()
+    for i in range(16):
+        ns.cpu[i] = "producer:{}".format(i)
+    summit_node_layout = [ns]
+
 
     # Create a sweep
     # node_layout represents no. of processes per node
@@ -96,9 +103,16 @@ class ProducerConsumer(Campaign):
     sg2.name = 'sg2'
 
     sg3 = copy.deepcopy(sweepGroup1)
-    sg3.name = 'sg-andes'
-    sg3.parameter_groups[0].node_layout = {'andes': node_layout}
+    sg3.name = 'andes'
 
+    sg4 = copy.deepcopy(sweepGroup1)
+    sg4.name = 'spock'
+    sg4.parameter_groups[0].node_layout = {'spock': node_layout}
+    
+    sg5 = copy.deepcopy(sweepGroup1)
+    sg5.name = 'summit'
+    sg5.parameter_groups[0].node_layout = {'summit': summit_node_layout}
+    
     # Sweep groups to be activated
-    sweeps = {'MACHINE_ANY': [sweepGroup1, sg2], 'andes':[sg3]}
+    sweeps = {'andes':[sg3], 'spock':[sg4], 'summit':[sg5]}
 
