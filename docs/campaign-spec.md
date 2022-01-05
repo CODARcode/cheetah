@@ -25,7 +25,7 @@ class GrayScott(Campaign):
     name = "gray_scott"
     
     # List applications that form the workflow
-    codes = = [ {'app_handle', {exe=, adios_xml_file=, sleep_after=, runner_override=}, ]
+    codes = [ {'app_handle', {exe=, adios_xml_file=, sleep_after=, runner_override=, env_file=}, ]
     
     # Global campaign options
     run_post_process_script =
@@ -54,6 +54,28 @@ Different components of the spec file are explained below.
 
 ## Global Campaign Options
 Here we define the global options .. 
+
+### Defining applications
+In the snippet above, the `codes` property is used to define applications to be used in the campaign.
+
+``` python
+    codes = [ {'app_handle', {exe=, adios_xml_file=, sleep_after=, runner_override=, env_file=}, ]
+```
+
+codes is a list of Python dictionaries, in which each dictionary defines an application.  
+Each dictionary (i.e. application) has a user-defined handle that is the dictionary key. This handle is used throughout the campaign specification to refer to the application.
+The value field is also a dictionary to specify different options for the application, as listed below. The app handle and exe are mandatory fields, and the remaining are optional.
+
+    `exe` - Name of the application executable. If it is just a name ("xgc"), Cheetah searches `$PATH` followed by the application directory specified by -a in the `create-campaign` command.
+    Alternatively, it may also be the full absolute path to the executable.
+
+    `adios_xml_file` - Name/path of the ADIOS xml file, if the application has one.
+
+    `sleep_after` - The number of seconds the workflow system must wait after launching this application and launching the next one in the pipeline.
+
+    `runner_override` - Option to override the underlying runner such as mpirun/srun/jsrun. Launch the application directly with a runner. That is, launch './xgc' instead of 'mpirun -np 16 ./xgc'. This option is useful to spawning daemon processes on the login/service node.
+
+    `env_file` - Set the environment for an application. Set the 'module load' statements here to load a specific compiler environment for this application.
 
 ** **Pro Tip** ** : Use the `run_post_process_script` experiment option in the specification file to cleanup large files after an experiment completes.
 Cheetah automatically captures the sizes of all output ADIOS files when the experiment completes.
