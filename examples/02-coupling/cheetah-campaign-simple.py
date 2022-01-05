@@ -18,8 +18,7 @@ class ProducerConsumer(Campaign):
     # 'sleep_after' represents the time gap after which the next code is spawned
     # Use runner_override to run the code without the default launcher (mpirun/aprun/jsrun etc.). This runs the 
     #   code as a serial application
-    codes = [ ("producer",  dict(exe="producer.py",         adios_xml_file='adios2.xml', sleep_after=5)),
-            ]
+    codes = [ ("producer",  dict(exe="producer.py", env=None, adios_xml_file='adios2.xml', sleep_after=5, env_file='producer_env.sh')),]
 
     # CAMPAIGN SETTINGS
     #------------------
@@ -103,16 +102,16 @@ class ProducerConsumer(Campaign):
     sg2.name = 'sg2'
 
     sg3 = copy.deepcopy(sweepGroup1)
-    sg3.name = 'andes'
+    sg3.name = 'sweepgroup-andes'
 
     sg4 = copy.deepcopy(sweepGroup1)
-    sg4.name = 'spock'
+    sg4.name = 'sweepgroup-spock'
     sg4.parameter_groups[0].node_layout = {'spock': node_layout}
     
     sg5 = copy.deepcopy(sweepGroup1)
-    sg5.name = 'summit'
+    sg5.name = 'sweepgroup-summit'
     sg5.parameter_groups[0].node_layout = {'summit': summit_node_layout}
     
     # Sweep groups to be activated
-    sweeps = {'andes':[sg3], 'spock':[sg4], 'summit':[sg5]}
+    sweeps = {'local':[sweepGroup1], 'andes':[sg3], 'spock':[sg4], 'summit':[sg5]}
 
