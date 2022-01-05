@@ -13,4 +13,3 @@ err_msg['rc_env_out_fail'] = \
 
 err_msg['f_creat'] = \
     "ERROR: Could not create file {}."
-

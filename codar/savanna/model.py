@@ -29,6 +29,7 @@ from codar.savanna import tau, status, machines, summit_helper, \
 from codar.savanna.error_messages import err_msg
 from codar.savanna.exc import SavannaException
 from codar.savanna.node_layout import NodeLayout
+from codar.savanna.templates import EXE_LAUNCH_FILE_TEMPLATE
 
 
 STDOUT_NAME = 'codar.workflow.stdout'
@@ -69,7 +70,8 @@ class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
-    def __init__(self, name, exe, args, sched_args, env, working_dir, apps_dir,
+    def __init__(self, name, exe, args, sched_args, env,
+                 user_env_file, working_dir, apps_dir,
                  machine, timeout=None, nprocs=1,
                  res_set=None,
                  stdout_path=None, stderr_path=None,
@@ -84,6 +86,7 @@ class Run(threading.Thread):
         self.args = args
         if args: self.args = list(filter(None, args))
         self.sched_args = sched_args
+        self.user_env_file = user_env_file
         self.env = env or {}
         self.working_dir = working_dir
         self.apps_dir = apps_dir
@@ -172,6 +175,12 @@ class Run(threading.Thread):
         # _args.extend(['>', self.stdout_path, '2>', self.stderr_path])
         self.args = _args
 
+        # Create the launch command (e.g. mpirun -np 2 ./a.out), write it to
+        # a script, and launch the script instead of running mpirun
+        # directly. This way, a user specified env can be setup before the
+        # app is launched. See #246.
+        self.exe_launch_script_path = None
+
         # Slurm options that could be set after parsind node layout
         self.cpus_per_task = None
         self.threads_per_core = None
@@ -188,6 +197,7 @@ class Run(threading.Thread):
         r = Run(name=data['name'], exe=data['exe'], args=data['args'],
                 sched_args=data['sched_args'],
                 env=data.get('env'),  # dictionary of varname/varvalue
+                user_env_file=data.get('env_file'),
                 working_dir=data['working_dir'],
                 machine=data['machine'],
                 apps_dir=data['apps_dir'],
@@ -435,6 +445,10 @@ class Run(threading.Thread):
         else:
             args = [self.exe] + self.args
 
+        # Write args to the launch script, and launch this script. #246
+        self._create_launch_script(' '.join(args))
+        args = ['bash', self.exe_launch_script_path]
+
         self._start_time = time.time()
         with self._state_lock:
             if self._killed:
@@ -548,6 +562,40 @@ class Run(threading.Thread):
             if delay > WAIT_DELAY_GIVE_UP:
                 _log.error('%s pgroup did not exit', self.log_prefix)
                 break
+
+    def _create_launch_script(self, app_launch_command):
+        """
+        Create a launch script that will be launched as `bash
+        thisscript.sh`, instead of directly launching an executable using
+        e.g. mpirun -np 2 ./a.out
+        Related to #246, wherein users need to set their own env before
+        running an application.
+        """
+
+        exe_launch_fpath = ".codar.savanna.{}.launch.sh".format(self.name)
+        self.exe_launch_script_path = \
+                os.path.join(self.working_dir, exe_launch_fpath)
+
+        # 1. Read the user-specified env
+        userenv = ":"  # bash no-op
+        if self.user_env_file is not None:
+            try:
+                with open(self.user_env_file, "r") as f:
+                    userenv = f.read()
+            except:
+                raise SavannaException(
+                    "Could not read {}".format(self.user_env_file))
+
+        # 2. Create the application launcher script
+        try:
+            with open(self.exe_launch_script_path, "w") as f:
+                s = EXE_LAUNCH_FILE_TEMPLATE.format(
+                    user_defined_env_setup = userenv,
+                    app_launch_command = app_launch_command)
+                f.write(s)
+        except:
+            e = err_msg['f_creat'].format(self.exe_launch_script_path)
+            raise SavannaException(e)
 
     def _popen(self, args):
         out = open(self.stdout_path, 'w')
