@@ -685,7 +685,7 @@ class RunComponent(object):
     def __init__(self, name, exe, args, sched_args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env_file=None, timeout=None, hostfile=None,
+                 env=None, env_file=None, timeout=None, hostfile=None,
                  runner_override=False):
         self.name = name
         self.exe = exe
@@ -693,6 +693,7 @@ class RunComponent(object):
         self.sched_args = sched_args
         self.nprocs = nprocs
         self.sleep_after = sleep_after
+        self.env = env or {}
         self.env_file = env_file or {}
         self.timeout = timeout
         self.working_dir = working_dir
@@ -718,6 +719,8 @@ class RunComponent(object):
                     after_rc_done=None,
                     num_nodes=self.num_nodes,
                     runner_override=self.runner_override)
+        if self.env:
+            data['env'] = self.env
         if self.env_file:
             data['env_file'] = self.env_file
         if self.timeout:
