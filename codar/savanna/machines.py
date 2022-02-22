@@ -103,12 +103,22 @@ class SummitNode(MachineNode):
         self.__dict__['__info_type__'] = 'NodeConfig'
         return self.__dict__
 
+
 class SpockNode(MachineNode):
     def __init__(self):
         MachineNode.__init__(self, 64, 4)
 
     def validate_layout(self):
         pass
+
+    def to_json(self):
+        self.__dict__['__info_type__'] = 'NodeConfig'
+        return self.__dict__
+
+
+class CrusherNode(MachineNode):
+    def __init__(self):
+        MachineNode.__init__(self, 64, 8)
 
     def to_json(self):
         self.__dict__['__info_type__'] = 'NodeConfig'
@@ -222,6 +232,11 @@ summit = Machine('summit', "ibm_lsf", "jsrun", SummitNode,
                  scheduler_options=dict(project="", reservation="", custom="", queue="batch"))
 
 spock = Machine('spock', 'slurm', 'srun', SpockNode,
+                processes_per_node=64, node_exclusive=True,
+                scheduler_options=dict(project='', queue='batch',
+                                       reservation='', custom=''))
+
+crusher = Machine('crusher', 'slurm', 'srun', MachineNode,
                 processes_per_node=64, node_exclusive=True,
                 scheduler_options=dict(project='', queue='batch',
                                        reservation='', custom=''))
