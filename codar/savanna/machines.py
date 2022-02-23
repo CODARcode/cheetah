@@ -120,6 +120,9 @@ class CrusherNode(MachineNode):
     def __init__(self):
         MachineNode.__init__(self, 64, 8)
 
+    def validate_layout(self):
+        pass
+
     def to_json(self):
         self.__dict__['__info_type__'] = 'NodeConfig'
         return self.__dict__
