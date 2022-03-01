@@ -424,7 +424,8 @@ class Run(threading.Thread):
             if self.child_runs is not None:
                 summit_helper.create_erf_file_mpmd(self)
             else:
-                summit_helper.create_erf_file(self)
+                if self.runner is not None:
+                    summit_helper.create_erf_file(self)
 
         if 'deepthought2' in self.machine.name.lower():
             if self.node_config is not None:
@@ -897,6 +898,23 @@ class Pipeline(object):
                 mpmd_run = Run.mpmd_run(self.runs)
                 mpmd_run.nodes = self.total_nodes
                 self.runs = [mpmd_run]
+
+            # -------------------------------------------------------------- #
+            # Temporary ERF fix #251.
+            # Add jsm process running on service node
+            if self.machine_name == 'summit':
+                jsm_d = {"name": "jsm", "exe": "jsm",
+                         "after_rc_done": None,
+                         "args": [], "sched_args": None, "nprocs": 1,
+                         "working_dir": self.working_dir,
+                         "machine": machines.get_by_name(
+                             self.machine_name),
+                         "apps_dir": self.apps_dir,
+                         "runner_override": True,}
+
+                jsm_r = Run.from_data(jsm_d)
+                self.runs.insert(0, jsm_r)
+            # -------------------------------------------------------------- #
 
             for run in self.runs:
                 run.set_runner(runner)

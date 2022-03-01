@@ -113,8 +113,9 @@ class SummitRunner(Runner):
         # #241: ERF files broken on Summit. Switch to regular jsrun options.
         # This disables MPMD runs and node sharing, which is handled in
         # cheetah.model .
-        return self._wrap_jsrun_noerf(run, sched_args)
+        # return self._wrap_jsrun_noerf(run, sched_args)
         # --------------------------------------------------------------------#
+        return self._wrap_erf(run, sched_args)
 
     def _wrap_erf(self, run, sched_args):
         """
