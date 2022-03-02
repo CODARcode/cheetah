@@ -21,6 +21,7 @@ import threading
 import signal
 import logging
 import json
+import warnings
 from queue import Queue
 import pdb
 
@@ -225,6 +226,16 @@ class Run(threading.Thread):
 
         # For Summit, just return runs. The ERF helper will handle it. For
         # other machines, return a single aggregated Run object
+
+        # If any of the runs request their own environment, display message
+        # that this cannot be done.
+        for r in runs:
+            if r.user_env_file is not None:
+                warnings.warn("Cannot load per-app env_file in MPMD mode. "
+                              "Ignoring {}. Consider the app_config_scripts "
+                              "option to setup an environment."
+                              "".format(r.user_env_file))
+                r.user_env_file = None
 
         if runs[0].machine.name.lower() == 'summit':
             # create a run object, name it 'mpmd', and add runs as child runs
