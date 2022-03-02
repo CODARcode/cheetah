@@ -248,14 +248,14 @@ class Campaign(object):
         # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
 
-            #----------------------------------------------------------------#
-            # #241: Disable MPMD on Summit as ERF on Summit is broken
-            if group.launch_mode.lower() == 'mpmd' and \
-                self.machine.name.lower() == 'summit':
-                raise exc.CheetahException(
-                    "MPMD mode currently disabled on Summit due to a jsrun "
-                    "bug on Summit")
-            #----------------------------------------------------------------#
+            # #----------------------------------------------------------------#
+            # # #241: Disable MPMD on Summit as ERF on Summit is broken
+            # if group.launch_mode.lower() == 'mpmd' and \
+            #     self.machine.name.lower() == 'summit':
+            #     raise exc.CheetahException(
+            #         "MPMD mode currently disabled on Summit due to a jsrun "
+            #         "bug on Summit")
+            # #----------------------------------------------------------------#
 
             # Validate component inputs.
             #   1. Ensure all keys are valid code names
