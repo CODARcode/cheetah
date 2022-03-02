@@ -233,7 +233,7 @@ class Run(threading.Thread):
                     machine=runs[0].machine, apps_dir=runs[0].apps_dir,
                     timeout=runs[0].timeout, nprocs=None, res_set=None,
                     stdout_path=None, stderr_path=None, return_path=None,
-                    walltime_path=None, sleep_after=None,
+                    walltime_path=None, sleep_after=None, user_env_file=None,
                     depends_on_runs=None, hostfile=None, runner_override=None)
 
             # Pipeline sets the machine for its runs, so you have to
