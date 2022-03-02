@@ -1094,6 +1094,14 @@ class Pipeline(object):
 
         with self._state_lock:
             self._active_runs.remove(run)
+            # -------------------------------------------------------------- #
+            # Temporary ERF fix. Remove manually added jsm. #251
+            if self.machine_name == 'summit':
+                if len(self._active_runs) == 1:
+                    # last run 'jsm' remaining
+                    jsm_r = list(self._active_runs)[0]
+                    jsm_r._p.terminate()
+            # -------------------------------------------------------------- #
             if not self._active_runs:
                 # save the total runtime here to ensure it is captured
                 # before the post process script is run
