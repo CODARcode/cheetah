@@ -1111,7 +1111,8 @@ class Pipeline(object):
                 if len(self._active_runs) == 1:
                     # last run 'jsm' remaining
                     jsm_r = list(self._active_runs)[0]
-                    jsm_r._p.terminate()
+                    jsm_r.kill()
+                    #jsm_r._p.terminate()
             # -------------------------------------------------------------- #
             if not self._active_runs:
                 # save the total runtime here to ensure it is captured
