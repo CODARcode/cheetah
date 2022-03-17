@@ -23,6 +23,7 @@ import logging
 import json
 import warnings
 from queue import Queue
+import psutil
 import pdb
 
 from codar.savanna import tau, status, machines, summit_helper, \
@@ -1111,8 +1112,13 @@ class Pipeline(object):
                 if len(self._active_runs) == 1:
                     # last run 'jsm' remaining
                     jsm_r = list(self._active_runs)[0]
+                    parent = psutil.Process(jsm_r._p.pid)
+                    if parent is not None:
+                        children = parent.children(recursive=True)
+                        for process in children:
+                            _log.info("Found child of jsm")
+                            process.send_signal(signal.SIGKILL)
                     jsm_r.kill()
-                    #jsm_r._p.terminate()
             # -------------------------------------------------------------- #
             if not self._active_runs:
                 # save the total runtime here to ensure it is captured
