@@ -908,7 +908,6 @@ class Pipeline(object):
             launch_mode = self.launch_mode or 'None'
             if launch_mode.lower() == 'mpmd':
                 mpmd_run = Run.mpmd_run(self.runs)
-                mpmd_run.nodes = self.total_nodes
                 self.runs = [mpmd_run]
 
             # -------------------------------------------------------------- #
