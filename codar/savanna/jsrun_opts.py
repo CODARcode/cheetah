@@ -3,7 +3,7 @@
 """
 Create regular jsrun command-line options from a SummitNode object.
 """
-from codar.savanna.model import NodeConfig
+from codar.savanna.run import NodeConfig
 
 
 class ResourceSet:

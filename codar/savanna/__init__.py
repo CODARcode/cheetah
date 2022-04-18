@@ -12,6 +12,7 @@ total process limit. The system is designed to use two + N threads:
    process if it's not done after the timeout is reached.
 """
 
-from codar.savanna.model import Pipeline, Run
+from codar.savanna.pipeline import Pipeline
+from codar.savanna.run import Run
 from codar.savanna.runners import mpiexec, aprun, jsrun
 from codar.savanna.consumer import PipelineRunner

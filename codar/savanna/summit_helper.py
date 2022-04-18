@@ -6,7 +6,7 @@ import pdb
 # Snippet below lets pycharm understand the 'Run' object so that we can
 # create type hints. Cannot import it as it would create a cyclic import
 if False:
-    from codar.savanna.model import Run
+    from codar.savanna.run import Run
 
 
 class _ResourceMap:
