@@ -49,19 +49,16 @@ class Tau:
 
     def _find_tau_exec(self):
         """
-        Assert user-provided tau_exec is valid. Else, find tau_exec in $PATH.
+        Assert tau_exec is in $PATH and executable
         """
-
-        # If user has provided path to tau_exec, assert it is found and
-        # executable
-        if self.tau_exec:
-            assert os.access(self.tau_exec, os.X_OK), \
-                "FATAL: {} does not seem valid or executable"\
-                "".format(self.tau_exec)
 
         # Otherwise, find tau_exec in $PATH
         self.tau_exec = shutil.which("tau_exec")
         assert self.tau_exec is not None, \
             "FATAL: Could not find tau_exec in PATH"
+
+        assert os.access(self.tau_exec, os.X_OK), \
+            "FATAL: {} does not seem valid or executable" \
+            "".format(self.tau_exec)
 
         _log.info("Found tau_exec at {}".format(self.tau_exec))
