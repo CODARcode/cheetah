@@ -11,7 +11,29 @@ The goal here is to provide as much information as possible about why a
 pipeline failed, to make an informed decision about whether it is worth
 running again when the workflow is restarted, or if it's failure was more
 permanent and not subject to outside forces like the job walltime expiring.
+
+-------------------------------------------------------------------------------
+#253:
+We need the following features:
+1. A user environment, such as a module load, should be enabled per app.
+2. An app may further have environment variables that need to be set.
+3. Support MPMD mode.
+
+So, we have a launcher script that loads the global environment, and calls
+the mpmd launcher command:
+    module load gcc
+    mpirun -n 1 ./app1.sh : -n 2 ./app2.sh
+
+In each app.sh, now we can load the env vars:
+    export OMP_NUM_THREADS=2
+    ./app1
+
+If we don't have a sh file for each app, the environment set in Popen gets
+applied to all codes in the MPMD command, which is incorrect.
+This approach ensures that env vars can be set per app in MPMD mode.
+-------------------------------------------------------------------------------
 """
+
 import time
 import subprocess
 import os
@@ -25,6 +47,8 @@ import warnings
 from queue import Queue
 import psutil
 import pdb
+from pathlib import Path
+import stat
 
 from codar.savanna import tau, status, machines, summit_helper, \
     deepthought2_helper
@@ -34,7 +58,7 @@ from codar.savanna.node_layout import NodeLayout, NodeConfig
 from codar.savanna.utils import get_path, STDOUT_NAME, STDERR_NAME, \
     WALLTIME_NAME, RETURN_NAME
 from codar.savanna.templates import EXE_LAUNCH_FILE_TEMPLATE
-
+from codar.savanna.tau import Tau
 
 
 RUN_ENVIRON_NAME = '.codar.savanna.{}.environment.json'
@@ -47,18 +71,13 @@ WAIT_DELAY_GIVE_UP = 120
 
 _log = logging.getLogger('codar.savanna.run')
 
-
-
-
-
 class Run(threading.Thread):
     """Manage running a single executable within a pipeline. When start is
     called, it will launch the process with Popen and call wait in the new
     thread with a timeout, killing if the process does not finish in time."""
     def __init__(self, name, exe, args, sched_args, env,
                  user_env_file, working_dir, apps_dir,
-                 machine, timeout=None, nprocs=1,
-                 res_set=None,
+                 machine, timeout=None, nprocs=1, res_set=None,
                  stdout_path=None, stderr_path=None,
                  return_path=None, walltime_path=None,
                  log_prefix=None, sleep_after=None,
@@ -79,15 +98,18 @@ class Run(threading.Thread):
         self.timeout = timeout
         self.nprocs = nprocs
 
+        # A script to export user-defined env vars and call the app without
+        # any scheduler args. This is the leaf node in the script invokations.
+        self.app_sh = None
+
         # Get the path to the exe
         self._find_exe()
 
         # Check tau options and set self.exe to tau_exec
-        self.tau_profiling = tau_profiling
-        self.tau_tracing = tau_tracing
-        self.tau_exec = tau_exec
-        if self.tau_profiling or self.tau_tracing:
-            self._add_tau_support()
+        self.tau_profiler = None
+        if tau_profiling or tau_tracing:
+            self._add_tau_support(tau_exec, tau_profiling, tau_tracing)
+        self.tau_check_done = True
 
         # res_set, nrs, and rs_per_host represent resource_set definition,
         # total no. of resource sets, and the no. of resource sets per host
@@ -208,6 +230,9 @@ class Run(threading.Thread):
         Returns a new Run object
         """
 
+        if len(runs) == 1:
+            return runs
+
         # For Summit, just return runs. The ERF helper will handle it. For
         # other machines, return a single aggregated Run object
 
@@ -221,70 +246,87 @@ class Run(threading.Thread):
                               "".format(r.user_env_file))
                 r.user_env_file = None
 
-        if runs[0].machine.name.lower() == 'summit':
-            # create a run object, name it 'mpmd', and add runs as child runs
-            r = Run(name='mpmd', exe=None, args=None, sched_args=None,
-                    env=runs[0].env, working_dir=runs[0].working_dir,
-                    machine=runs[0].machine, apps_dir=runs[0].apps_dir,
-                    timeout=runs[0].timeout, nprocs=None, res_set=None,
-                    stdout_path=None, stderr_path=None, return_path=None,
-                    walltime_path=None, sleep_after=None, user_env_file=None,
-                    depends_on_runs=None, hostfile=None, runner_override=None)
+        # if runs[0].machine.name.lower() == 'summit':
+        # create a run object, name it 'mpmd', and add runs as child runs
+        r = Run(name='mpmd', exe=None, args=None, sched_args=None,
+                env=None, working_dir=runs[0].working_dir,
+                machine=runs[0].machine, apps_dir=runs[0].apps_dir,
+                timeout=runs[0].timeout, nprocs=None, res_set=None,
+                stdout_path=None, stderr_path=None, return_path=None,
+                walltime_path=None, sleep_after=None, user_env_file=None,
+                depends_on_runs=None, hostfile=None, runner_override=None)
 
-            # Pipeline sets the machine for its runs, so you have to
-            # explicitly do it here as well.
-            r.machine = runs[0].machine
+        # Pipeline sets the machine for its runs, so you have to
+        # explicitly do it here as well.
+        r.machine = runs[0].machine
 
-            r.child_runs = runs
-            return r
-
-        if len(runs) == 1:
-            return runs
+        r.child_runs = runs
+        # return r
 
         # this is for regular mpmd launches that where the launch command is
         # a ':' separated list of individual app launches
-        mpmd_args = runs[0].args
-        for run in runs[1:]:
-            run_args = run.runner.wrap(run, run.sched_args)
-            del run_args[0]
-            mpmd_args.extend(":")
-            mpmd_args.extend(run_args)
+        # mpmd_args = runs[0].args
+        # for run in runs[1:]:
+        #     run_args = run.runner.wrap(run, run.sched_args)
+        #     del run_args[0]
+        #     mpmd_args.extend(":")
+        #     mpmd_args.extend(run_args)
             # no need to set run.nodes = sum(child run.nodes)
 
-        r = runs[0]
-        r.args = mpmd_args
+        # r = runs[0]
+        # r.args = mpmd_args
         return r
 
-    def _add_tau_support(self):
+    def app_sh_setup(self):
         """
-        Set the exe to tau_exec and add tau env vars to self.env
+        Create a bash script that sets any environment variables defined in
+        ParamEnvVar, and call the main app without MPI args.
+        A launcher script *launch.sh sets the environment for an app and calls
+        the app script. e.g. mpirun -np 2 ./app.sh.
+        See #253 and its related documentation above.
+        # tau_exec should be included here
         """
+
+        assert self.exe is not None
+        assert self.tau_check_done
+
+        # Create the file contents
+        # 1. export user-defined and tau env vars
+        outstr = "#!/bin/bash\n"
+        for k,v in self.env.items():
+            outstr += "export {}={}\n".format(k,v)
+        if self.tau_profiler:
+            for k,v in self.tau_profiler.env.items():
+                outstr += "export {}={}\n".format(k, v)
+
+        # 2. Call the app executable along with its args
+        outstr += "\n" + self.exe + " "
+        if self.args:
+            outstr += ' '.join(self.args)
+
+        # Write contents out in to app_sh
+        app_sh_path = Path.joinpath(Path(self.working_dir),
+                                    ".codar.savanna.{}.sh".format(self.name))
+
+        with open(app_sh_path, "w") as f:
+            f.write(outstr)
+        app_sh_path.chmod(app_sh_path.stat().st_mode | stat.S_IEXEC)
+
+        self.app_sh = str(app_sh_path.absolute())
+
+    def _add_tau_support(self, tau_exec, tau_profiling, tau_tracing):
+        """
+        Create a Tau object and set the exe to tau_exec
+        """
+
+        self.tau_profiler = Tau(tau_exec, tau_profiling, tau_tracing,
+                                self.working_dir, self.name)
 
         # Adjust self's exe and paths. Set exe to tau_exec
+        assert self.exe is not None
         _args = [self.exe] + self.args
         self.args = _args.copy()
-        self.exe = self.tau_exec
-        
-        self.env['TAU_PROFILE'] = "0"
-        self.env['TAU_TRACE'] = "0"
-
-        # Profiling
-        if self.tau_profiling:
-            profiledir = os.path.join(
-                self.working_dir, tau.TAU_PROFILE_PATTERN.format(self.name))
-            self.env['TAU_PROFILE'] = "1"
-            self.env['PROFILEDIR'] = profiledir
-            if not os.path.exists(profiledir):
-                os.makedirs(profiledir)
-
-        # Tracing
-        if self.tau_tracing:
-            tracedir = os.path.join(
-                self.working_dir, tau.TAU_TRACE_PATTERN.format(self.name))
-            self.env['TAU_TRACE'] = "1"
-            self.env['TRACEDIR'] = tracedir
-            if not os.path.exists(tracedir):
-                os.makedirs(tracedir)
+        self.exe = self.tau_profiler.tau_exec
 
     def set_runner(self, runner):
         self.runner = runner
@@ -339,6 +381,7 @@ class Run(threading.Thread):
         """
         Find the absolute path of the exe in the app dir pointed to by -a
         during campaign creation time, or in $PATH.
+        $PATH takes precedence over apps_dir.
         """
 
         # Fucking exception for MPMD mode on Summit. The top-level run
@@ -355,16 +398,17 @@ class Run(threading.Thread):
         if exe_path is not None:
             self.exe = exe_path
 
-        # Write the exe path to file
-        exe_info_file = self.working_dir + "/" + \
-                        EXE_INFO_FNAME.format(self.name)
-        with open(exe_info_file, 'w') as f:
-            f.write(self.exe)
+        # # Write the exe path to file
+        # --- We really don't need this. ---
+        # exe_info_file = self.working_dir + "/" + \
+        #                 EXE_INFO_FNAME.format(self.name)
+        # with open(exe_info_file, 'w') as f:
+        #     f.write(self.exe)
 
     def _set_slurm_opts(self):
         """
         Set slurm options cpus_per_task, threads_per_code, tasks_per_gpu,
-        and gpus_per_task required if this is a Slurm machine (read: Spock)
+        and gpus_per_task required if this is a Slurm machine
         Entry into this function is because self.node_config is not None.
         @TODO: Put this into a Slurm adapter.
         """
@@ -412,6 +456,7 @@ class Run(threading.Thread):
         if self.depends_on_runs is not None:
             threading.Thread.join(self.depends_on_runs)
 
+        # Create ERF file for Summit
         if self.machine.name.lower() == 'summit':
             self.erf_file = self.working_dir + "/" + self.name + ".erf_input"
 
@@ -439,7 +484,7 @@ class Run(threading.Thread):
         if self.runner is not None:
             args = self.runner.wrap(self, self.sched_args)
         else:
-            args = [self.exe] + self.args
+            args = [self.app_sh]
 
         # Write args to the launch script, and launch this script. #246
         self._create_launch_script(' '.join(args))
@@ -604,7 +649,7 @@ class Run(threading.Thread):
         # e.g. extend PATH or LD_LIBRARY_PATH rather tha replace it?
         env = os.environ.copy()
         env['PATH'] = self.apps_dir + ":" + env['PATH']
-        env.update(self.env)
+        # env.update(self.env)
 
         # Write the environment information to file
         env_out_name = RUN_ENVIRON_NAME.format(self.name)

@@ -70,7 +70,7 @@ class ProducerConsumer(Campaign):
     
     
     sweep1 = p.Sweep (node_layout = {'summit': [preprocN, simNodeL, simNode2L, anlyL, anlyCL, postprocL] },
-        parameters = sweep1_parameters, rc_dependency={'sim1':'cleanup', 'sim2':'cleanup', 'anly1':'sim1', 'anly2':'sim2','anlyc':'anly1', 'postproc':'anlyc'})
+            parameters = sweep1_parameters, rc_dependency={'anly1':'sim1', 'anly2':'sim2','anlyc':'anly1', 'postproc':'anlyc','cleanup':'postproc'})
 
     sweepGroup1 = p.SweepGroup ("sg-1",
                                 walltime=300,

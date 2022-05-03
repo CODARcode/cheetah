@@ -65,7 +65,7 @@ class Pipeline(object):
         self.total_nodes = total_nodes
         self.launch_mode = launch_mode
 
-        # List of node IDs assigned to this pipeline. Get initialized in
+        # List of node IDs assigned to this pipeline. Gets initialized in
         # start()
         self.nodes_assigned = Queue()
 
@@ -75,14 +75,6 @@ class Pipeline(object):
         # Queue multiple times. We need a SetQueue for this, or a way to
         # have all Runs in a shared node release nodes just once.
         self._nodes_assigned = Queue()
-
-        # Reorder the runs list so that runs are listed according to their
-        # dependencies
-        self.reorder_runs_by_dependencies()
-
-        # TODO: ensure that all the node layouts contain either a virtual
-        #  node object or a regular codename:ppn mapping
-        # self._validate_node_layout()
 
     @classmethod
     def from_data(cls, data):
@@ -197,6 +189,10 @@ class Pipeline(object):
         # Mark all runs as active before they are actually started
         # in a separate thread, so other methods know the state.
 
+        # Reorder the runs list so that runs are listed according to their
+        # dependencies
+        self.reorder_runs_by_dependencies()
+
         for node_name in nodes_assigned:
             self.nodes_assigned.put(node_name)
             # self.nodes_assigned.put(machine.node_class(node_name))
@@ -212,6 +208,7 @@ class Pipeline(object):
         with self._state_lock:
             for run in self.runs:
                 run.set_runner(runner)
+                run.app_sh_setup()
 
             # Parse the node layout and set the run information.
             # This requires self.nodes_assigned.
@@ -226,6 +223,9 @@ class Pipeline(object):
             launch_mode = self.launch_mode or 'None'
             if launch_mode.lower() == 'mpmd':
                 mpmd_run = Run.mpmd_run(self.runs)
+                mpmd_run.name = "mpmd"
+                mpmd_run.set_runner(runner)
+                # mpmd_run.app_sh_setup()
                 self.runs = [mpmd_run]
 
             # -------------------------------------------------------------- #
@@ -242,12 +242,11 @@ class Pipeline(object):
                          "runner_override": True,}
 
                 jsm_r = Run.from_data(jsm_d)
+                jsm_r.app_sh_setup()
                 self.runs.insert(0, jsm_r)
             # -------------------------------------------------------------- #
 
             for run in self.runs:
-                run.set_runner(runner)
-
                 # Commenting out the callback to consumer.run_finished that
                 # releases the nodes held by a run.
                 # Now this is called when the pipeline finishes
