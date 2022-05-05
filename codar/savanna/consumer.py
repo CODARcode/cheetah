@@ -67,7 +67,7 @@ class PipelineRunner(object):
 
         q = Queue()
         # if machine_name.lower() == 'summit':
-        "add relative node names starting with 1 for creating ERF files"
+        # add relative node names starting with 1 for creating ERF files
         for i in range(max_nodes):
             q.put('{}'.format(i+1))
         return q

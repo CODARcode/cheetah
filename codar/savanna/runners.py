@@ -2,6 +2,7 @@ import shutil
 import math
 from codar.savanna import machines
 from codar.savanna.jsrun_opts import JsrunGenerator
+from codar.savanna.run import Run
 
 
 class Runner(object):
@@ -24,7 +25,13 @@ class MPIRunner(Runner):
         self.tasks_per_gpu_arg = tasks_per_gpu_arg
         self.gpus_per_task_arg = gpus_per_task_arg
 
-    def wrap(self, run, sched_args, find_in_path=True):
+    def wrap(self, run: Run, sched_args, find_in_path=True):
+        if run.child_runs is None:
+            return self._wrap_single(run, sched_args, find_in_path)
+        else:
+            return self._wrap_mpmd(run, sched_args, find_in_path)
+
+    def _wrap_single(self, run, sched_args, find_in_path=True):
         runner_args = []
         runner_args += [self.exe, self.nprocs_arg, str(run.nprocs)]
 
@@ -50,7 +57,17 @@ class MPIRunner(Runner):
         if run.gpus_per_task is not None:
             runner_args += [self.gpus_per_task_arg.format(str(
                 run.gpus_per_task))]
-        return runner_args + [run.exe] + run.args
+
+        return runner_args + [run.app_sh]
+
+    def _wrap_mpmd(self, run:Run, sched_args, find_in_path=True):
+        args = self._wrap_single(run.child_runs[0], sched_args, find_in_path)
+
+        for r in run.child_runs[1:]:
+            _args = self._wrap_single(r, sched_args, find_in_path)
+            args += [" : "] + _args[1:]
+
+        return args
 
 
 class DTH2Runner(Runner):
@@ -88,7 +105,7 @@ class DTH2Runner(Runner):
         # for k, v in run.env:
         #     runner_args += [self.env, str(k), str(v)]
 
-        return runner_args + [run.exe] + run.args
+        return runner_args + [run.app_sh]
 
 
 class SummitRunner(Runner):
@@ -158,7 +175,7 @@ class SummitRunner(Runner):
             for (k, v) in sched_args.items():
                 runner_args += [str(k), str(v)]
 
-        return runner_args + [run.exe] + run.args
+        return runner_args + [run.app_sh]
 
 
 mpiexec = MPIRunner('mpiexec', '-n', hostfile='--hostfile')
