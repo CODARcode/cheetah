@@ -292,7 +292,7 @@ class Run(threading.Thread):
 
         # Create the file contents
         # 1. export user-defined and tau env vars
-        outstr = "#!/bin/bash\n"
+        outstr = "#!/bin/bash\n\n"
         for k,v in self.env.items():
             outstr += "export {}={}\n".format(k,v)
         if self.tau_profiler:
