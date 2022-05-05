@@ -16,7 +16,7 @@ class ProducerConsumer(Campaign):
     run_dir_setup_script = None
     run_post_process_script = None
     umask = '027'
-    scheduler_options = {'summit': {'project':'csc143'}}
+    scheduler_options = {'summit': {'project':'csc143'}, 'crusher':{'project':'csc299'}}
     app_config_scripts = None
     
     sweep1_parameters = [
@@ -36,7 +36,7 @@ class ProducerConsumer(Campaign):
                       node_layout={'summit': [summit_nc]})
 
     sg1 = p.SweepGroup ("sg-mpmd",
-                        walltime=300,
+                        walltime=60,
                         per_run_timeout=60,
                         parameter_groups=[sweep1],
                         launch_mode='mpmd',
