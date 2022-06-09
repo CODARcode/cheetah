@@ -61,10 +61,10 @@ class MPIRunner(Runner):
         return runner_args + [run.app_sh]
 
     def _wrap_mpmd(self, run:Run, sched_args, find_in_path=True):
-        args = self._wrap_single(run.child_runs[0], sched_args, find_in_path)
+        args = self._wrap_single(run.child_runs[0], run.child_runs[0].sched_args, find_in_path)
 
         for r in run.child_runs[1:]:
-            _args = self._wrap_single(r, sched_args, find_in_path)
+            _args = self._wrap_single(r, r.sched_args, find_in_path)
             args += [" : "] + _args[1:]
 
         return args
