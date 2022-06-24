@@ -17,7 +17,7 @@ Cheetah is centered around [ADIOS](https://adios2.readthedocs.io/en/latest/index
 
 Installation
 ------------
-* Dependency: Linux, Python 3.5+
+* Dependency: Linux, Python 3.5+, psutil
 * On supercomputers it should be installed at a location accessible from the parallel file system
 * Cheetah can be installed via the Spack package manager as `spack install codar-cheetah@develop`.
 * Users can also download Cheetah and set the PATH:
