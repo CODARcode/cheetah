@@ -3,6 +3,18 @@ import copy
 from codar.savanna.machines import MachineNode
 
 
+class NodeConfig:
+    def __init__(self):
+        """
+        Intended to look like
+        cpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        gpu = [ 0=[], 1=[], 2=[], 3=[] ]
+        """
+        self.num_ranks_per_node = 0
+        self.cpu = []
+        self.gpu = []
+
+
 class NodeLayout(object):
     """Class representing options on how to organize a multi-exe task across
     many nodes. It is the scheduler model's job to take this and produce the

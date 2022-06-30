@@ -14,6 +14,10 @@ nodes.
 import bisect
 import threading
 
+class Scheduler:
+    def __init__(self):
+        pass
+
 
 class JobList(object):
     """Manage a job list that can find and remove the highest cost job that

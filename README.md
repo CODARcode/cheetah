@@ -17,7 +17,7 @@ Cheetah is centered around [ADIOS](https://adios2.readthedocs.io/en/latest/index
 
 Installation
 ------------
-* Dependency: Linux, Python 3.5+
+* Dependency: Linux, Python 3.5+, psutil
 * On supercomputers it should be installed at a location accessible from the parallel file system
 * Cheetah can be installed via the Spack package manager as `spack install codar-cheetah@develop`.
 * Users can also download Cheetah and set the PATH:
@@ -51,6 +51,7 @@ System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Shar
 Local Linux machines | :white_check_mark: | N/A | N/A
 Summit (ORNL) | :white_check_mark: | :white_check_mark: | :white_check_mark:
 Andes (ORNL) | :white_check_mark: | :x: | :x:
+Spock (ORNL) | :white_check_mark: | -- | --
 Theta (ANL) | :white_check_mark: | :x: | N/A
 Cori (LBNL) | :white_check_mark: | :white_check_mark: | In progress
 
@@ -62,6 +63,13 @@ All contributors are listed [here](https://github.com/CODARcode/cheetah/graphs/c
 Citing Cheetah
 --------------
 To refer to Cheetah in a publication, please cite the following paper:
+
+* Mehta, Kshitij, Allen, Bryce, Wolf, Matthew, Logan, Jeremy, Suchyta, Eric, Singhal, Swati, Choi, Jong Youl, Takahashi, Keichi, Huck, Kevin, Yakushin, Igor, Sussman, Alan, Munson, Todd, Foster, Ian, and Klasky, Scott.  
+"A codesign framework for online data analysis and reduction"  
+Journal: Concurrency and Computation: Practice and Experience  
+https://doi.org/10.1002/cpe.6519.
+
+Other paper:
 * K. Mehta et al., "A Codesign Framework for Online Data Analysis and Reduction," 2019 IEEE/ACM Workflows in Support of Large-Scale Science (WORKS), Denver, CO, USA, 2019, pp. 11-20.  
 doi: 10.1109/WORKS49585.2019.00007  
 URL: http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8943548&isnumber=8943488

@@ -97,7 +97,7 @@ def get_adios_version(xml_file):
     # 'adios-group' for adios1
     tree = ET.parse(xml_file)
     root = tree.getroot()
-    first_child_node = root.getchildren()[0]
+    first_child_node = list(root)[0]
     if first_child_node.tag == 'io':
         return 2
     return 1
@@ -199,7 +199,7 @@ def _get_io_node(tree, io_obj):
 
 
 def _add_parameters(node, parameters):
-    if len(parameters) is 0:
+    if len(parameters) == 0:
         return
 
     for key, value in parameters.items():

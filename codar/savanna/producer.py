@@ -3,7 +3,7 @@
 import json
 import os
 import logging
-from codar.savanna.model import Pipeline
+from codar.savanna.pipeline import Pipeline
 from codar.savanna.status import DONE, NOT_STARTED
 
 _log = logging.getLogger('codar.savanna.producer')

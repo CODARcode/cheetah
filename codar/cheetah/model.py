@@ -247,6 +247,16 @@ class Campaign(object):
 
         # Traverse through sweep groups
         for group_i, group in enumerate(self.sweeps):
+
+            # #----------------------------------------------------------------#
+            # # #241: Disable MPMD on Summit as ERF on Summit is broken
+            # if group.launch_mode.lower() == 'mpmd' and \
+            #     self.machine.name.lower() == 'summit':
+            #     raise exc.CheetahException(
+            #         "MPMD mode currently disabled on Summit due to a jsrun "
+            #         "bug on Summit")
+            # #----------------------------------------------------------------#
+
             # Validate component inputs.
             #   1. Ensure all keys are valid code names
             code_names = list(self.codes.keys())
@@ -317,7 +327,7 @@ class Campaign(object):
 
                     # we dont support mpmd on deepthought2
                     try:
-                        if self.machine.machine_name.lower() == 'deepthought2':
+                        if self.machine.name.lower() == 'deepthought2':
                             assert group.launch_mode.lower() not in 'mpmd',\
                                 "mpmd mode not implemented for deepthought2"
                     except AttributeError:
@@ -473,6 +483,17 @@ class Run(object):
         codes_argv = self._get_codes_argv_ordered()
         for (target, argv) in codes_argv.items():
             exe_path = self.codes[target]['exe']
+
+            # Get user-defined env file
+            env_fname = self.codes[target].get('env_file')
+            env_fpath = None
+            if env_fname is not None:
+                env_fpath = \
+                    relative_or_absolute_path(self.codes_path, env_fname)
+                assert os.path.isfile(env_fpath) and \
+                       os.access(env_fpath, os.R_OK), \
+                    "Cannot read {}".format(env_fpath)
+
             sleep_after = self.codes[target].get('sleep_after', 0)
             runner_override = self.codes[target].get('runner_override', False)
             assert type(runner_override) == bool, \
@@ -519,6 +540,7 @@ class Run(object):
                                 sched_args=sched_args,
                                 nprocs=self.instance.get_nprocs(target),
                                 sleep_after=sleep_after,
+                                env_file=env_fpath,
                                 working_dir=working_dir,
                                 component_inputs=component_inputs,
                                 linked_with_sosflow=linked_with_sosflow,
@@ -663,7 +685,8 @@ class RunComponent(object):
     def __init__(self, name, exe, args, sched_args, nprocs, working_dir,
                  component_inputs=None, sleep_after=None,
                  linked_with_sosflow=False, adios_xml_file=None,
-                 env=None, timeout=None, hostfile=None, runner_override=False):
+                 env=None, env_file=None, timeout=None, hostfile=None,
+                 runner_override=False):
         self.name = name
         self.exe = exe
         self.args = args
@@ -671,6 +694,7 @@ class RunComponent(object):
         self.nprocs = nprocs
         self.sleep_after = sleep_after
         self.env = env or {}
+        self.env_file = env_file or {}
         self.timeout = timeout
         self.working_dir = working_dir
         self.component_inputs = component_inputs
@@ -697,6 +721,8 @@ class RunComponent(object):
                     runner_override=self.runner_override)
         if self.env:
             data['env'] = self.env
+        if self.env_file:
+            data['env_file'] = self.env_file
         if self.timeout:
             data['timeout'] = self.timeout
         if self.hostfile:
