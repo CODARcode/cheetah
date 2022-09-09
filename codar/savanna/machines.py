@@ -186,6 +186,16 @@ titan = Machine('titan', "pbs", "aprun", MachineNode,
 # TODO: remove node exclusive restriction, which can be avoided on cori
 # using correct sbatch and srun options. As a start just get feature
 # parity with titan.
+perlmutter_cpu = Machine('perlmutter_cpu', 'slurm', 'srun', MachineNode, 
+                         processes_per_node=128, node_exclusive=True,
+                         scheduler_options=dict(project="", queue="regular",
+                             reservation="", custom=""))
+
+perlmutter_gpu = Machine('perlmutter_gpu', 'slurm', 'srun', MachineNode, 
+                         processes_per_node=64, node_exclusive=True,
+                         scheduler_options=dict(project="", queue="regular",
+                             reservation="", custom=""))
+
 cori = Machine('cori', "slurm", "srun", MachineNode,
                processes_per_node=32, node_exclusive=True,
                dataspaces_servers_per_node=4,
