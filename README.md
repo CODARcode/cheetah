@@ -43,12 +43,14 @@ The Cheetah documentation can be found at [https://codarcode.github.io/cheetah](
 
 Releases
 --------
-The current release is [1.1.2](https://github.com/CODARcode/cheetah/releases/tag/v1.1.2).
+The current release is [1.1.3](https://github.com/CODARcode/cheetah/releases/tag/v1.1.3).
 
 ### Supported Systems
 System Name | Cheetah Support | System supports Node-Sharing | Cheetah Node-Sharing Support 
 :-----------| :---------------| :----------------------------| :---------------------------
 Local Linux machines | :white_check_mark: | N/A | N/A
+Frontier (ORNL) | :white_check_mark: | -- | --
+Perlmutter (NERSC) | :white_check_mark: | -- | --
 Summit (ORNL) | :white_check_mark: | :white_check_mark: | :white_check_mark:
 Andes (ORNL) | :white_check_mark: | :x: | :x:
 Spock (ORNL) | :white_check_mark: | -- | --
