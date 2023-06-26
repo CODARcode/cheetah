@@ -196,6 +196,11 @@ perlmutter_gpu = Machine('perlmutter_gpu', 'slurm', 'srun', MachineNode,
                          scheduler_options=dict(project="", queue="regular",
                              reservation="", custom=""))
 
+frontier = Machine('frontier', 'slurm', 'srun', MachineNode,
+                processes_per_node=64, node_exclusive=True,
+                scheduler_options=dict(project='', queue='batch',
+                                       reservation='', custom=''))
+
 cori = Machine('cori', "slurm", "srun", MachineNode,
                processes_per_node=32, node_exclusive=True,
                dataspaces_servers_per_node=4,
