@@ -469,13 +469,13 @@ class Pipeline(object):
         args = [self.post_process_script] + self.post_process_args
         # TODO: make sure this doesn't conflict with other names
         name = 'post-process'
-        stdout_path = self._get_path(self.working_dir,
+        stdout_path = get_path(self.working_dir,
                                 STDOUT_NAME + "." + name, None)
-        stderr_path = self._get_path(self.working_dir,
+        stderr_path = get_path(self.working_dir,
                                 STDERR_NAME + "." + name, None)
-        return_path = self._get_path(self.working_dir,
+        return_path = get_path(self.working_dir,
                                 RETURN_NAME + "." + name, None)
-        walltime_path = self._get_path(self.working_dir,
+        walltime_path = get_path(self.working_dir,
                                   WALLTIME_NAME + "." + name, None)
 
         outf = errf = None
